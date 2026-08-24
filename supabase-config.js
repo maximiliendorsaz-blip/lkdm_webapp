@@ -1,4 +1,9 @@
-const SUPABASE_URL = 'https://cobjizqwmppbhzlgevxn.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_lfPJhfXbG9SUtJlSCDl3kg_TVHK2_2m';
+const SUPABASE_URL = 'VOTRE_URL_ICI';
+const SUPABASE_ANON_KEY = 'VOTRE_CLE_PUBLIQUE_ICI';
 
-window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+if (window.supabase) {
+    window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log("Supabase initialisé avec succès !");
+} else {
+    console.error("Erreur : La librairie Supabase n'est pas chargée.");
+}
