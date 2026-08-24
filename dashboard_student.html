@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LKDM Student - Espace Étudiant Le Koup de Main</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        lkdm: {
+                            bg: '#f6f6f6',        // Off-White
+                            text: '#3D4C53',      // Dark Slate
+                            secondary: '#95a7b6', // Blue Grey
+                            accent: '#D64545',    // Faded Red (Rouge DA)
+                            green: '#2E7D32',     // Vert validation harmonisé
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Leaflet CSS & JS for Interactive Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f6f6f6; color: #3D4C53; }
+        #map { height: 460px; width: 100%; border-radius: 1.5rem; z-index: 10; border: 1px solid #e5e7eb; }
+        .tab-content { display: none; animation: fadeIn 0.25s ease-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        /* Effet Polaroid pour clin d'œil à votre DA */
+        .polaroid-effect { background: white; padding: 12px 12px 24px 12px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); transform: rotate(1deg); border: 1px solid #e5e7eb;}
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="antialiased flex flex-col min-h-screen selection:bg-lkdm-accent selection:text-white">
+
+    <!-- Top Navigation Bar (Mobile Only) -->
+    <header class="bg-white text-lkdm-text lg:hidden flex items-center justify-between p-4 sticky top-0 z-50 shadow-sm border-b border-slate-200">
+        <div class="flex items-center gap-2">
+            <span class="font-bold text-lg tracking-tight">Le Koup de Main</span>
+        </div>
+        <button id="mobileMenuBtn" class="text-lkdm-text hover:text-lkdm-accent focus:outline-none">
+            <i class="fa-solid fa-bars text-2xl"></i>
+        </button>
+    </header>
+
+    <div class="flex flex-1 relative overflow-hidden">
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="bg-white border-r border-slate-200/80 w-72 space-y-6 py-8 px-5 absolute inset-y-0 left-0 transform -translate-x-full lg:relative lg:translate-x-0 transition duration-300 ease-in-out z-40 flex flex-col justify-between shadow-xl lg:shadow-none">
+            <div class="space-y-8">
+                <!-- Logo LKDM -->
+                <div class="px-2">
+                    <h1 class="font-bold text-xl text-lkdm-text tracking-tight">Le Koup de Main</h1>
+                    <p class="text-xs text-lkdm-secondary font-medium tracking-wider uppercase mt-1">Espace Étudiant</p>
+                </div>
+
+                <!-- User Profile Mini Card (Polaroid inspired minimal style) -->
+                <div class="bg-lkdm-bg p-4 rounded-2xl border border-slate-200/60 flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-full bg-lkdm-secondary text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                        AD
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-sm font-semibold text-lkdm-text truncate">Alexandre Dubois</p>
+                        <p class="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
+                            <i class="fa-solid fa-circle-check"></i> Profil Validé
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Nav Links -->
+                <nav class="space-y-1">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition bg-lkdm-accent text-white shadow-sm">
+                        <i class="fa-solid fa-house w-5 text-center"></i> Tableau de bord
+                    </button>
+                    <button onclick="switchTab('missions')" id="nav-missions" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-text hover:bg-lkdm-bg hover:text-lkdm-accent">
+                        <i class="fa-solid fa-map-location-dot w-5 text-center"></i> Missions & Carte
+                        <span id="badge-dispo" class="ml-auto bg-lkdm-secondary text-white text-xs px-2.5 py-0.5 rounded-full font-bold shadow-sm">3</span>
+                    </button>
+                    <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-text hover:bg-lkdm-bg hover:text-lkdm-accent">
+                        <i class="fa-regular fa-calendar w-5 text-center"></i> Mon Agenda
+                    </button>
+                    <button onclick="switchTab('earnings')" id="nav-earnings" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-text hover:bg-lkdm-bg hover:text-lkdm-accent">
+                        <i class="fa-solid fa-wallet w-5 text-center"></i> Mes Salaires
+                    </button>
+                    <button onclick="switchTab('charter')" id="nav-charter" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-text hover:bg-lkdm-bg hover:text-lkdm-accent">
+                        <i class="fa-regular fa-file-alt w-5 text-center"></i> Charte LKDM
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Footer / Quick Support -->
+            <div class="pt-6 border-t border-slate-100">
+                <div class="bg-lkdm-bg p-4 rounded-2xl border border-slate-200/80 mb-4">
+                    <p class="font-bold text-lkdm-text text-xs tracking-wide uppercase mb-1">Support LKDM Sierre</p>
+                    <p class="text-xs text-lkdm-secondary mb-3">Maximilien & Benjamin</p>
+                    <a href="mailto:hello@lekoupdemain.ch" class="text-xs text-lkdm-text font-medium hover:text-lkdm-accent flex items-center gap-1.5 break-all"><i class="fa-regular fa-envelope"></i> hello@lekoupdemain.ch</a>
+                    <a href="tel:+41772807697" class="text-xs text-lkdm-text font-medium hover:text-lkdm-accent flex items-center gap-1.5 mt-2"><i class="fa-solid fa-phone"></i> 077 280 76 97</a>
+                </div>
+                <a href="/webapp/hub.html" class="w-full flex items-center justify-center gap-2 text-xs font-medium text-lkdm-secondary hover:text-lkdm-accent transition py-2">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Retour au portail
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 h-screen overflow-y-auto bg-lkdm-bg p-4 lg:p-8">
+            <div class="max-w-5xl mx-auto">
+                
+                <!-- Notification Toast (Faded Red Theme) -->
+                <div id="toast" class="hidden fixed top-5 right-5 bg-lkdm-text text-white px-6 py-4 rounded-xl shadow-xl z-50 flex items-center gap-3 border-l-4 border-lkdm-accent transition transform duration-300">
+                    <i class="fa-solid fa-circle-check text-lkdm-accent text-xl"></i>
+                    <div>
+                        <h4 class="font-bold text-sm">Action validée !</h4>
+                        <p id="toast-msg" class="text-xs text-slate-300">Mission ajoutée à votre espace.</p>
+                    </div>
+                </div>
+
+                <!-- TAB 1: DASHBOARD -->
+                <div id="tab-dashboard" class="tab-content active space-y-8">
+                    
+                    <!-- Welcome Header -->
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Tableau de bord</span>
+                            <h2 class="text-3xl font-bold text-lkdm-text mt-1">Ravi de vous revoir, Alexandre 👋</h2>
+                        </div>
+                        <span class="text-xs font-medium text-lkdm-secondary bg-white px-3 py-1.5 rounded-full border border-slate-200">Semestre Automne 2026</span>
+                    </div>
+
+                    <!-- Main Dashboard Banner (Faded Red Accent Card) -->
+                    <div class="bg-white rounded-3xl p-6 lg:p-8 border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+                        <div class="max-w-xl space-y-3 relative z-10">
+                            <h3 class="text-xl font-bold text-lkdm-text leading-snug">Prêt à rendre le quotidien plus léger ?</h3>
+                            <p class="text-lkdm-text text-sm leading-relaxed opacity-90">
+                                La rencontre entre la rigueur étudiante et l'expérience de vie des seniors valaisans. Vous avez <strong class="text-lkdm-accent">2 missions confirmées</strong> à réaliser prochainement.
+                            </p>
+                            <div class="pt-2">
+                                <button onclick="switchTab('missions')" class="bg-lkdm-accent hover:bg-[#b53838] text-white font-medium px-6 py-3 rounded-[50px] text-xs transition shadow-sm">
+                                    Découvrir les Koup de Main disponibles
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Polaroid Style Decorative Pic Element -->
+                        <div class="hidden md:block polaroid-effect flex-shrink-0 border border-slate-100">
+                            <div class="bg-lkdm-secondary/20 w-36 h-28 rounded flex items-center justify-center mb-2">
+                                <i class="fa-solid fa-hands-holding-child text-3xl text-lkdm-secondary"></i>
+                            </div>
+                            <span class="text-[9px] text-lkdm-secondary font-medium tracking-wide block text-center uppercase">LKDM Valais</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI Statistics Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-lkdm-secondary uppercase tracking-wider">Missions effectuées</p>
+                                <h3 id="dash-kpi-count" class="text-2xl font-bold text-lkdm-text mt-1">6</h3>
+                            </div>
+                            <i class="fa-solid fa-handshake-angle text-xl text-lkdm-secondary"></i>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-lkdm-secondary uppercase tracking-wider">Salaire estimé (Août)</p>
+                                <h3 id="dash-kpi-salary" class="text-2xl font-bold text-lkdm-accent mt-1">CHF 480.-</h3>
+                            </div>
+                            <i class="fa-solid fa-coins text-xl text-lkdm-secondary"></i>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-semibold text-lkdm-secondary uppercase tracking-wider">Note globale</p>
+                                <h3 class="text-2xl font-bold text-lkdm-text mt-1">4.9 / 5.0</h3>
+                            </div>
+                            <i class="fa-solid fa-star text-xl text-amber-500"></i>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Schedule Box -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold text-lkdm-text text-base">Vos prochains engagements validés</h3>
+                            <button onclick="switchTab('calendar')" class="text-xs font-semibold text-lkdm-secondary hover:text-lkdm-accent underline">Voir l'agenda complet</button>
+                        </div>
+                        <div id="dash-upcoming-list" class="space-y-3">
+                            <!-- Populated via script -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: MISSIONS & CARTOGRAPHY -->
+                <div id="tab-missions" class="tab-content space-y-6">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Koup de Main à pourvoir</span>
+                            <h2 class="text-2xl font-bold text-lkdm-text mt-0.5">Missions en Valais</h2>
+                        </div>
+                        <div>
+                            <select id="filter-status" onchange="renderMissions()" class="bg-white border border-slate-200 text-lkdm-text text-xs font-medium rounded-xl px-4 py-2.5 focus:outline-none focus:border-lkdm-accent shadow-sm">
+                                <option value="available" selected>Missions disponibles</option>
+                                <option value="accepted">Mes missions acceptées</option>
+                                <option value="all">Toutes les missions</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- List Container -->
+                        <div class="lg:col-span-1 space-y-3 h-[460px] overflow-y-auto pr-2 custom-scrollbar" id="missions-container">
+                            <!-- Populated via script -->
+                        </div>
+                        
+                        <!-- Map Container -->
+                        <div class="lg:col-span-2 bg-white p-2 rounded-3xl border border-slate-200 shadow-sm">
+                            <div id="map"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: CALENDAR -->
+                <div id="tab-calendar" class="tab-content space-y-6">
+                    <div class="bg-white p-6 lg:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Mon planning étudiant</span>
+                                <h2 class="text-xl font-bold text-lkdm-text mt-0.5">Août 2026</h2>
+                            </div>
+                            <div class="flex gap-1">
+                                <button class="w-9 h-9 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 text-xs"><i class="fa-solid fa-chevron-left"></i></button>
+                                <button class="w-9 h-9 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 text-xs"><i class="fa-solid fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-7 gap-3 text-center text-xs font-semibold text-lkdm-secondary mb-2">
+                            <div>LUN</div><div>MAR</div><div>MER</div><div>JEU</div><div>VEN</div><div>SAM</div><div>DIM</div>
+                        </div>
+                        <div id="calendar-grid" class="grid grid-cols-7 gap-3">
+                            <!-- Populated via script -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: SALARIES -->
+                <div id="tab-earnings" class="tab-content space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                            <div class="space-y-1">
+                                <span class="text-xs font-semibold text-lkdm-secondary uppercase tracking-wider">Prochain versement</span>
+                                <p class="text-xs text-lkdm-secondary">Virement automatique prévu le 5 septembre</p>
+                                <h3 id="earnings-next" class="text-3xl font-bold text-lkdm-accent pt-2">CHF 480.00</h3>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-lkdm-secondary">
+                                Taux standard : CHF 25.00 / heure
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                            <div class="space-y-1">
+                                <span class="text-xs font-semibold text-lkdm-secondary uppercase tracking-wider">Cumul Annuel 2026</span>
+                                <p class="text-xs text-lkdm-secondary">Total versé sur l'année civile</p>
+                                <h3 class="text-3xl font-bold text-lkdm-text pt-2">CHF 3'840.00</h3>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-emerald-600 font-medium">
+                                <i class="fa-solid fa-circle-check"></i> Déclarations fiscales à jour
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Receipts / Payroll Table -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                        <div class="p-5 border-b border-slate-100">
+                            <h3 class="font-bold text-lkdm-text text-sm uppercase tracking-wide">Fiches de salaire mensuelles</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-lkdm-text">
+                                <thead class="bg-slate-50 text-xs font-semibold text-lkdm-secondary uppercase border-b border-slate-100">
+                                    <tr>
+                                        <th class="py-4 px-6">Période</th>
+                                        <th class="py-4 px-6">Heures validées</th>
+                                        <th class="py-4 px-6">Montant Brut</th>
+                                        <th class="py-4 px-6">Statut</th>
+                                        <th class="py-4 px-6 text-right">PDF</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-xs font-medium">
+                                    <tr class="hover:bg-slate-50/50 transition">
+                                        <td class="py-4 px-6 font-bold">Juillet 2026</td>
+                                        <td class="py-4 px-6 text-lkdm-secondary">24.8 heures</td>
+                                        <td class="py-4 px-6 font-bold">CHF 620.00</td>
+                                        <td class="py-4 px-6"><span class="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-md font-semibold">Effectué</span></td>
+                                        <td class="py-4 px-6 text-right"><button class="text-lkdm-accent hover:underline font-bold"><i class="fa-solid fa-file-pdf mr-1"></i> Ouvrir</button></td>
+                                    </tr>
+                                    <tr class="hover:bg-slate-50/50 transition">
+                                        <td class="py-4 px-6 font-bold">Juin 2026</td>
+                                        <td class="py-4 px-6 text-lkdm-secondary">21.0 heures</td>
+                                        <td class="py-4 px-6 font-bold">CHF 525.00</td>
+                                        <td class="py-4 px-6"><span class="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-md font-semibold">Effectué</span></td>
+                                        <td class="py-4 px-6 text-right"><button class="text-lkdm-accent hover:underline font-bold"><i class="fa-solid fa-file-pdf mr-1"></i> Ouvrir</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 5: CHARTER & RULES -->
+                <div id="tab-charter" class="tab-content space-y-6">
+                    <div class="bg-white p-6 lg:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                        <div class="border-b border-slate-100 pb-4 mb-6">
+                            <h2 class="text-2xl font-bold text-lkdm-text">Charte d'engagement Le Koup de Main</h2>
+                            <p class="text-xs text-lkdm-secondary mt-1">Règles d'or pour préserver le lien de confiance unique avec nos seniors valaisans.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-4">
+                                <h3 class="font-bold text-sm uppercase tracking-wider text-lkdm-text">Les valeurs phares</h3>
+                                
+                                <div class="p-4 bg-lkdm-bg rounded-xl border border-slate-200/60 space-y-1">
+                                    <h4 class="font-semibold text-sm text-lkdm-text">Le sourire & la présence humaine</h4>
+                                    <p class="text-xs text-lkdm-secondary">Au-delà de l'aide concrète (courses, ménage, informatique), la qualité première recherchée est l'échange bienveillant et l'écoute attentive.</p>
+                                </div>
+                                
+                                <div class="p-4 bg-lkdm-bg rounded-xl border border-slate-200/60 space-y-1">
+                                    <h4 class="font-semibold text-sm text-lkdm-text">Rigueur & Ponctualité</h4>
+                                    <p class="text-xs text-lkdm-secondary">Chaque rendez-visite compte énormément pour les bénéficiaires. En cas d'empêchement ou de retard majeur, prévenez immédiatement l'équipe LKDM.</p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <h3 class="font-bold text-sm uppercase tracking-wider text-lkdm-text">L'antenne Valais (Technopôle Sierre)</h3>
+                                <div class="p-5 rounded-2xl border border-slate-200 bg-lkdm-bg space-y-4 text-xs font-medium text-lkdm-text">
+                                    <p class="text-slate-500 leading-relaxed">Une question sur un contrat, une assurance RC ou un profil de bénéficiaire ? L'équipe est là pour vous guider au quotidien.</p>
+                                    <ul class="space-y-2.5">
+                                        <li><i class="fa-solid fa-user-tie text-lkdm-accent mr-2"></i> Maximilien & Benjamin</li>
+                                        <li><i class="fa-solid fa-location-dot text-lkdm-secondary mr-2"></i> TechnoArk / Technopôle 1, 3960 Sierre</li>
+                                        <li><i class="fa-solid fa-phone text-lkdm-secondary mr-2"></i> +41 77 280 76 97</li>
+                                        <li><i class="fa-solid fa-envelope text-lkdm-secondary mr-2"></i> hello@lekoupdemain.ch</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Fenêtre Modale (Détails de la mission) -->
+    <div id="mission-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300" id="mission-modal-content">
+            <!-- Le contenu sera injecté dynamiquement ici -->
+        </div>
+    </div>
+
+    <!-- Application Core Script -->
+    <script>
+        // Synchronized dataset using precise website tokens
+        let missions = [
+            { id: 1, title: "Aide ménage & discussion", client: "Mme Favre (Senior)", city: "Sion", address: "Avenue de la Gare 14", lat: 46.2331, lng: 7.3606, date: "Mer. 5 Août", time: "14:00 - 16:30", duration: "2.5h", pay: 62.50, status: "accepted" },
+            { id: 2, title: "Initiation Informatique (Tablette)", client: "M. Roduit", city: "Sierre", address: "Technopôle 1", lat: 46.2933, lng: 7.5330, date: "Jeu. 6 Août", time: "10:00 - 12:00", duration: "2.0h", pay: 50.00, status: "accepted" },
+            { id: 3, title: "Accompagnement courses hebdomadaires", client: "Mme Bonvin", city: "Sierre", address: "Avenue Max Huber 3", lat: 46.2917, lng: 7.5333, date: "Ven. 7 Août", time: "09:00 - 12:00", duration: "3.0h", pay: 75.00, status: "available" },
+            { id: 4, title: "Jardinage & taille légère", client: "M. Constant", city: "Martigny", address: "Rue du Léman 22", lat: 46.1028, lng: 7.0736, date: "Sam. 8 Août", time: "16:00 - 17:30", duration: "1.5h", pay: 40.00, status: "available" },
+            { id: 5, title: "Tri administratif & classement", client: "Mme Rey", city: "Sion", address: "Route de Châteauneuf", lat: 46.2250, lng: 7.3410, date: "Lun. 10 Août", time: "13:30 - 15:30", duration: "2.0h", pay: 50.00, status: "available" }
+        ];
+
+        let map = null;
+        let markersGroup = null;
+
+        function initMap() {
+            if (map) return;
+            map = L.map('map').setView([46.2331, 7.3606], 10);
+            
+            // Voyager tile template for clean contrast aligned with minimalist UI
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(map);
+
+            markersGroup = L.layerGroup().addTo(map);
+            updateMapMarkers();
+        }
+
+        function updateMapMarkers() {
+            if (!map || !markersGroup) return;
+            markersGroup.clearLayers();
+            const statusFilter = document.getElementById('filter-status').value;
+
+            missions.forEach(m => {
+                if (statusFilter !== 'all' && m.status !== statusFilter) return;
+
+                const isAccepted = m.status === 'accepted';
+                const color = isAccepted ? '#2E7D32' : '#D64545'; // Faded Red for available, deep green for accepted
+                
+                const customIcon = L.divIcon({
+                    className: 'custom-pin',
+                    html: `<div style="background-color: ${color}; width: 18px; height: 18px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.16);"></div>`,
+                    iconSize: [18, 18],
+                    iconAnchor: [9, 9]
+                });
+
+                const marker = L.marker([m.lat, m.lng], { icon: customIcon }).addTo(markersGroup);
+
+                marker.bindPopup(`
+                    <div style="font-family: 'Poppins', sans-serif; padding: 2px;">
+                        <h4 style="font-weight: 700; font-size:13px; color:#3D4C53; margin:0 0 4px 0;">${m.title}</h4>
+                        <p style="font-size: 11px; color: #95a7b6; margin:0 0 6px 0;">${m.city} • ${m.date}</p>
+                        ${!isAccepted ? `<button onclick="acceptMission(${m.id})" style="width: 100%; background: #D64545; color: white; border: none; padding: 6px 12px; border-radius: 50px; font-weight: 500; font-size:11px; cursor: pointer; transition: 0.2s;">Accepter</button>` : '<span style="font-size:10px; font-weight:600; color:#2E7D32;"><i class="fa-solid fa-check"></i> Mission acceptée</span>'}
+                    </div>
+                `);
+            });
+        }
+
+        function renderMissions() {
+            const container = document.getElementById('missions-container');
+            const statusFilter = document.getElementById('filter-status').value;
+            container.innerHTML = '';
+
+            const filtered = missions.filter(m => statusFilter === 'all' || m.status === statusFilter);
+
+            filtered.forEach(m => {
+                const isAccepted = m.status === 'accepted';
+                container.innerHTML += `
+                    <div onclick="openMissionDetails(${m.id})" class="cursor-pointer bg-white rounded-2xl p-5 border ${isAccepted ? 'border-emerald-200 bg-emerald-50/5' : 'border-slate-200/80 hover:border-lkdm-accent'} transition duration-200 shadow-sm">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded ${isAccepted ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-lkdm-accent'}">
+                                ${isAccepted ? 'Validé' : 'Disponible'}
+                            </span>
+                            <span class="font-bold text-sm text-lkdm-text">CHF ${m.pay.toFixed(2)}</span>
+                        </div>
+                        <h4 class="font-bold text-sm text-lkdm-text leading-tight">${m.title}</h4>
+                        <p class="text-xs text-lkdm-secondary mt-1">${m.client} • ${m.city}</p>
+                        <div class="flex items-center justify-between text-xs pt-4 mt-2 border-t border-slate-100">
+                            <span class="text-lkdm-text font-medium"><i class="fa-regular fa-clock mr-1 text-lkdm-secondary"></i> ${m.date}</span>
+                            ${!isAccepted ? `<button onclick="event.stopPropagation(); acceptMission(${m.id})" class="text-lkdm-accent font-bold hover:underline">Accepter</button>` : '<span class="text-emerald-700 font-bold"><i class="fa-solid fa-check"></i> Planning</span>'}
+                        </div>
+                    </div>
+                `;
+            });
+            updateMapMarkers();
+            updateDashboard();
+        }
+
+        function openMissionDetails(id) {
+            const m = missions.find(x => x.id === id);
+            if (!m) return;
+
+            const isAccepted = m.status === 'accepted';
+            const modal = document.getElementById('mission-modal');
+            const content = document.getElementById('mission-modal-content');
+
+            content.innerHTML = `
+                <div class="relative p-6 border-b border-slate-100">
+                    <button onclick="closeMissionDetails()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-lkdm-bg text-lkdm-secondary hover:bg-slate-200 hover:text-lkdm-text transition">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                    <span class="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-md ${isAccepted ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-lkdm-accent'}">
+                        ${isAccepted ? 'Mission validée' : 'Opportunité'}
+                    </span>
+                    <h3 class="text-xl font-bold text-lkdm-text mt-3 leading-tight">${m.title}</h3>
+                    <p class="text-sm text-lkdm-secondary mt-1"><i class="fa-solid fa-user text-lkdm-secondary/70 mr-1"></i> ${m.client}</p>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="flex items-center gap-4 text-sm text-lkdm-text">
+                        <div class="w-10 h-10 rounded-full bg-lkdm-bg flex items-center justify-center text-lkdm-secondary flex-shrink-0"><i class="fa-regular fa-calendar"></i></div>
+                        <div>
+                            <p class="font-bold">${m.date}</p>
+                            <p class="text-xs text-lkdm-secondary">${m.time} (${m.duration})</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 text-sm text-lkdm-text">
+                        <div class="w-10 h-10 rounded-full bg-lkdm-bg flex items-center justify-center text-lkdm-secondary flex-shrink-0"><i class="fa-solid fa-location-dot"></i></div>
+                        <div>
+                            <p class="font-bold">${m.city}</p>
+                            <p class="text-xs text-lkdm-secondary">${m.address}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 text-sm text-lkdm-text">
+                        <div class="w-10 h-10 rounded-full bg-lkdm-bg flex items-center justify-center text-lkdm-secondary flex-shrink-0"><i class="fa-solid fa-wallet"></i></div>
+                        <div>
+                            <p class="font-bold">Rémunération</p>
+                            <p class="text-xs font-bold text-lkdm-accent">CHF ${m.pay.toFixed(2)}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="pt-4 mt-2">
+                        ${!isAccepted ? `
+                            <button onclick="acceptMission(${m.id}); closeMissionDetails();" class="w-full bg-lkdm-accent hover:bg-[#b53838] text-white font-medium py-3 rounded-[50px] transition shadow-sm">
+                                Accepter cette mission
+                            </button>
+                        ` : `
+                            <button onclick="closeMissionDetails()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-[50px] transition shadow-sm flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-check"></i> Fermer les détails
+                            </button>
+                        `}
+                    </div>
+                </div>
+            `;
+
+            // Affichage avec animation fluide
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeMissionDetails() {
+            const modal = document.getElementById('mission-modal');
+            const content = document.getElementById('mission-modal-content');
+            
+            // Animation de fermeture
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function acceptMission(id) {
+            const m = missions.find(x => x.id === id);
+            if (m && m.status !== 'accepted') {
+                m.status = 'accepted';
+                showToast(`Koup de Main "${m.title}" ajouté à votre agenda.`);
+                renderMissions();
+                renderUpcomingDashboard();
+                renderCalendar();
+            }
+        }
+
+        function renderUpcomingDashboard() {
+            const container = document.getElementById('dash-upcoming-list');
+            const accepted = missions.filter(m => m.status === 'accepted');
+            container.innerHTML = '';
+            
+            if (accepted.length === 0) {
+                container.innerHTML = '<p class="text-xs text-lkdm-secondary p-2">Aucun Koup de Main planifié.</p>';
+                return;
+            }
+
+            accepted.forEach(m => {
+                container.innerHTML += `
+                    <div class="flex items-center gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition">
+                        <div class="bg-white border border-slate-200 w-12 h-12 rounded-xl flex flex-col items-center justify-center flex-shrink-0 shadow-sm">
+                            <span class="text-[9px] text-lkdm-secondary font-bold uppercase">${m.date.split(' ')[0]}</span>
+                            <span class="text-base font-bold text-lkdm-text leading-tight">${m.date.split(' ')[1]}</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-bold text-xs text-lkdm-text truncate">${m.title}</h4>
+                            <p class="text-[11px] text-lkdm-secondary mt-0.5">${m.time} • ${m.city}</p>
+                        </div>
+                        <div class="font-bold text-xs text-lkdm-text">CHF ${m.pay.toFixed(0)}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 4; i++) grid.innerHTML += '<div class="h-24 rounded-xl bg-slate-100/40 border border-dashed border-slate-200"></div>'; // Calendar alignment offset
+
+            for (let day = 1; day <= 31; day++) {
+                const match = missions.find(m => m.status === 'accepted' && m.date.includes(`${day} Août`));
+                grid.innerHTML += `
+                    <div class="h-24 rounded-xl border ${match ? 'border-lkdm-accent bg-red-50/10' : 'border-slate-200 bg-white'} p-2 flex flex-col justify-between overflow-hidden">
+                        <span class="text-xs font-bold ${match ? 'text-lkdm-accent' : 'text-slate-400'}">${day}</span>
+                        ${match ? `<div class="bg-lkdm-accent text-white text-[9px] p-1 rounded font-medium truncate">${match.title}</div>` : ''}
+                    </div>
+                `;
+            }
+        }
+
+        function updateDashboard() {
+            const availableCount = missions.filter(m => m.status === 'available').length;
+            const accepted = missions.filter(m => m.status === 'accepted');
+            
+            document.getElementById('badge-dispo').innerText = availableCount;
+            document.getElementById('dash-kpi-count').innerText = accepted.length + 4;
+            
+            const total = accepted.reduce((acc, m) => acc + m.pay, 368.00);
+            document.getElementById('dash-kpi-salary').innerText = `CHF ${total.toFixed(0)}.-`;
+            document.getElementById('earnings-next').innerText = `CHF ${total.toFixed(0)}.-`;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            if (msg) document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-lkdm-accent', 'text-white', 'shadow-sm');
+                btn.classList.add('text-lkdm-text');
+            });
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            activeBtn.classList.add('bg-lkdm-accent', 'text-white', 'shadow-sm');
+            activeBtn.classList.remove('text-lkdm-text');
+
+            if (tabId === 'missions') setTimeout(() => { initMap(); if(map) map.invalidateSize(); }, 100);
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+        }
+
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderMissions();
+            renderUpcomingDashboard();
+            renderCalendar();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portail Admin - Le Koup de Main</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        lkdm: {
+                            bg: '#f6f6f6',        // Off-White
+                            text: '#3D4C53',      // Dark Slate
+                            secondary: '#95a7b6', // Blue Grey
+                            accent: '#D64545',    // Faded Red
+                            green: '#2E7D32',     // Green
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f6f6f6; color: #3D4C53; }
+        .tab-content { display: none; animation: fadeIn 0.25s ease-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .polaroid-effect { background: white; padding: 12px 12px 24px 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); transform: rotate(-1deg); border: 1px solid #e5e7eb;}
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        #admin-map { height: 400px; width: 100%; border-radius: 1.5rem; z-index: 10; border: 1px solid #e5e7eb; }
+    </style>
+</head>
+<body class="antialiased flex flex-col min-h-screen selection:bg-lkdm-accent selection:text-white">
+
+    <!-- Top Navigation Bar (Mobile Only) -->
+    <header class="bg-white text-lkdm-text lg:hidden flex items-center justify-between p-4 sticky top-0 z-50 shadow-sm border-b border-slate-200">
+        <div class="flex items-center gap-2">
+            <span class="font-bold text-lg tracking-tight">LKDM Admin</span>
+        </div>
+        <button id="mobileMenuBtn" class="text-lkdm-text hover:text-lkdm-accent focus:outline-none">
+            <i class="fa-solid fa-bars text-2xl"></i>
+        </button>
+    </header>
+
+    <div class="flex flex-1 relative overflow-hidden">
+        <!-- Sidebar Admin Navigation -->
+        <aside id="sidebar" class="bg-white border-r border-slate-200/80 w-72 space-y-6 py-8 px-5 absolute inset-y-0 left-0 transform -translate-x-full lg:relative lg:translate-x-0 transition duration-300 ease-in-out z-40 flex flex-col justify-between shadow-xl lg:shadow-none">
+            <div class="space-y-8">
+                <!-- Logo LKDM -->
+                <div class="px-2">
+                    <h1 class="font-bold text-xl text-lkdm-text tracking-tight">Le Koup de Main</h1>
+                    <p class="text-xs text-lkdm-secondary font-medium tracking-wider uppercase mt-1">Super Admin • Sierre</p>
+                </div>
+
+                <!-- User Profile Mini Card -->
+                <div class="bg-lkdm-bg p-4 rounded-2xl border border-slate-200/60 flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-full bg-lkdm-accent text-white flex items-center justify-center font-bold text-lg shadow-sm">MB</div>
+                    <div class="overflow-hidden">
+                        <p class="text-sm font-semibold text-lkdm-text truncate">Max & Ben</p>
+                        <p class="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Système en ligne
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Nav Links -->
+                <nav class="space-y-1">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition bg-lkdm-accent text-white shadow-sm">
+                        <i class="fa-solid fa-chart-line w-5 text-center"></i> Vue d'ensemble
+                    </button>
+                    <button onclick="switchTab('missions')" id="nav-missions" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
+                        <i class="fa-solid fa-list-check w-5 text-center"></i> Gestion Missions
+                        <span id="badge-unassigned" class="ml-auto bg-lkdm-accent text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">0</span>
+                    </button>
+                    <button onclick="switchTab('calendar-map')" id="nav-calendar-map" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
+                        <i class="fa-solid fa-map-location-dot w-5 text-center"></i> Calendrier & Carte
+                    </button>
+                    <button onclick="switchTab('students')" id="nav-students" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
+                        <i class="fa-solid fa-graduation-cap w-5 text-center"></i> Étudiants (54)
+                    </button>
+                    <button onclick="switchTab('clients')" id="nav-clients" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
+                        <i class="fa-solid fa-house-chimney-user w-5 text-center"></i> Clients (112)
+                    </button>
+                    <button onclick="switchTab('billing')" id="nav-billing" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
+                        <i class="fa-solid fa-file-invoice-dollar w-5 text-center"></i> Facturation
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Footer -->
+            <div class="pt-6 border-t border-slate-100">
+                <a href="/webapp/hub.html" class="w-full flex items-center justify-center gap-2 text-xs font-medium text-lkdm-secondary hover:text-lkdm-accent transition py-2">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Quitter l'Admin
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 h-screen overflow-y-auto bg-lkdm-bg p-4 lg:p-8">
+            <div class="max-w-6xl mx-auto">
+                
+                <!-- Toast -->
+                <div id="toast" class="hidden fixed top-5 right-5 bg-lkdm-text text-white px-6 py-4 rounded-xl shadow-xl z-50 flex items-center gap-3 border-l-4 border-emerald-500 transition transform duration-300">
+                    <i class="fa-solid fa-circle-check text-emerald-500 text-xl"></i>
+                    <div>
+                        <h4 class="font-bold text-sm" id="toast-title">Succès</h4>
+                        <p id="toast-msg" class="text-xs text-slate-300">Action validée.</p>
+                    </div>
+                </div>
+
+                <!-- TAB 1: DASHBOARD -->
+                <div id="tab-dashboard" class="tab-content active space-y-8">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Pilotage Central</span>
+                            <h2 class="text-3xl font-bold text-lkdm-text mt-1">Réseau Valaisan</h2>
+                        </div>
+                        <button onclick="openCreateMissionModal()" class="bg-lkdm-accent text-white px-6 py-3 rounded-[50px] text-sm font-medium shadow-sm hover:bg-[#b53838] transition flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Créer mission
+                        </button>
+                    </div>
+                    <!-- Finances & Volumes -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                            <p class="text-[10px] font-bold text-lkdm-secondary uppercase tracking-wider">Chiffre d'Affaires</p>
+                            <h3 class="text-3xl font-bold text-lkdm-text mt-1">CHF 4'250</h3>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                            <p class="text-[10px] font-bold text-lkdm-secondary uppercase tracking-wider">Missions réalisées</p>
+                            <h3 class="text-3xl font-bold text-lkdm-text mt-1">85</h3>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                            <p class="text-[10px] font-bold text-lkdm-secondary uppercase tracking-wider">Étudiants Actifs</p>
+                            <h3 class="text-3xl font-bold text-lkdm-text mt-1">24</h3>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border-2 border-lkdm-accent shadow-sm relative overflow-hidden flex flex-col justify-center cursor-pointer hover:bg-red-50/30 transition" onclick="switchTab('missions')">
+                            <p class="text-[10px] font-bold text-lkdm-accent uppercase tracking-wider relative z-10">URGENCE</p>
+                            <h3 class="text-4xl font-extrabold text-lkdm-accent mt-1 relative z-10" id="dash-urgent-count">0</h3>
+                            <p class="text-xs text-lkdm-secondary mt-1 relative z-10 font-medium">À attribuer <i class="fa-solid fa-arrow-right ml-1"></i></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: MISSIONS (TABLEAU) -->
+                <div id="tab-missions" class="tab-content space-y-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <h2 class="text-2xl font-bold text-lkdm-text">Gestion des Missions</h2>
+                        <select id="admin-filter" onchange="renderAdminMissions()" class="bg-white border border-slate-200 text-lkdm-text text-sm font-medium rounded-xl px-4 py-2.5 focus:outline-none focus:border-lkdm-accent shadow-sm">
+                            <option value="all">Toutes les missions</option>
+                            <option value="unassigned" selected>À attribuer (Urgent)</option>
+                            <option value="assigned">Planifiées</option>
+                            <option value="completed">Effectuées</option>
+                        </select>
+                    </div>
+                    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto custom-scrollbar">
+                            <table class="w-full text-left text-sm whitespace-nowrap">
+                                <thead class="bg-slate-50 text-xs font-semibold text-lkdm-secondary uppercase tracking-wider border-b border-slate-100">
+                                    <tr>
+                                        <th class="py-5 px-6">Date & Heure</th>
+                                        <th class="py-5 px-6">Tâche</th>
+                                        <th class="py-5 px-6">Client / Lieu</th>
+                                        <th class="py-5 px-6">Statut / Étudiant</th>
+                                        <th class="py-5 px-6 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-missions-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: CALENDAR & MAP -->
+                <div id="tab-calendar-map" class="tab-content space-y-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-lkdm-text">Calendrier & Carte</h2>
+                            <p class="text-sm text-lkdm-secondary">Visualisation géographique et temporelle.</p>
+                        </div>
+                        <select id="map-filter-status" onchange="renderAdminMapCalendar()" class="bg-white border border-slate-200 text-lkdm-text text-sm font-medium rounded-xl px-4 py-2.5 focus:outline-none focus:border-lkdm-accent shadow-sm">
+                            <option value="all">Toutes les missions</option>
+                            <option value="unassigned">À attribuer (Rouge)</option>
+                            <option value="assigned">Planifiées (Bleu)</option>
+                            <option value="completed">Effectuées (Vert)</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Carte -->
+                        <div class="bg-white p-3 rounded-3xl border border-slate-200 shadow-sm">
+                            <div id="admin-map"></div>
+                        </div>
+                        <!-- Calendrier Grid -->
+                        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-bold text-lkdm-text text-lg">Août 2026</h3>
+                                <div class="flex gap-1">
+                                    <button class="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 text-xs"><i class="fa-solid fa-chevron-left"></i></button>
+                                    <button class="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 text-xs"><i class="fa-solid fa-chevron-right"></i></button>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-7 gap-2 text-center text-[10px] font-semibold text-lkdm-secondary mb-2 uppercase">
+                                <div>Lun</div><div>Mar</div><div>Mer</div><div>Jeu</div><div>Ven</div><div>Sam</div><div>Dim</div>
+                            </div>
+                            <div id="admin-calendar-grid" class="grid grid-cols-7 gap-2 flex-1 auto-rows-fr"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: ETUDIANTS -->
+                <div id="tab-students" class="tab-content space-y-6">
+                    <div class="flex justify-between items-center gap-4">
+                        <h2 class="text-2xl font-bold text-lkdm-text">Étudiants (54)</h2>
+                        <input type="text" id="search-student" onkeyup="renderStudents()" placeholder="Rechercher..." class="w-64 bg-white border border-slate-200 text-sm rounded-[50px] px-4 py-2.5 shadow-sm">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="students-grid"></div>
+                </div>
+
+                <!-- TAB 5: CLIENTS -->
+                <div id="tab-clients" class="tab-content space-y-6">
+                    <div class="flex justify-between items-center gap-4">
+                        <h2 class="text-2xl font-bold text-lkdm-text">Clients (112)</h2>
+                        <input type="text" id="search-client" onkeyup="renderClients()" placeholder="Rechercher..." class="w-64 bg-white border border-slate-200 text-sm rounded-[50px] px-4 py-2.5 shadow-sm">
+                    </div>
+                    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="bg-slate-50 text-xs font-semibold text-lkdm-secondary uppercase border-b border-slate-100">
+                                <tr>
+                                    <th class="py-4 px-6">Client</th>
+                                    <th class="py-4 px-6">Ville</th>
+                                    <th class="py-4 px-6">Satisfaction</th>
+                                    <th class="py-4 px-6">Missions</th>
+                                    <th class="py-4 px-6 text-right">Dossier</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clients-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB 6: FACTURATION -->
+                <div id="tab-billing" class="tab-content space-y-6">
+                    <h2 class="text-2xl font-bold text-lkdm-text">Facturation & Comptabilité</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+                            <div class="p-5 border-b border-slate-100 bg-slate-50"><h3 class="font-bold text-lkdm-text text-sm">Factures Clients</h3></div>
+                            <table class="w-full text-left text-sm"><tbody class="divide-y divide-slate-100" id="billing-clients-tbody"></tbody></table>
+                        </div>
+                        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+                            <div class="p-5 border-b border-slate-100 bg-slate-50"><h3 class="font-bold text-lkdm-text text-sm">Virements Étudiants</h3></div>
+                            <table class="w-full text-left text-sm"><tbody class="divide-y divide-slate-100" id="billing-students-tbody"></tbody></table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALS -->
+
+    <!-- Modal d'attribution de mission -->
+    <div id="assign-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300">
+            <div class="p-6 border-b border-slate-100 relative bg-slate-50">
+                <button onclick="closeModal('assign-modal')" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white text-lkdm-secondary hover:bg-slate-200 transition shadow-sm"><i class="fa-solid fa-times"></i></button>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-lkdm-accent bg-red-50 px-2.5 py-1 rounded border border-red-100">Attribution manuelle</span>
+                <h3 class="text-xl font-bold text-lkdm-text mt-3" id="modal-mission-title">Titre</h3>
+            </div>
+            <div class="p-6 space-y-6">
+                <div>
+                    <label class="block text-xs font-bold text-lkdm-text mb-2">Sélectionner un étudiant disponible</label>
+                    <select id="student-select" class="w-full bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-3.5 focus:outline-none focus:border-lkdm-accent shadow-sm">
+                        <option value="" disabled selected>-- Choisir dans la liste --</option>
+                        <option value="Alexandre Dubois">Alexandre Dubois</option>
+                        <option value="Camille Mayor">Camille Mayor</option>
+                    </select>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeModal('assign-modal')" class="w-1/3 bg-lkdm-bg border border-slate-200 text-lkdm-text py-3.5 rounded-[50px] text-sm font-medium hover:bg-slate-200 transition">Annuler</button>
+                    <button onclick="confirmAssignment()" class="w-2/3 bg-lkdm-accent text-white py-3.5 rounded-[50px] text-sm font-medium hover:bg-[#b53838] transition shadow-sm">Valider</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal : Créer une mission -->
+    <div id="create-mission-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-300 my-auto">
+            <div class="p-6 border-b border-slate-100 relative bg-slate-50">
+                <button onclick="closeModal('create-mission-modal')" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white text-lkdm-secondary hover:bg-slate-200 transition shadow-sm"><i class="fa-solid fa-times"></i></button>
+                <h3 class="text-xl font-bold text-lkdm-text">Créer un Koup de Main</h3>
+            </div>
+            <form onsubmit="submitNewMission(event)" class="p-6 space-y-4">
+                <input type="text" id="cm-client" required placeholder="Client (ex: Mme Favre Marguerite)" class="w-full bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-2.5">
+                <input type="text" id="cm-title" required placeholder="Titre (ex: Jardinage)" class="w-full bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-2.5">
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="date" id="cm-date" required class="bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-2.5">
+                    <input type="time" id="cm-time" required class="bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-2.5">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="number" id="cm-duration" step="0.5" required placeholder="Durée (ex: 2.0)" class="bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-2.5">
+                    <input type="text" id="cm-city" required placeholder="Ville (ex: Sion)" class="bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-2.5">
+                </div>
+                <div class="pt-4 flex justify-end gap-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('create-mission-modal')" class="px-5 py-2.5 bg-lkdm-bg rounded-[50px] text-sm font-medium hover:bg-slate-200 transition">Annuler</button>
+                    <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-[50px] text-sm font-medium hover:bg-[#b53838] shadow-sm transition">Créer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal : Voir Mission Details -->
+    <div id="view-mission-modal" class="hidden fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300" id="view-mission-content"></div>
+    </div>
+
+    <!-- Modal : Voir Event Details -->
+    <div id="view-event-modal" class="hidden fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300" id="view-event-content"></div>
+    </div>
+
+    <!-- Modal : Dossier Etudiant -->
+    <div id="student-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden max-h-[90vh] flex flex-col transform scale-95 transition-transform duration-300" id="student-modal-content"></div>
+    </div>
+
+    <!-- Modal : Dossier Client -->
+    <div id="client-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden max-h-[90vh] flex flex-col transform scale-95 transition-transform duration-300" id="client-modal-content"></div>
+    </div>
+
+    <script>
+        // --- DONNÉES MOCKÉES ---
+        let adminMissions = [
+            { id: 101, date: "05/08/2026", time: "14:00", duration: "2.5h", title: "Aide ménage & discussion", client: "Mme Favre Marguerite", city: "Sion", student: "Alexandre Dubois", status: "completed", val: 80.00, lat: 46.2331, lng: 7.3606 },
+            { id: 102, date: "10/08/2026", time: "10:00", duration: "2.0h", title: "Initiation Tablette", client: "M. Roduit Jean", city: "Sierre", student: "Camille Mayor", status: "completed", val: 65.00, lat: 46.2933, lng: 7.5330 },
+            { id: 103, date: "15/08/2026", time: "13:30", duration: "2.0h", title: "Tri administratif", client: "Mme Rey", city: "Sion", student: "Alexandre Dubois", status: "assigned", val: 65.00, lat: 46.2250, lng: 7.3410 },
+            { id: 104, date: "24/08/2026", time: "09:00", duration: "3.0h", title: "Accompagnement courses", client: "Mme Bonvin Alice", city: "Sierre", student: null, status: "unassigned", val: 95.00, lat: 46.2917, lng: 7.5333 },
+            { id: 105, date: "28/08/2026", time: "16:00", duration: "1.5h", title: "Jardinage & taille légère", client: "M. Constant", city: "Martigny", student: null, status: "unassigned", val: 50.00, lat: 46.1028, lng: 7.0736 }
+        ];
+
+        let eventsDB = [
+            { id: 201, title: "Repas de Noël LKDM 2025", date: "20/12/2025", location: "Sion", type: "Social", participants: ["Mme Favre Marguerite", "Alexandre Dubois", "Camille Mayor"] },
+            { id: 202, title: "Atelier Informatique Intergénérationnel", date: "15/07/2026", location: "Sierre", type: "Formation", participants: ["M. Roduit Jean", "Mme Bonvin Alice", "Camille Mayor"] }
+        ];
+
+        let studentsDB = [
+            { id: 1, name: "Alexandre Dubois", initials: "AD", city: "Sion", phone: "079 123 45 67", email: "alex.d@etu.hevs.ch", hours: 142.5, missions: 48, status: "Actif", payout: 3560 },
+            { id: 2, name: "Camille Mayor", initials: "CM", city: "Sierre", phone: "078 987 65 43", email: "camille.m@etu.hevs.ch", hours: 85.0, missions: 32, status: "Actif", payout: 2125 },
+            { id: 3, name: "Julien Perruchoud", initials: "JP", city: "Martigny", phone: "077 555 44 33", email: "julien.p@etu.hevs.ch", hours: 45.0, missions: 15, status: "Indisponible", payout: 1125 }
+        ];
+
+        let clientsDB = [
+            { id: 1, name: "Mme Favre Marguerite", initials: "MF", city: "Sion", phone: "027 322 11 22", missions: 45, hours: 90, csat: 4.9, nps: 85, delay: "5 jours", status: "Actif" },
+            { id: 2, name: "M. Roduit Jean", initials: "MR", city: "Sierre", phone: "027 455 33 44", missions: 12, hours: 24, csat: 4.5, nps: 60, delay: "12 jours", status: "Actif" },
+            { id: 3, name: "Mme Bonvin Alice", initials: "MB", city: "Sierre", phone: "027 456 77 88", missions: 8, hours: 20, csat: 5.0, nps: 90, delay: "2 jours", status: "Actif" }
+        ];
+
+        let invoicesDB = [
+            { id: "F-2608-01", client: "Mme Favre Marguerite", amount: 160.00, status: "pending", date: "01/08/2026" },
+            { id: "F-2608-02", client: "M. Roduit Jean", amount: 65.00, status: "overdue", date: "15/07/2026" },
+            { id: "F-2608-03", client: "Mme Bonvin Alice", amount: 95.00, status: "paid", date: "02/08/2026" }
+        ];
+
+        // --- MAP & CALENDAR ---
+        let adminMap = null;
+        let adminMarkers = null;
+
+        function initAdminMap() {
+            if (adminMap) return;
+            adminMap = L.map('admin-map').setView([46.2331, 7.3606], 10);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap' }).addTo(adminMap);
+            adminMarkers = L.layerGroup().addTo(adminMap);
+            renderAdminMapCalendar();
+        }
+
+        function renderAdminMapCalendar() {
+            const filter = document.getElementById('map-filter-status').value;
+            if(adminMarkers) adminMarkers.clearLayers();
+
+            const grid = document.getElementById('admin-calendar-grid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 4; i++) grid.innerHTML += '<div class="bg-slate-100/50 rounded-xl"></div>'; // Offset Août 2026 (commence un samedi)
+
+            // Fill calendar & map
+            for (let day = 1; day <= 31; day++) {
+                const dayStr = day < 10 ? '0'+day : ''+day;
+                const missionsToday = adminMissions.filter(m => m.date.startsWith(`${dayStr}/08`));
+                
+                let dayHtml = `<div class="bg-lkdm-bg border border-slate-200 rounded-xl p-1 flex flex-col h-16 md:h-20 overflow-hidden"><span class="text-[10px] font-bold text-slate-400 mb-1">${day}</span>`;
+                
+                missionsToday.forEach(m => {
+                    if (filter !== 'all' && m.status !== filter) return;
+                    
+                    // Style
+                    let color = '#D64545'; let bgClass = 'bg-red-100 text-lkdm-accent'; // unassigned
+                    if(m.status === 'assigned') { color = '#3b82f6'; bgClass = 'bg-blue-100 text-blue-700'; }
+                    if(m.status === 'completed') { color = '#2E7D32'; bgClass = 'bg-emerald-100 text-emerald-700'; }
+
+                    // Map Marker
+                    if(adminMap && m.lat && m.lng) {
+                        const icon = L.divIcon({ className: 'custom-pin', html: `<div style="background-color: ${color}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>`, iconSize: [14, 14], iconAnchor: [7, 7] });
+                        const marker = L.marker([m.lat, m.lng], { icon }).addTo(adminMarkers);
+                        marker.on('click', () => openViewMissionModal(m.id));
+                    }
+
+                    // Calendar Event
+                    dayHtml += `<div onclick="openViewMissionModal(${m.id})" class="cursor-pointer ${bgClass} text-[9px] font-bold px-1 py-0.5 rounded mb-0.5 truncate shadow-sm transition hover:opacity-80">${m.title}</div>`;
+                });
+                dayHtml += `</div>`;
+                grid.innerHTML += dayHtml;
+            }
+        }
+
+        // --- MISSIONS GLOBALES ---
+        function renderAdminMissions() {
+            const tbody = document.getElementById('admin-missions-tbody');
+            const filter = document.getElementById('admin-filter').value;
+            tbody.innerHTML = '';
+            let unassignedCount = 0;
+
+            adminMissions.forEach(m => {
+                if (m.status === 'unassigned') unassignedCount++;
+                if (filter !== 'all' && m.status !== filter) return;
+
+                let badge = `<span class="bg-red-50 text-lkdm-accent px-2 py-1 rounded border border-red-100 text-[10px] font-bold uppercase"><i class="fa-solid fa-triangle-exclamation"></i> Non attribuée</span>`;
+                if(m.status === 'assigned') badge = `<span class="bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100 text-[10px] font-bold uppercase"><i class="fa-regular fa-clock"></i> ${m.student}</span>`;
+                if(m.status === 'completed') badge = `<span class="bg-emerald-50 text-emerald-700 px-2 py-1 rounded border border-emerald-100 text-[10px] font-bold uppercase"><i class="fa-solid fa-check"></i> ${m.student}</span>`;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition cursor-pointer";
+                tr.onclick = () => openViewMissionModal(m.id);
+                tr.innerHTML = `
+                    <td class="py-4 px-6"><p class="font-bold text-lkdm-text">${m.date}</p><p class="text-xs text-lkdm-secondary">${m.time} (${m.duration})</p></td>
+                    <td class="py-4 px-6"><p class="font-bold text-lkdm-text">${m.title}</p></td>
+                    <td class="py-4 px-6 text-sm text-lkdm-text font-medium"><i class="fa-solid fa-user text-lkdm-secondary/50 mr-1.5"></i> ${m.client}<br><span class="text-xs text-lkdm-secondary font-normal">${m.city}</span></td>
+                    <td class="py-4 px-6">${badge}</td>
+                    <td class="py-4 px-6 text-right">
+                        ${m.status === 'unassigned' ? `<button onclick="event.stopPropagation(); openAssignModal(${m.id})" class="bg-lkdm-accent hover:bg-[#b53838] text-white text-xs font-medium px-4 py-2 rounded-[50px] shadow-sm transition">Attribuer</button>` : `<i class="fa-solid fa-chevron-right text-lkdm-secondary"></i>`}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('badge-unassigned').innerText = unassignedCount;
+            document.getElementById('dash-urgent-count').innerText = unassignedCount;
+        }
+
+        // Voir Mission Details
+        function openViewMissionModal(id) {
+            const m = adminMissions.find(x => x.id === id);
+            if (!m) return;
+            const content = document.getElementById('view-mission-content');
+            
+            let statusBadge = m.status === 'unassigned' ? `<span class="bg-red-50 text-lkdm-accent px-2 py-1 rounded border border-red-100 text-[10px] font-bold uppercase">À attribuer</span>` :
+                              m.status === 'assigned' ? `<span class="bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100 text-[10px] font-bold uppercase">Planifiée</span>` :
+                              `<span class="bg-emerald-50 text-emerald-700 px-2 py-1 rounded border border-emerald-100 text-[10px] font-bold uppercase">Effectuée</span>`;
+
+            content.innerHTML = `
+                <div class="p-6 border-b border-slate-100 relative bg-slate-50">
+                    <button onclick="closeModal('view-mission-modal')" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white text-lkdm-secondary hover:bg-slate-200 transition shadow-sm"><i class="fa-solid fa-times"></i></button>
+                    ${statusBadge}
+                    <h3 class="text-xl font-bold text-lkdm-text mt-3 leading-tight">${m.title}</h3>
+                    <p class="text-sm font-medium text-lkdm-secondary mt-1"><i class="fa-regular fa-calendar"></i> ${m.date} à ${m.time} (${m.duration})</p>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="flex items-center gap-4 text-sm text-lkdm-text">
+                        <div class="w-10 h-10 rounded-full bg-lkdm-bg flex items-center justify-center text-lkdm-secondary flex-shrink-0"><i class="fa-solid fa-house-chimney-user"></i></div>
+                        <div><p class="font-bold">Client</p><p class="text-xs text-lkdm-secondary">${m.client} (${m.city})</p></div>
+                    </div>
+                    <div class="flex items-center gap-4 text-sm text-lkdm-text">
+                        <div class="w-10 h-10 rounded-full bg-lkdm-bg flex items-center justify-center text-lkdm-secondary flex-shrink-0"><i class="fa-solid fa-graduation-cap"></i></div>
+                        <div><p class="font-bold">Étudiant</p><p class="text-xs text-lkdm-secondary">${m.student || 'Aucun'}</p></div>
+                    </div>
+                    <div class="flex items-center gap-4 text-sm text-lkdm-text">
+                        <div class="w-10 h-10 rounded-full bg-lkdm-bg flex items-center justify-center text-lkdm-secondary flex-shrink-0"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                        <div><p class="font-bold">Facturation Client</p><p class="text-xs font-bold text-lkdm-text">CHF ${m.val.toFixed(2)}</p></div>
+                    </div>
+                    <div class="pt-4 border-t border-slate-100 flex gap-3">
+                        ${m.status === 'unassigned' ? `<button onclick="closeModal('view-mission-modal'); openAssignModal(${m.id})" class="w-full bg-lkdm-accent hover:bg-[#b53838] text-white py-3 rounded-[50px] text-sm font-medium transition shadow-sm">Attribuer un étudiant</button>` : ''}
+                        ${m.status === 'assigned' ? `<button onclick="closeModal('view-mission-modal'); removeAssignment(${m.id})" class="w-full bg-lkdm-bg border border-slate-200 text-lkdm-accent hover:bg-slate-200 py-3 rounded-[50px] text-sm font-medium transition">Désattribuer l'étudiant</button>` : ''}
+                    </div>
+                </div>
+            `;
+            openModal('view-mission-modal');
+        }
+
+        // Voir Event Details
+        function openViewEventModal(id) {
+            const ev = eventsDB.find(x => x.id === id);
+            if (!ev) return;
+            const content = document.getElementById('view-event-content');
+            
+            content.innerHTML = `
+                <div class="p-6 border-b border-slate-100 relative bg-slate-50">
+                    <button onclick="closeModal('view-event-modal')" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white text-lkdm-secondary hover:bg-slate-200 transition shadow-sm"><i class="fa-solid fa-times"></i></button>
+                    <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded border border-amber-200 text-[10px] font-bold uppercase"><i class="fa-solid fa-champagne-glasses"></i> ${ev.type}</span>
+                    <h3 class="text-xl font-bold text-lkdm-text mt-3 leading-tight">${ev.title}</h3>
+                    <p class="text-sm font-medium text-lkdm-secondary mt-1"><i class="fa-regular fa-calendar"></i> ${ev.date} • ${ev.location}</p>
+                </div>
+                <div class="p-6 space-y-4">
+                    <h4 class="font-bold text-xs uppercase tracking-widest text-lkdm-secondary">Participants</h4>
+                    <ul class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                        ${ev.participants.map(p => `<li class="p-3 bg-lkdm-bg border border-slate-200 rounded-xl text-sm font-medium text-lkdm-text"><i class="fa-solid fa-user text-lkdm-secondary mr-2"></i> ${p}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+            openModal('view-event-modal');
+        }
+
+
+        // --- ÉTUDIANTS ---
+        function renderStudents() {
+            const grid = document.getElementById('students-grid');
+            const search = document.getElementById('search-student').value.toLowerCase();
+            grid.innerHTML = '';
+
+            studentsDB.filter(s => s.name.toLowerCase().includes(search)).forEach(s => {
+                const isActive = s.status === 'Actif';
+                grid.innerHTML += `
+                    <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-md transition cursor-pointer" onclick="openStudentModal(${s.id})">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-full bg-lkdm-bg text-lkdm-secondary font-bold flex items-center justify-center text-lg border border-slate-200">${s.initials}</div>
+                            <div>
+                                <h3 class="font-bold text-lkdm-text">${s.name}</h3>
+                                <p class="text-xs text-lkdm-secondary">${s.city}</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="${isActive ? 'text-emerald-600 bg-emerald-50' : 'text-lkdm-accent bg-red-50'} px-2 py-1 rounded font-bold text-[10px] uppercase tracking-wide">${s.status}</span>
+                            <span class="font-bold text-lkdm-text"><i class="fa-regular fa-clock text-lkdm-secondary mr-1"></i> ${s.hours}h</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        
+        function openStudentModal(id) {
+            const s = studentsDB.find(x => x.id === id);
+            if(!s) return;
+            const content = document.getElementById('student-modal-content');
+            
+            const studMissions = adminMissions.filter(m => m.student === s.name);
+            const studEvents = eventsDB.filter(e => e.participants.includes(s.name));
+
+            content.innerHTML = `
+                <div class="p-6 border-b border-slate-100 relative bg-slate-50 flex items-center gap-4 flex-shrink-0">
+                    <button onclick="closeModal('student-modal')" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white text-lkdm-secondary hover:bg-slate-200 transition shadow-sm"><i class="fa-solid fa-times"></i></button>
+                    <div class="w-16 h-16 rounded-full bg-lkdm-accent text-white font-bold flex items-center justify-center text-2xl shadow-sm">${s.initials}</div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-lkdm-text">${s.name}</h2>
+                        <p class="text-sm font-medium text-emerald-600"><i class="fa-solid fa-circle-check"></i> Étudiant validé • ${s.city}</p>
+                    </div>
+                </div>
+                <div class="p-6 overflow-y-auto custom-scrollbar flex-1 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Left Col -->
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="font-bold text-xs uppercase tracking-widest text-lkdm-secondary mb-3">Coordonnées</h4>
+                            <p class="text-sm text-lkdm-text mb-1"><i class="fa-solid fa-phone text-lkdm-secondary w-5"></i> ${s.phone}</p>
+                            <p class="text-sm text-lkdm-text"><i class="fa-solid fa-envelope text-lkdm-secondary w-5"></i> ${s.email}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-xs uppercase tracking-widest text-lkdm-secondary mb-3">Statistiques</h4>
+                            <div class="bg-lkdm-bg p-4 rounded-xl border border-slate-200 flex justify-between">
+                                <div><p class="text-xs text-lkdm-secondary">Heures</p><p class="font-bold text-lg text-lkdm-text">${s.hours}h</p></div>
+                                <div><p class="text-xs text-lkdm-secondary">Missions</p><p class="font-bold text-lg text-lkdm-text">${s.missions}</p></div>
+                                <div><p class="text-xs text-lkdm-secondary">Gains</p><p class="font-bold text-lg text-emerald-600">CHF ${s.payout}</p></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-xs uppercase tracking-widest text-lkdm-secondary mb-3">Documents & Contrats</h4>
+                            <div class="space-y-2">
+                                <button class="w-full flex justify-between items-center p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition text-sm text-lkdm-text font-medium"><span class="flex items-center gap-2"><i class="fa-solid fa-file-signature text-lkdm-accent"></i> Contrat Cadre</span><i class="fa-solid fa-download text-lkdm-secondary"></i></button>
+                                <button class="w-full flex justify-between items-center p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition text-sm text-lkdm-text font-medium"><span class="flex items-center gap-2"><i class="fa-solid fa-id-card text-lkdm-secondary"></i> Pièce d'identité</span><i class="fa-solid fa-eye text-lkdm-secondary"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Col: Interactive Lists -->
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="font-bold text-xs uppercase tracking-widest text-lkdm-secondary mb-3 flex justify-between">Missions de l'étudiant <span class="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full text-[10px]">${studMissions.length}</span></h4>
+                            <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                                ${studMissions.length ? studMissions.map(m => `
+                                    <div onclick="openViewMissionModal(${m.id})" class="cursor-pointer p-3 border border-slate-200 rounded-xl hover:border-lkdm-accent transition bg-white">
+                                        <div class="flex justify-between items-center"><span class="font-bold text-sm text-lkdm-text">${m.date}</span><span class="${m.status==='completed'?'text-emerald-600':'text-blue-600'} text-[10px] uppercase font-bold">${m.status==='completed'?'Effectuée':'Planifiée'}</span></div>
+                                        <p class="text-xs text-lkdm-secondary truncate">${m.title} • ${m.client}</p>
+                                    </div>
+                                `).join('') : '<p class="text-xs text-lkdm-secondary">Aucune mission assignée.</p>'}
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-xs uppercase tracking-widest text-lkdm-secondary mb-3 flex justify-between">Événements <span class="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full text-[10px]">${studEvents.length}</span></h4>
+                            <div class="space-y-2 max-h-32 overflow-y-auto custom-scrollbar pr-2">
+                                ${studEvents.length ? studEvents.map(e => `
+                                    <div onclick="openViewEventModal(${e.id})" class="cursor-pointer p-3 border border-slate-200 rounded-xl hover:border-lkdm-accent transition bg-white flex items-center justify-between">
+                                        <div><p class="font-bold text-sm text-lkdm-text">${e.title}</p><p class="text-xs text-lkdm-secondary">${e.date}</p></div>
+                                        <i class="fa-solid fa-arrow-right text-lkdm-secondary text-xs"></i>
+                                    </div>
+                                `).join('') : '<p class="text-xs text-lkdm-secondary">Aucun événement.</p>'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            openModal('student-modal');
+        }
+
+        // --- CLIENTS ---
+        function renderClients() {
+            const tbody = document.getElementById('clients-tbody');
+            const search = document.getElementById('search-client').value.toLowerCase();
+            tbody.innerHTML = '';
+
+            clientsDB.filter(c => c.name.toLowerCase().includes(search)).forEach(c => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition cursor-pointer" onclick="openClientModal(${c.id})">
+                        <td class="py-4 px-6 font-bold text-lkdm-text">${c.name}</td>
+                        <td class="py-4 px-6 text-sm text-lkdm-secondary">${c.city}</td>
+                        <td class="py-4 px-6"><span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs font-bold"><i class="fa-solid fa-star mr-1"></i> ${c.csat}/5</span></td>
+                        <td class="py-4 px-6 text-sm font-bold text-lkdm-text">${c.missions} missions</td>
+                        <td class="py-4 px-6 text-right"><i class="fa-solid fa-chevron-right text-lkdm-secondary"></i></td>
+                    </tr>
+                `;
+            });
+        }
+        
+        function openClientModal(id) {
+            const c = clientsDB.find(x => x.id === id);
+            if(!c) return;
+            const content = document.getElementById('client-modal-content');
+            
+            const cliMissions = adminMissions.filter(m => m.client === c.name);
+            const cliEvents = eventsDB.filter(e => e.participants.includes(c.name));
+
+            content.innerHTML = `
+                <div class="p-6 border-b border-slate-100 relative bg-slate-50 flex items-center gap-4 flex-shrink-0">
+                    <button onclick="closeModal('client-modal')" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white text-lkdm-secondary hover:bg-slate-200 transition shadow-sm"><i class="fa-solid fa-times"></i></button>
+                    <div class="w-16 h-16 rounded-full bg-lkdm-secondary text-white font-bold flex items-center justify-center text-2xl shadow-sm">${c.initials}</div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-lkdm-text">${c.name}</h2>
+                        <p class="text-sm font-medium text-lkdm-secondary">Client Valais • ${c.city}</p>
+                    </div>
+                </div>
+                <div class="p-6 overflow-y-auto custom-scrollbar flex-1 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Left Col -->
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="font-bold text-xs uppercase tracking-widest text-lkdm-secondary mb-3">Coordonnées</h4>
+                            <p class="text-sm text-lkdm-text mb-1"><i class="fa-solid fa-phone text-lkdm-secondary w-5"></i> ${c.phone}</p>
+                            <p class="text-sm text-lkdm-text"><i class="fa-solid fa-house text-lkdm-secondary w-5"></i> ${c.city}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-xs uppercase tracking-widest text-lkdm-secondary mb-3">Indicateurs (KPIs)</h4>
+                            <div class="grid grid-cols-2 gap-3 mb-2">
+                                <div class="bg-amber-50 p-3 rounded-xl border border-amber-100"><p class="text-[10px] text-amber-700 uppercase font-bold">CSAT Score</p><p class="font-bold text-lg text-amber-600">${c.csat} / 5.0</p></div>
+                                <div class="bg-blue-50 p-3 rounded-xl border border-blue-100"><p class="text-[10px] text-blue-700 uppercase font-bold">NPS Score</p><p class="font-bold text-lg text-blue-600">${c.nps}</p></div>
+                            </div>
+                            <p class="text-xs text-lkdm-secondary"><i class="fa-regular fa-clock"></i> Délai moyen de paiement : <strong class="text-lkdm-text">${c.delay}</strong></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Col -->
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="font-bold text-xs uppercase tracking-widest text-lkdm-secondary mb-3 flex justify-between">Missions du client <span class="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full text-[10px]">${cliMissions.length}</span></h4>
+                            <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                                ${cliMissions.length ? cliMissions.map(m => `
+                                    <div onclick="openViewMissionModal(${m.id})" class="cursor-pointer p-3 border border-slate-200 rounded-xl hover:border-lkdm-accent transition bg-white">
+                                        <div class="flex justify-between items-center"><span class="font-bold text-sm text-lkdm-text">${m.date}</span><span class="${m.status==='completed'?'text-emerald-600':m.status==='unassigned'?'text-lkdm-accent':'text-blue-600'} text-[10px] uppercase font-bold">${m.status==='completed'?'Effectuée':m.status==='unassigned'?'À attribuer':'Planifiée'}</span></div>
+                                        <p class="text-xs text-lkdm-secondary truncate">${m.title} • Étudiant: ${m.student || 'Aucun'}</p>
+                                    </div>
+                                `).join('') : '<p class="text-xs text-lkdm-secondary">Aucune mission liée.</p>'}
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-xs uppercase tracking-widest text-lkdm-secondary mb-3 flex justify-between">Événements LKDM <span class="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full text-[10px]">${cliEvents.length}</span></h4>
+                            <div class="space-y-2 max-h-32 overflow-y-auto custom-scrollbar pr-2">
+                                ${cliEvents.length ? cliEvents.map(e => `
+                                    <div onclick="openViewEventModal(${e.id})" class="cursor-pointer p-3 border border-slate-200 rounded-xl hover:border-lkdm-accent transition bg-white flex items-center justify-between">
+                                        <div><p class="font-bold text-sm text-lkdm-text">${e.title}</p><p class="text-xs text-lkdm-secondary">${e.date}</p></div>
+                                        <i class="fa-solid fa-arrow-right text-lkdm-secondary text-xs"></i>
+                                    </div>
+                                `).join('') : '<p class="text-xs text-lkdm-secondary">Aucun événement.</p>'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            openModal('client-modal');
+        }
+
+        // --- FACTURATION ---
+        function renderBilling() {
+            const cTbody = document.getElementById('billing-clients-tbody');
+            const sTbody = document.getElementById('billing-students-tbody');
+            cTbody.innerHTML = ''; sTbody.innerHTML = '';
+
+            invoicesDB.forEach(inv => {
+                let badge = "";
+                if(inv.status === 'paid') badge = '<span class="text-emerald-600 bg-emerald-50 px-2 py-1 rounded font-bold text-[10px] uppercase">Payé</span>';
+                else if(inv.status === 'pending') badge = '<span class="text-amber-600 bg-amber-50 px-2 py-1 rounded font-bold text-[10px] uppercase">En attente</span>';
+                else badge = '<span class="text-lkdm-accent bg-red-50 px-2 py-1 rounded font-bold text-[10px] uppercase">En retard</span>';
+
+                cTbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-4 px-5 font-medium text-lkdm-text">${inv.id}</td>
+                        <td class="py-4 px-5 font-bold text-lkdm-text">${inv.client}</td>
+                        <td class="py-4 px-5 text-lkdm-text font-bold">CHF ${inv.amount.toFixed(2)}</td>
+                        <td class="py-4 px-5">${badge}</td>
+                        <td class="py-4 px-5 text-right">
+                            ${inv.status === 'overdue' ? `<button onclick="showToast('Relance envoyée', 'Rappel envoyé à ${inv.client}')" class="text-white bg-lkdm-accent px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-[#b53838]">Relancer</button>` : `<button class="text-lkdm-secondary hover:text-lkdm-accent transition"><i class="fa-solid fa-download"></i></button>`}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            studentsDB.slice(0,2).forEach(s => {
+                sTbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-4 px-5 font-bold text-lkdm-text">${s.name}</td>
+                        <td class="py-4 px-5 text-lkdm-secondary text-xs">Période Août</td>
+                        <td class="py-4 px-5 text-lkdm-text font-bold">CHF ${(s.hours * 25).toFixed(2)}</td>
+                        <td class="py-4 px-5 text-right"><span class="text-slate-400 text-xs font-medium">Prévu le 05.09</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- UTILS ---
+        function openModal(modalId) {
+            const m = document.getElementById(modalId);
+            const c = m.firstElementChild;
+            m.classList.remove('hidden');
+            setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10);
+        }
+        function closeModal(modalId) {
+            const m = document.getElementById(modalId);
+            const c = m.firstElementChild;
+            m.classList.add('opacity-0'); c.classList.add('scale-95');
+            setTimeout(() => m.classList.add('hidden'), 300);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-lkdm-accent', 'text-white', 'shadow-sm');
+                btn.classList.add('text-lkdm-secondary');
+            });
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-lkdm-accent', 'text-white', 'shadow-sm');
+                activeBtn.classList.remove('text-lkdm-secondary');
+            }
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar && !sidebar.classList.contains('-translate-x-full')) sidebar.classList.add('-translate-x-full');
+            
+            if(tabId === 'calendar-map') setTimeout(() => initAdminMap(), 100);
+            if(tabId === 'students') renderStudents();
+            if(tabId === 'clients') renderClients();
+            if(tabId === 'billing') renderBilling();
+        }
+
+        function showToast(title, msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-title').innerText = title;
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 4000);
+        }
+        
+        const mobileBtn = document.getElementById('mobileMenuBtn');
+        if (mobileBtn) mobileBtn.addEventListener('click', () => document.getElementById('sidebar').classList.toggle('-translate-x-full'));
+
+        // Créer les modales de visualisation au chargement
+        function setupModals() {
+            openCreateMissionModal = () => openModal('create-mission-modal');
+            closeCreateMissionModal = () => closeModal('create-mission-modal');
+            openAssignModal = (id) => {
+                const m = adminMissions.find(x => x.id === id);
+                if (!m) return;
+                selectedMissionId = id;
+                document.getElementById('modal-mission-title').innerText = m.title;
+                document.getElementById('modal-mission-details').innerText = `${m.date} à ${m.time} • ${m.city} • Pour ${m.client}`;
+                document.getElementById('student-select').value = ""; 
+                openModal('assign-modal');
+            };
+            closeAssignModal = () => { closeModal('assign-modal'); selectedMissionId = null; };
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setupModals();
+            renderAdminMissions();
+            renderStudents();
+            renderClients();
+            renderBilling();
+        });
+    </script>
+</body>
+</html>

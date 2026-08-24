@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LKDM Hub - Portail Central Le Koup de Main</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        lkdm: {
+                            bg: '#f6f6f6',        // Off-White
+                            text: '#3D4C53',      // Dark Slate
+                            secondary: '#95a7b6', // Blue Grey
+                            accent: '#D64545',    // Faded Red
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f6f6f6; color: #3D4C53; overflow-x: hidden; }
+        .view-section { display: none; animation: fadeIn 0.3s ease-out; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Boutons inspirés de la DA */
+        .btn-da {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        /* Effet Polaroid pour la carte Admin (ou autres) */
+        .polaroid-card {
+            background: white;
+            padding: 15px 15px 30px 15px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+        
+        /* Tape effect pour polaroid */
+        .tape {
+            width: 100px;
+            height: 30px;
+            background-color: rgba(255, 255, 255, 0.7);
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-2deg);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.02);
+            z-index: 10;
+        }
+
+        .portal-card {
+            background: white;
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+        .portal-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
+            border-color: #D64545;
+        }
+        .portal-card:hover .icon-wrapper {
+            background-color: #D64545;
+            color: white;
+            transform: scale(1.1);
+        }
+        .icon-wrapper {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col selection:bg-lkdm-accent selection:text-white relative">
+
+    <!-- Top Navbar Minimaliste (Inspiré du site web) -->
+    <nav class="w-full py-5 px-8 sticky top-0 bg-[#f6f6f6]/95 backdrop-blur-sm z-50 border-b border-black/5">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="font-bold text-xl text-lkdm-text tracking-tight flex items-center gap-2">
+                Le Koup de Main
+            </div>
+            <div class="hidden md:flex gap-8 text-sm font-medium">
+                <a href="/index.html" class="hover:text-lkdm-accent transition">Retour au site</a>
+                <a href="/contact.html" class="hover:text-lkdm-accent transition">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN HUB SELECTION -->
+    <div id="view-selector" class="view-section active flex-1 flex flex-col items-center justify-center w-full px-4 py-12 relative z-10">
+        
+        <div class="text-center mb-16 max-w-2xl mx-auto flex flex-col items-center">
+            <h1 class="text-4xl md:text-5xl font-bold text-lkdm-text mb-4 w-full">Espace Connexion</h1>
+            <p class="text-lkdm-secondary text-lg w-full">Choisissez votre portail pour accéder à vos services dédiés.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl w-full px-4 mx-auto">
+            
+            <!-- Card: Client / Proche Aidant -->
+            <div onclick="window.location.href='/webapp/dashboard_customer.html'" class="portal-card rounded-2xl p-8 flex flex-col items-center justify-between text-center h-full relative overflow-hidden group" style="text-align: center;">
+                <div class="icon-wrapper w-16 h-16 rounded-full bg-lkdm-bg text-lkdm-secondary flex items-center justify-center text-2xl mb-6 mx-auto">
+                    <i class="fa-solid fa-house-chimney-user"></i>
+                </div>
+                
+                <div class="flex-1 flex flex-col items-center justify-center w-full">
+                    <h2 class="text-2xl font-bold text-lkdm-text mb-3 text-center">Famille & Seniors</h2>
+                    <p class="text-lkdm-secondary text-sm leading-relaxed mb-8 text-center max-w-xs mx-auto">
+                        Commandez une nouvelle mission, suivez les interventions de vos proches et gérez votre facturation en toute simplicité.
+                    </p>
+                </div>
+
+                <div class="text-lkdm-accent font-semibold text-sm group-hover:underline flex items-center justify-center gap-2 mt-auto mx-auto">
+                    Accéder à mon espace <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </div>
+
+<!-- Card: Étudiant -->
+            <div onclick="window.location.href='/webapp/dashboard_student.html'" class="portal-card rounded-2xl p-8 flex flex-col items-center justify-between text-center h-full relative overflow-hidden group" style="text-align: center;">
+                <div class="icon-wrapper w-16 h-16 rounded-full bg-lkdm-bg text-lkdm-secondary flex items-center justify-center text-2xl mb-6 mx-auto">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                
+                <div class="flex-1 flex flex-col items-center justify-center w-full">
+                    <h2 class="text-2xl font-bold text-lkdm-text mb-3 text-center">Espace Étudiant</h2>
+                    <p class="text-lkdm-secondary text-sm leading-relaxed mb-8 text-center max-w-xs mx-auto">
+                        Trouvez des Koup de Main, gérez votre agenda et consultez vos rémunérations.
+                    </p>
+                </div>
+
+                <div class="text-lkdm-accent font-semibold text-sm group-hover:underline flex items-center justify-center gap-2 mt-auto mx-auto">
+                    Accéder à mon espace <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </div>
+
+            <!-- Card: Admin -->
+            <div onclick="window.location.href='/webapp/dashboard_admin.html'" class="portal-card rounded-2xl p-8 flex flex-col items-center justify-between text-center h-full relative overflow-hidden group" style="text-align: center;">
+                <div class="icon-wrapper w-16 h-16 rounded-full bg-lkdm-bg text-lkdm-secondary flex items-center justify-center text-2xl mb-6 mx-auto">
+                    <i class="fa-solid fa-sliders"></i>
+                </div>
+                
+                <div class="flex-1 flex flex-col items-center justify-center w-full">
+                    <h2 class="text-2xl font-bold text-lkdm-text mb-3 text-center">Administration</h2>
+                    <p class="text-lkdm-secondary text-sm leading-relaxed mb-8 text-center max-w-xs mx-auto">
+                        Espace réservé à l'équipe du Technopôle. Pilotage global, attribution manuelle et statistiques.
+                    </p>
+                </div>
+
+                <div class="text-lkdm-accent font-semibold text-sm group-hover:underline flex items-center justify-center gap-2 mt-auto mx-auto">
+                    Accéder au back-office <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </div>
+
+        </div>
+        
+        <!-- Footer / Contact -->
+        <div class="mt-20 text-center text-sm text-lkdm-secondary">
+            <p>Une question ? <a href="mailto:hello@lekoupdemain.ch" class="text-lkdm-text font-medium hover:text-lkdm-accent underline transition">Contactez le support</a></p>
+        </div>
+    </div>
+
+</body>
+</html>
