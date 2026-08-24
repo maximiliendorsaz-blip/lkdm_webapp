@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f6f6f6;
+    color: #3D4C53;
+}
+
+/* Variables & Couleurs personnalisées */
+.bg-lkdm-bg { background-color: #f6f6f6; }
+.text-lkdm-text { color: #3D4C53; }
+.text-lkdm-secondary { color: #95a7b6; }
+.bg-lkdm-accent, .hover\:bg-lkdm-accent:hover { background-color: #D64545; }
+.text-lkdm-accent { color: #D64545; }
+.border-lkdm-accent { border-color: #D64545; }
+
+/* Composants UI */
+.portal-card {
+    background: white;
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+}
+.portal-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
+    border-color: #D64545;
+}
+.portal-card:hover .icon-wrapper {
+    background-color: #D64545;
+    color: white;
+    transform: scale(1.1);
+}
+.icon-wrapper { transition: all 0.3s ease; }
+
+.polaroid-effect {
+    background: white;
+    padding: 12px 12px 24px 12px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+    transform: rotate(-1deg);
+    border: 1px solid #e5e7eb;
+}
+
+.btn-da {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 28px;
+    border-radius: 50px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.tab-content { display: none; animation: fadeIn 0.25s ease-out; }
+.tab-content.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
