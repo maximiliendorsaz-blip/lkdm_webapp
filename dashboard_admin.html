@@ -103,28 +103,78 @@
                             <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Pilotage Central</span>
                             <h2 class="text-3xl font-bold text-lkdm-text mt-1">Réseau Valaisan</h2>
                         </div>
-                        <button onclick="openCreateMissionModal()" class="bg-lkdm-accent text-white px-6 py-3 rounded-[50px] text-sm font-medium shadow-sm hover:bg-[#b53838] transition flex items-center gap-2">
-                            <i class="fa-solid fa-plus"></i> Créer mission
-                        </button>
+                        <!-- Boutons d'action rapide demandés -->
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="openCreateMissionModal()" class="bg-lkdm-accent text-white px-5 py-2.5 rounded-[50px] text-sm font-medium shadow-sm hover:bg-[#b53838] transition flex items-center gap-2">
+                                <i class="fa-solid fa-plus"></i> Créer mission
+                            </button>
+                            <button onclick="openCreateStudentModal()" class="bg-white border border-slate-200 text-lkdm-text px-5 py-2.5 rounded-[50px] text-sm font-medium shadow-sm hover:bg-slate-50 transition flex items-center gap-2">
+                                <i class="fa-solid fa-graduation-cap"></i> Créer étudiant
+                            </button>
+                            <button onclick="openCreateClientModal()" class="bg-white border border-slate-200 text-lkdm-text px-5 py-2.5 rounded-[50px] text-sm font-medium shadow-sm hover:bg-slate-50 transition flex items-center gap-2">
+                                <i class="fa-solid fa-user-plus"></i> Créer client
+                            </button>
+                        </div>
                     </div>
-                    <!-- Finances & Volumes -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+
+                    <!-- Barre de filtres (Date & Localité) -->
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-wrap items-center gap-4">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-lkdm-secondary uppercase">Filtres :</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs text-lkdm-secondary">Du :</label>
+                            <input type="date" id="filter-start-date" onchange="loadAdminOverview()" class="bg-lkdm-bg border border-slate-200 text-xs rounded-xl px-3 py-2">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs text-lkdm-secondary">Au :</label>
+                            <input type="date" id="filter-end-date" onchange="loadAdminOverview()" class="bg-lkdm-bg border border-slate-200 text-xs rounded-xl px-3 py-2">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs text-lkdm-secondary">Localité :</label>
+                            <select id="filter-city" onchange="loadAdminOverview()" class="bg-lkdm-bg border border-slate-200 text-xs rounded-xl px-3 py-2">
+                                <option value="Toutes">Toutes</option>
+                                <option value="Sion">Sion</option>
+                                <option value="Sierre">Sierre</option>
+                                <option value="Martigny">Martigny</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Chiffre d'Affaires & Bénéfices -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-                            <p class="text-[10px] font-bold text-lkdm-secondary uppercase tracking-wider">Chiffre d'Affaires</p>
-                            <h3 class="text-3xl font-bold text-lkdm-text mt-1">CHF 4'250</h3>
+                            <p class="text-[10px] font-bold text-lkdm-secondary uppercase tracking-wider">Chiffre d'Affaires Total</p>
+                            <h3 class="text-2xl font-bold text-lkdm-text mt-1" id="stat-ca-total">CHF 0</h3>
+                            <p class="text-[11px] text-lkdm-secondary mt-1">Missions: <span id="stat-ca-missions" class="font-semibold text-lkdm-text">CHF 0</span> | Events: <span id="stat-ca-events" class="font-semibold text-lkdm-text">CHF 0</span></p>
                         </div>
                         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-                            <p class="text-[10px] font-bold text-lkdm-secondary uppercase tracking-wider">Missions réalisées</p>
-                            <h3 class="text-3xl font-bold text-lkdm-text mt-1">85</h3>
+                            <p class="text-[10px] font-bold text-lkdm-secondary uppercase tracking-wider">Bénéfice Net Total</p>
+                            <h3 class="text-2xl font-bold text-emerald-600 mt-1" id="stat-bene-total">CHF 0</h3>
+                            <p class="text-[11px] text-lkdm-secondary mt-1">Missions: <span id="stat-bene-missions" class="font-semibold text-lkdm-text">CHF 0</span> | Events: <span id="stat-bene-events" class="font-semibold text-lkdm-text">CHF 0</span></p>
                         </div>
                         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-                            <p class="text-[10px] font-bold text-lkdm-secondary uppercase tracking-wider">Étudiants Actifs</p>
-                            <h3 class="text-3xl font-bold text-lkdm-text mt-1">24</h3>
+                            <p class="text-[10px] font-bold text-lkdm-secondary uppercase tracking-wider">Clients & Fidélité</p>
+                            <h3 class="text-2xl font-bold text-lkdm-text mt-1" id="stat-total-clients">0 clients</h3>
+                            <p class="text-[11px] text-lkdm-secondary mt-1">1 miss.: <span id="stat-c-1">0</span> | 2-5 miss.: <span id="stat-c-2-5">0</span> | >5 miss.: <span id="stat-c-5plus">0</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Volumes de Missions & Urgences -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                            <p class="text-[10px] font-bold text-lkdm-secondary uppercase tracking-wider">Missions Totales (DB)</p>
+                            <h3 class="text-3xl font-bold text-lkdm-text mt-1" id="stat-missions-total">0</h3>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                            <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Missions Effectuées</p>
+                            <h3 class="text-3xl font-bold text-emerald-600 mt-1" id="stat-missions-completed">0</h3>
+                            <p class="text-[11px] text-lkdm-secondary mt-1">À facturer, effectuées, en attente paiement</p>
                         </div>
                         <div class="bg-white p-5 rounded-2xl border-2 border-lkdm-accent shadow-sm relative overflow-hidden flex flex-col justify-center cursor-pointer hover:bg-red-50/30 transition" onclick="switchTab('missions')">
-                            <p class="text-[10px] font-bold text-lkdm-accent uppercase tracking-wider relative z-10">URGENCE</p>
+                            <p class="text-[10px] font-bold text-lkdm-accent uppercase tracking-wider relative z-10">À SURVEILLER / ATTRIBUER</p>
                             <h3 class="text-4xl font-extrabold text-lkdm-accent mt-1 relative z-10" id="dash-urgent-count">0</h3>
-                            <p class="text-xs text-lkdm-secondary mt-1 relative z-10 font-medium">À attribuer <i class="fa-solid fa-arrow-right ml-1"></i></p>
+                            <p class="text-xs text-lkdm-secondary mt-1 relative z-10 font-medium">Nouveau, à publier, envoyé <i class="fa-solid fa-arrow-right ml-1"></i></p>
                         </div>
                     </div>
                 </div>
@@ -295,6 +345,25 @@
         </div>
     </div>
 
+    <!-- Modals étudiants et clients (placeholders ou fonctions existantes) -->
+    <div id="create-student-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 relative">
+            <button onclick="closeModal('create-student-modal')" class="absolute top-4 right-4"><i class="fa-solid fa-times"></i></button>
+            <h3 class="text-xl font-bold mb-4">Créer un étudiant</h3>
+            <p class="text-xs text-slate-500 mb-4">Formulaire d'ajout d'étudiant...</p>
+            <button onclick="closeModal('create-student-modal')" class="px-4 py-2 bg-lkdm-accent text-white rounded-full text-xs">Fermer</button>
+        </div>
+    </div>
+
+    <div id="create-client-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 relative">
+            <button onclick="closeModal('create-client-modal')" class="absolute top-4 right-4"><i class="fa-solid fa-times"></i></button>
+            <h3 class="text-xl font-bold mb-4">Créer un client</h3>
+            <p class="text-xs text-slate-500 mb-4">Formulaire d'ajout de client...</p>
+            <button onclick="closeModal('create-client-modal')" class="px-4 py-2 bg-lkdm-accent text-white rounded-full text-xs">Fermer</button>
+        </div>
+    </div>
+
     <div id="view-mission-modal" class="hidden fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300" id="view-mission-content"></div>
     </div>
@@ -312,16 +381,15 @@
     </div>
 
     <script>
-        // Logique JavaScript (Missions, Étudiants, Clients, Supabase)
         let adminMissions = [
-            { id: 101, date: "05/08/2026", time: "14:00", duration: "2.5h", title: "Aide ménage", client: "Mme Favre", city: "Sion", student: "Alexandre Dubois", status: "completed", val: 80.00, lat: 46.2331, lng: 7.3606 },
-            { id: 102, date: "10/08/2026", time: "10:00", duration: "2.0h", title: "Initiation Tablette", client: "M. Roduit", city: "Sierre", student: "Camille Mayor", status: "completed", val: 65.00, lat: 46.2933, lng: 7.5330 },
-            { id: 103, date: "15/08/2026", time: "13:30", duration: "2.0h", title: "Tri administratif", client: "Mme Rey", city: "Sion", student: "Alexandre Dubois", status: "assigned", val: 65.00, lat: 46.2250, lng: 7.3410 },
-            { id: 104, date: "24/08/2026", time: "09:00", duration: "3.0h", title: "Courses", client: "Mme Bonvin", city: "Sierre", student: null, status: "unassigned", val: 95.00, lat: 46.2917, lng: 7.5333 }
+            { id: 101, date: "05/08/2026", time: "14:00", duration: "2.5h", real_hours: 2.5, title: "Aide ménage", client: "Mme Favre", city: "Sion", student: "Alexandre Dubois", status: "completed", matching_status: "mission effectuée", total_amount: 87.50, lat: 46.2331, lng: 7.3606 },
+            { id: 102, date: "10/08/2026", time: "10:00", duration: "2.0h", real_hours: 2.0, title: "Initiation Tablette", client: "M. Roduit", city: "Sierre", student: "Camille Mayor", status: "completed", matching_status: "à facturer", total_amount: 70.00, lat: 46.2933, lng: 7.5330 },
+            { id: 103, date: "15/08/2026", time: "13:30", duration: "2.0h", real_hours: 2.0, title: "Tri administratif", client: "Mme Rey", city: "Sion", student: "Alexandre Dubois", status: "assigned", matching_status: "accepté", total_amount: 70.00, lat: 46.2250, lng: 7.3410 },
+            { id: 104, date: "24/08/2026", time: "09:00", duration: "3.0h", real_hours: 0, title: "Courses", client: "Mme Bonvin", city: "Sierre", student: null, status: "unassigned", matching_status: "Nouveau", total_amount: 0, lat: 46.2917, lng: 7.5333 }
         ];
 
         let eventsDB = [
-            { id: 201, title: "Repas de Noël LKDM", date: "20/12/2025", location: "Sion", type: "Social", participants: ["Mme Favre", "Alexandre Dubois"] }
+            { id: 201, title: "Repas de Noël LKDM", date: "20/12/2025", location: "Sion", type: "Social", participants: ["Mme Favre", "Alexandre Dubois"], revenue_chf: 1000, expenses_chf: 300 }
         ];
 
         let studentsDB = [
@@ -329,7 +397,8 @@
         ];
 
         let clientsDB = [
-            { id: 1, name: "Mme Favre", initials: "MF", city: "Sion", phone: "027 322 11 22", missions: 45, hours: 90, csat: 4.9, nps: 85, delay: "5 jours", status: "Actif" }
+            { id: 1, name: "Mme Favre", initials: "MF", city: "Sion", phone: "027 322 11 22", missions: 45, hours: 90, csat: 4.9, nps: 85, delay: "5 jours", status: "Actif" },
+            { id: 2, name: "M. Roduit", initials: "MR", city: "Sierre", phone: "027 455 88 99", missions: 1, hours: 2, csat: 5.0, nps: 90, delay: "2 jours", status: "Actif" }
         ];
 
         let invoicesDB = [
@@ -338,7 +407,95 @@
 
         let adminMap = null;
         let adminMarkers = null;
-        let selectedMissionId = null;
+
+        // --- FONCTIONS DE CALCUL POUR LA VUE D'ENSEMBLE ---
+        function loadAdminOverview() {
+            const startDate = document.getElementById('filter-start-date').value;
+            const endDate = document.getElementById('filter-end-date').value;
+            const selectedCity = document.getElementById('filter-city').value;
+
+            // Filtrage des missions
+            let filteredMissions = adminMissions.filter(m => {
+                if (selectedCity !== 'Toutes' && m.city !== selectedCity) return false;
+                return true;
+            });
+
+            // Filtrage des events
+            let filteredEvents = eventsDB.filter(e => {
+                if (selectedCity !== 'Toutes' && e.location !== selectedCity) return false;
+                return true;
+            });
+
+            let caMissions = 0;
+            let beneMissions = 0;
+            let missionsCompleted = 0;
+            let missionsUrgent = 0;
+
+            filteredMissions.forEach(m => {
+                const amt = Number(m.total_amount) || 0;
+                const rHours = Number(m.real_hours) || 0;
+                caMissions += amt;
+                beneMissions += (rHours * 10);
+
+                const st = (m.matching_status || m.status || "").toLowerCase();
+                if (["à facturer", "mission effectuée", "en attente de paiement", "completed"].includes(st)) {
+                    missionsCompleted++;
+                }
+                if (["nouveau", "a publier", "publié", "envoyé", "unassigned"].includes(st)) {
+                    missionsUrgent++;
+                }
+            });
+
+            let caEvents = 0;
+            let beneEvents = 0;
+            filteredEvents.forEach(ev => {
+                const rev = Number(ev.revenue_chf) || 0;
+                const exp = Number(ev.expenses_chf) || 0;
+                caEvents += rev;
+                beneEvents += (rev - exp);
+            });
+
+            const caTotal = caMissions + caEvents;
+            const beneTotal = beneMissions + beneEvents;
+            const missionsTotal = filteredMissions.length;
+
+            // Calcul segmentation clients
+            let c1 = 0, c2to5 = 0, c5plus = 0;
+            clientsDB.forEach(c => {
+                if (selectedCity !== 'Toutes' && c.city !== selectedCity) return;
+                const cMissionsCount = filteredMissions.filter(m => m.client === c.name).length;
+                if (cMissionsCount === 1) c1++;
+                else if (cMissionsCount >= 2 && cMissionsCount <= 5) c2to5++;
+                else if (cMissionsCount > 5) c5plus++;
+            });
+
+            // Injection dans le DOM
+            document.getElementById('stat-ca-total').innerText = `CHF ${caTotal.toLocaleString()}`;
+            document.getElementById('stat-ca-missions').innerText = `CHF ${caMissions.toLocaleString()}`;
+            document.getElementById('stat-ca-events').innerText = `CHF ${caEvents.toLocaleString()}`;
+            
+            document.getElementById('stat-bene-total').innerText = `CHF ${beneTotal.toLocaleString()}`;
+            document.getElementById('stat-bene-missions').innerText = `CHF ${beneMissions.toLocaleString()}`;
+            document.getElementById('stat-bene-events').innerText = `CHF ${beneEvents.toLocaleString()}`;
+
+            document.getElementById('stat-total-clients').innerText = `${clientsDB.length} clients`;
+            document.getElementById('stat-c-1').innerText = c1;
+            document.getElementById('stat-c-2-5').innerText = c2to5;
+            document.getElementById('stat-c-5plus').innerText = c5plus;
+
+            document.getElementById('stat-missions-total').innerText = missionsTotal;
+            document.getElementById('stat-missions-completed').innerText = missionsCompleted;
+            document.getElementById('dash-urgent-count').innerText = missionsUrgent;
+            document.getElementById('badge-unassigned').innerText = missionsUrgent;
+        }
+
+        function openCreateStudentModal() {
+            openModal('create-student-modal');
+        }
+
+        function openCreateClientModal() {
+            openModal('create-client-modal');
+        }
 
         function initAdminMap() {
             if (adminMap) return;
@@ -380,10 +537,8 @@
             const tbody = document.getElementById('admin-missions-tbody');
             const filter = document.getElementById('admin-filter').value;
             tbody.innerHTML = '';
-            let unassignedCount = 0;
 
             adminMissions.forEach(m => {
-                if (m.status === 'unassigned') unassignedCount++;
                 if (filter !== 'all' && m.status !== filter) return;
 
                 let badge = m.status === 'unassigned' ? `<span class="bg-red-50 text-lkdm-accent px-2 py-1 rounded text-[10px] font-bold uppercase">Non attribuée</span>` :
@@ -400,8 +555,6 @@
                     </tr>
                 `;
             });
-            document.getElementById('badge-unassigned').innerText = unassignedCount;
-            document.getElementById('dash-urgent-count').innerText = unassignedCount;
         }
 
         function openViewMissionModal(id) {
@@ -416,27 +569,10 @@
                 <div class="p-6 space-y-4 text-sm">
                     <p><strong>Client :</strong> ${m.client} (${m.city})</p>
                     <p><strong>Étudiant :</strong> ${m.student || 'Aucun'}</p>
-                    <p><strong>Montant :</strong> CHF ${m.val.toFixed(2)}</p>
+                    <p><strong>Montant :</strong> CHF ${Number(m.total_amount).toFixed(2)}</p>
                 </div>
             `;
             openModal('view-mission-modal');
-        }
-
-        function openViewEventModal(id) {
-            const ev = eventsDB.find(x => x.id === id);
-            if (!ev) return;
-            document.getElementById('view-event-content').innerHTML = `
-                <div class="p-6 border-b relative bg-slate-50">
-                    <button onclick="closeModal('view-event-modal')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white flex items-center justify-center"><i class="fa-solid fa-times"></i></button>
-                    <h3 class="text-xl font-bold text-lkdm-text">${ev.title}</h3>
-                    <p class="text-sm text-lkdm-secondary">${ev.date} • ${ev.location}</p>
-                </div>
-                <div class="p-6 space-y-2">
-                    <h4 class="font-bold text-xs uppercase tracking-widest text-lkdm-secondary">Participants</h4>
-                    ${ev.participants.map(p => `<p class="text-sm text-lkdm-text">• ${p}</p>`).join('')}
-                </div>
-            `;
-            openModal('view-event-modal');
         }
 
         function renderStudents() {
@@ -529,6 +665,7 @@
             document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('bg-lkdm-accent', 'text-white'); btn.classList.add('text-lkdm-secondary'); });
             document.getElementById(`nav-${tabId}`).classList.add('bg-lkdm-accent', 'text-white');
             document.getElementById(`nav-${tabId}`).classList.remove('text-lkdm-secondary');
+            if(tabId === 'dashboard') loadAdminOverview();
             if(tabId === 'calendar-map') setTimeout(() => initAdminMap(), 100);
             if(tabId === 'students') renderStudents();
             if(tabId === 'clients') renderClients();
@@ -536,6 +673,7 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
+            loadAdminOverview();
             renderAdminMissions();
             renderStudents();
             renderClients();
