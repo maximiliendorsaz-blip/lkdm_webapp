@@ -3,44 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Espace Client & Proche Aidant - Le Koup de Main</title>
+    <title>LKDM Client - Espace Famille & Seniors Le Koup de Main</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        lkdm: {
-                            bg: '#f6f6f6',        // Off-White
-                            text: '#3D4C53',      // Dark Slate
-                            secondary: '#95a7b6', // Blue Grey
-                            accent: '#D64545',    // Faded Red (Rouge DA)
-                            green: '#2E7D32',     // Vert validation harmonisé
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Poppins', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- CSS Externe LKDM -->
+    <link rel="stylesheet" href="style.css">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts Poppins -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Poppins', sans-serif; background-color: #f6f6f6; color: #3D4C53; }
-        .tab-content { display: none; animation: fadeIn 0.25s ease-out; }
-        .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-        /* Effet Polaroid issu de votre DA */
-        .polaroid-effect { background: white; padding: 12px 12px 24px 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); transform: rotate(2deg); border: 1px solid #e5e7eb; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    </style>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Configuration Supabase -->
+    <script src="supabase-config.js"></script>
 </head>
 <body class="antialiased flex flex-col min-h-screen selection:bg-lkdm-accent selection:text-white">
 
@@ -61,36 +34,35 @@
                 <!-- Logo LKDM -->
                 <div class="px-2">
                     <h1 class="font-bold text-xl text-lkdm-text tracking-tight">Le Koup de Main</h1>
-                    <p class="text-xs text-lkdm-secondary font-medium tracking-wider uppercase mt-1">Espace Client</p>
+                    <p class="text-xs text-lkdm-secondary font-medium tracking-wider uppercase mt-1">Espace Famille & Seniors</p>
                 </div>
 
                 <!-- User Profile Mini Card -->
                 <div class="bg-lkdm-bg p-4 rounded-2xl border border-slate-200/60 flex items-center gap-3">
                     <div class="w-11 h-11 rounded-full bg-lkdm-secondary text-white flex items-center justify-center font-bold text-lg shadow-sm">
-                        JF
+                        MF
                     </div>
                     <div class="overflow-hidden">
-                        <p class="text-sm font-semibold text-lkdm-text truncate">Jean Favre</p>
-                        <p class="text-xs text-lkdm-secondary font-medium mt-0.5">Proche Aidant</p>
+                        <p class="text-sm font-semibold text-lkdm-text truncate">Mme Favre Marguerite</p>
+                        <p class="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
+                            <i class="fa-solid fa-circle-check"></i> Compte Actif
+                        </p>
                     </div>
                 </div>
 
                 <!-- Nav Links -->
                 <nav class="space-y-1">
                     <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition bg-lkdm-accent text-white shadow-sm">
-                        <i class="fa-solid fa-house w-5 text-center"></i> Accueil
+                        <i class="fa-solid fa-house w-5 text-center"></i> Tableau de bord
                     </button>
-                    <button onclick="switchTab('request')" id="nav-request" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-text hover:bg-lkdm-bg hover:text-lkdm-accent">
-                        <i class="fa-solid fa-calendar-plus w-5 text-center"></i> Commander
+                    <button onclick="switchTab('missions')" id="nav-missions" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-text hover:bg-lkdm-bg hover:text-lkdm-accent">
+                        <i class="fa-solid fa-list-check w-5 text-center"></i> Mes Interventions
                     </button>
-                    <button onclick="switchTab('agenda')" id="nav-agenda" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-text hover:bg-lkdm-bg hover:text-lkdm-accent">
-                        <i class="fa-regular fa-calendar-check w-5 text-center"></i> Agenda & Suivi
+                    <button onclick="switchTab('order')" id="nav-order" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-text hover:bg-lkdm-bg hover:text-lkdm-accent">
+                        <i class="fa-solid fa-plus-circle w-5 text-center"></i> Commander une mission
                     </button>
                     <button onclick="switchTab('billing')" id="nav-billing" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-text hover:bg-lkdm-bg hover:text-lkdm-accent">
-                        <i class="fa-solid fa-file-invoice w-5 text-center"></i> Mes Factures
-                    </button>
-                    <button onclick="switchTab('profile')" id="nav-profile" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-text hover:bg-lkdm-bg hover:text-lkdm-accent">
-                        <i class="fa-solid fa-user-group w-5 text-center"></i> Fiche Bénéficiaire
+                        <i class="fa-solid fa-file-invoice-dollar w-5 text-center"></i> Facturation & Paiements
                     </button>
                 </nav>
             </div>
@@ -98,11 +70,12 @@
             <!-- Footer / Quick Support -->
             <div class="pt-6 border-t border-slate-100">
                 <div class="bg-lkdm-bg p-4 rounded-2xl border border-slate-200/80 mb-4">
-                    <p class="font-bold text-lkdm-text text-xs tracking-wide uppercase mb-1">Assistance LKDM</p>
-                    <p class="text-xs text-lkdm-secondary mb-3">Besoin d'aide ou modification urgente ?</p>
-                    <a href="tel:+41772807697" class="text-xs text-lkdm-text font-medium hover:text-lkdm-accent flex items-center gap-1.5"><i class="fa-solid fa-phone text-lkdm-accent"></i> 077 280 76 97</a>
+                    <p class="font-bold text-lkdm-text text-xs tracking-wide uppercase mb-1">Support LKDM Sierre</p>
+                    <p class="text-xs text-lkdm-secondary mb-3">Maximilien & Benjamin</p>
+                    <a href="mailto:hello@lekoupdemain.ch" class="text-xs text-lkdm-text font-medium hover:text-lkdm-accent flex items-center gap-1.5 break-all"><i class="fa-regular fa-envelope"></i> hello@lekoupdemain.ch</a>
+                    <a href="tel:+41772807697" class="text-xs text-lkdm-text font-medium hover:text-lkdm-accent flex items-center gap-1.5 mt-2"><i class="fa-solid fa-phone"></i> 077 280 76 97</a>
                 </div>
-                <a href="/webapp/hub.html" class="w-full flex items-center justify-center gap-2 text-xs font-medium text-lkdm-secondary hover:text-lkdm-accent transition py-2">
+                <a href="index.html" class="w-full flex items-center justify-center gap-2 text-xs font-medium text-lkdm-secondary hover:text-lkdm-accent transition py-2">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i> Retour au portail
                 </a>
             </div>
@@ -113,319 +86,122 @@
             <div class="max-w-5xl mx-auto">
                 
                 <!-- Notification Toast -->
-                <div id="toast" class="hidden fixed top-5 right-5 bg-lkdm-text text-white px-6 py-4 rounded-xl shadow-xl z-50 flex items-center gap-3 border-l-4 border-lkdm-green transition transform duration-300">
-                    <i class="fa-solid fa-circle-check text-lkdm-green text-xl"></i>
+                <div id="toast" class="hidden fixed top-5 right-5 bg-lkdm-text text-white px-6 py-4 rounded-xl shadow-xl z-50 flex items-center gap-3 border-l-4 border-lkdm-accent transition transform duration-300">
+                    <i class="fa-solid fa-circle-check text-lkdm-accent text-xl"></i>
                     <div>
-                        <h4 class="font-bold text-sm">C'est noté !</h4>
-                        <p id="toast-msg" class="text-xs text-slate-300">Votre demande a bien été envoyée.</p>
+                        <h4 class="font-bold text-sm">Action validée !</h4>
+                        <p id="toast-msg" class="text-xs text-slate-300">Votre demande a bien été prise en compte.</p>
                     </div>
                 </div>
 
-                <!-- TAB 1: DASHBOARD (ACCUEIL) -->
+                <!-- TAB 1: DASHBOARD -->
                 <div id="tab-dashboard" class="tab-content active space-y-8">
-                    
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
-                            <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Tableau de bord</span>
-                            <h2 class="text-3xl font-bold text-lkdm-text mt-1">Bonjour, Jean 👋</h2>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Espace Famille & Seniors</span>
+                            <h2 class="text-3xl font-bold text-lkdm-text mt-1">Bonjour Marguerite 👋</h2>
                         </div>
-                        <button onclick="switchTab('request')" class="bg-lkdm-accent text-white px-6 py-3 rounded-[50px] text-sm font-medium shadow-sm hover:bg-[#b53838] transition flex items-center gap-2">
-                            <i class="fa-solid fa-calendar-plus"></i> Commander un Koup de Main
+                        <button onclick="switchTab('order')" class="bg-lkdm-accent text-white px-6 py-3 rounded-[50px] text-sm font-medium shadow-sm hover:bg-[#b53838] transition flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Commander un Koup de Main
                         </button>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <!-- Next Visit Highlight -->
-                        <div class="lg:col-span-2 bg-white rounded-3xl p-6 lg:p-8 border border-slate-200/80 shadow-sm relative overflow-hidden">
-                            <div class="relative z-10">
-                                <span class="bg-emerald-50 text-emerald-700 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-md mb-4 inline-block">Prochaine visite confirmée</span>
-                                <h3 class="text-2xl font-bold text-lkdm-text leading-tight mb-2">Aide au rangement & discussion</h3>
-                                <p class="text-lkdm-secondary text-sm mb-6">Pour <strong>Mme Favre (Sion)</strong></p>
-                                
-                                <div class="flex flex-wrap gap-4 items-center bg-lkdm-bg p-4 rounded-2xl border border-slate-100">
-                                    <div class="flex items-center gap-3 border-r border-slate-200 pr-4">
-                                        <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-lkdm-accent shadow-sm"><i class="fa-regular fa-calendar"></i></div>
-                                        <div>
-                                            <p class="text-xs text-lkdm-secondary">Date & Heure</p>
-                                            <p class="text-sm font-bold text-lkdm-text">Mercredi 5 Août • 14h00</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-lkdm-secondary font-bold shadow-sm text-sm">AD</div>
-                                        <div>
-                                            <p class="text-xs text-lkdm-secondary">L'étudiant LKDM</p>
-                                            <p class="text-sm font-bold text-lkdm-text">Alexandre D.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                    <!-- Banner -->
+                    <div class="bg-white rounded-3xl p-6 lg:p-8 border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+                        <div class="max-w-xl space-y-3 relative z-10">
+                            <h3 class="text-xl font-bold text-lkdm-text leading-snug">Un accompagnement de confiance à domicile</h3>
+                            <p class="text-lkdm-text text-sm leading-relaxed opacity-90">
+                                Retrouvez ci-dessous le suivi en direct de vos interventions planifiées et gérez vos factures en toute simplicité avec nos étudiants valaisans qualifiés.
+                            </p>
                         </div>
-
-                        <!-- Polaroid Family / Beneficiary -->
-                        <div class="hidden lg:flex items-center justify-center flex-col">
-                            <div class="polaroid-effect">
-                                <div class="bg-slate-100 w-48 h-40 flex items-center justify-center mb-3">
-                                    <i class="fa-solid fa-house-chimney-user text-5xl text-lkdm-secondary opacity-50"></i>
-                                </div>
-                                <p class="font-bold text-lkdm-text text-center text-sm">Mme Favre</p>
-                                <p class="text-[10px] text-lkdm-secondary text-center uppercase tracking-widest mt-1">Bénéficiaire active</p>
+                        <div class="hidden md:block polaroid-effect flex-shrink-0">
+                            <div class="bg-lkdm-secondary/20 w-36 h-28 rounded flex items-center justify-center mb-2">
+                                <i class="fa-solid fa-house-chimney-user text-3xl text-lkdm-secondary"></i>
                             </div>
+                            <span class="text-[9px] text-lkdm-secondary font-medium tracking-wide block text-center uppercase">LKDM Services</span>
                         </div>
                     </div>
 
-                    <!-- Quick Summary Boxes -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between hover:border-lkdm-secondary transition cursor-pointer" onclick="switchTab('agenda')">
-                            <div>
-                                <p class="text-xs font-semibold text-lkdm-secondary uppercase tracking-wider">Missions ce mois</p>
-                                <h3 class="text-2xl font-bold text-lkdm-text mt-1">4 planifiées</h3>
-                            </div>
-                            <div class="w-12 h-12 rounded-full bg-lkdm-bg flex items-center justify-center text-lkdm-secondary"><i class="fa-solid fa-list-check text-xl"></i></div>
-                        </div>
-
-                        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between hover:border-lkdm-accent transition cursor-pointer" onclick="switchTab('billing')">
-                            <div>
-                                <p class="text-xs font-semibold text-lkdm-secondary uppercase tracking-wider">Dernière facture</p>
-                                <h3 class="text-2xl font-bold text-lkdm-text mt-1">Juillet - Réglée</h3>
-                            </div>
-                            <div class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600"><i class="fa-solid fa-check text-xl"></i></div>
-                        </div>
+                    <!-- Upcoming Interventions Box -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                        <h3 class="font-bold text-lkdm-text text-base">Prochaines interventions à votre domicile</h3>
+                        <div id="customer-upcoming-list" class="space-y-3"></div>
                     </div>
                 </div>
 
-                <!-- TAB 2: DEMANDE (COMMANDER) -->
-                <div id="tab-request" class="tab-content space-y-6">
-                    <div>
-                        <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Nouvelle Demande</span>
-                        <h2 class="text-2xl font-bold text-lkdm-text mt-0.5">Commander un Koup de Main</h2>
-                        <p class="text-sm text-lkdm-secondary mt-1">Dites-nous de quoi vous avez besoin. L'équipe du Technopôle se charge de trouver l'étudiant idéal.</p>
+                <!-- TAB 2: MES MISSIONS -->
+                <div id="tab-missions" class="tab-content space-y-6">
+                    <h2 class="text-2xl font-bold text-lkdm-text">Suivi de vos missions</h2>
+                    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="bg-slate-50 text-xs font-semibold text-lkdm-secondary uppercase border-b border-slate-100">
+                                <tr>
+                                    <th class="py-4 px-6">Date & Heure</th>
+                                    <th class="py-4 px-6">Prestation</th>
+                                    <th class="py-4 px-6">Intervenant (Étudiant)</th>
+                                    <th class="py-4 px-6 text-right">Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customer-missions-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
+                        </table>
                     </div>
+                </div>
 
-                    <div class="bg-white p-6 lg:p-8 rounded-3xl border border-slate-200 shadow-sm">
-                        <form onsubmit="submitRequest(event)" class="space-y-6">
-                            
-                            <!-- Bénéficiaire -->
+                <!-- TAB 3: COMMANDER UNE MISSION -->
+                <div id="tab-order" class="tab-content space-y-6">
+                    <div class="bg-white p-6 lg:p-8 rounded-3xl border border-slate-200 shadow-sm max-w-2xl mx-auto">
+                        <h2 class="text-2xl font-bold text-lkdm-text mb-2">Commander une nouvelle mission</h2>
+                        <p class="text-xs text-lkdm-secondary mb-6">Remplissez ce formulaire pour planifier l'intervention d'un étudiant à votre domicile.</p>
+                        
+                        <form onsubmit="submitCustomerOrder(event)" class="space-y-4">
                             <div>
-                                <label class="block text-sm font-bold text-lkdm-text mb-2">Pour qui est la mission ?</label>
-                                <div class="relative">
-                                    <select required class="w-full appearance-none bg-lkdm-bg border border-slate-200 text-lkdm-text text-sm rounded-xl px-4 py-3 font-medium focus:outline-none focus:border-lkdm-accent focus:ring-1 focus:ring-lkdm-accent">
-                                        <option value="Mme Favre (Sion)" selected>Mme Favre (Domicile - Sion)</option>
-                                        <option value="other">+ Ajouter un nouveau proche...</option>
-                                    </select>
-                                    <i class="fa-solid fa-chevron-down absolute right-4 top-3.5 text-lkdm-secondary pointer-events-none"></i>
-                                </div>
+                                <label class="block text-xs font-bold text-lkdm-text mb-1.5">Type de prestation / Tâche</label>
+                                <input type="text" id="ord-title" required placeholder="Ex: Aide ménage & courses" class="w-full bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-lkdm-accent">
                             </div>
-
-                            <!-- Type de mission -->
-                            <div>
-                                <label class="block text-sm font-bold text-lkdm-text mb-2">De quel service avez-vous besoin ?</label>
-                                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                    <label class="cursor-pointer">
-                                        <input type="radio" name="service" class="peer sr-only" required>
-                                        <div class="p-4 rounded-xl border border-slate-200 bg-lkdm-bg hover:bg-slate-100 peer-checked:border-lkdm-accent peer-checked:bg-red-50 text-center transition">
-                                            <i class="fa-solid fa-broom text-2xl text-lkdm-secondary mb-2 peer-checked:text-lkdm-accent"></i>
-                                            <p class="text-xs font-bold text-lkdm-text">Aide au Ménage</p>
-                                        </div>
-                                    </label>
-                                    <label class="cursor-pointer">
-                                        <input type="radio" name="service" class="peer sr-only">
-                                        <div class="p-4 rounded-xl border border-slate-200 bg-lkdm-bg hover:bg-slate-100 peer-checked:border-lkdm-accent peer-checked:bg-red-50 text-center transition">
-                                            <i class="fa-solid fa-cart-shopping text-2xl text-lkdm-secondary mb-2 peer-checked:text-lkdm-accent"></i>
-                                            <p class="text-xs font-bold text-lkdm-text">Courses</p>
-                                        </div>
-                                    </label>
-                                    <label class="cursor-pointer">
-                                        <input type="radio" name="service" class="peer sr-only">
-                                        <div class="p-4 rounded-xl border border-slate-200 bg-lkdm-bg hover:bg-slate-100 peer-checked:border-lkdm-accent peer-checked:bg-red-50 text-center transition">
-                                            <i class="fa-solid fa-laptop text-2xl text-lkdm-secondary mb-2 peer-checked:text-lkdm-accent"></i>
-                                            <p class="text-xs font-bold text-lkdm-text">Informatique</p>
-                                        </div>
-                                    </label>
-                                    <label class="cursor-pointer">
-                                        <input type="radio" name="service" class="peer sr-only">
-                                        <div class="p-4 rounded-xl border border-slate-200 bg-lkdm-bg hover:bg-slate-100 peer-checked:border-lkdm-accent peer-checked:bg-red-50 text-center transition">
-                                            <i class="fa-solid fa-leaf text-2xl text-lkdm-secondary mb-2 peer-checked:text-lkdm-accent"></i>
-                                            <p class="text-xs font-bold text-lkdm-text">Jardinage</p>
-                                        </div>
-                                    </label>
-                                    <label class="cursor-pointer">
-                                        <input type="radio" name="service" class="peer sr-only">
-                                        <div class="p-4 rounded-xl border border-slate-200 bg-lkdm-bg hover:bg-slate-100 peer-checked:border-lkdm-accent peer-checked:bg-red-50 text-center transition">
-                                            <i class="fa-solid fa-comments text-2xl text-lkdm-secondary mb-2 peer-checked:text-lkdm-accent"></i>
-                                            <p class="text-xs font-bold text-lkdm-text">Promenade & Discussion</p>
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <!-- Date et Heure -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-bold text-lkdm-text mb-2">Date souhaitée</label>
-                                    <input type="date" required class="w-full bg-lkdm-bg border border-slate-200 text-lkdm-text text-sm rounded-xl px-4 py-3 font-medium focus:outline-none focus:border-lkdm-accent focus:ring-1 focus:ring-lkdm-accent">
+                                    <label class="block text-xs font-bold text-lkdm-text mb-1.5">Date souhaitée</label>
+                                    <input type="date" id="ord-date" required class="w-full bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-lkdm-accent">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-bold text-lkdm-text mb-2">Durée estimée</label>
-                                    <div class="relative">
-                                        <select required class="w-full appearance-none bg-lkdm-bg border border-slate-200 text-lkdm-text text-sm rounded-xl px-4 py-3 font-medium focus:outline-none focus:border-lkdm-accent focus:ring-1 focus:ring-lkdm-accent">
-                                            <option value="1">1 heure</option>
-                                            <option value="2" selected>2 heures</option>
-                                            <option value="3">3 heures</option>
-                                            <option value="4">Demi-journée (4h)</option>
-                                        </select>
-                                        <i class="fa-solid fa-chevron-down absolute right-4 top-3.5 text-lkdm-secondary pointer-events-none"></i>
-                                    </div>
+                                    <label class="block text-xs font-bold text-lkdm-text mb-1.5">Heure</label>
+                                    <input type="time" id="ord-time" required class="w-full bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-lkdm-accent">
                                 </div>
                             </div>
-
-                            <!-- Précisions -->
-                            <div>
-                                <label class="block text-sm font-bold text-lkdm-text mb-2">Précisions pour l'étudiant (Optionnel)</label>
-                                <textarea rows="3" placeholder="Ex: Il faut acheter du lait et du pain. Attention, l'ascenseur est en panne..." class="w-full bg-lkdm-bg border border-slate-200 text-lkdm-text text-sm rounded-xl px-4 py-3 font-medium focus:outline-none focus:border-lkdm-accent focus:ring-1 focus:ring-lkdm-accent"></textarea>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-lkdm-text mb-1.5">Durée estimée (heures)</label>
+                                    <input type="number" id="ord-duration" step="0.5" required placeholder="2.0" class="w-full bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-lkdm-accent">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-lkdm-text mb-1.5">Ville / Localité</label>
+                                    <input type="text" id="ord-city" required placeholder="Sion" class="w-full bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-lkdm-accent">
+                                </div>
                             </div>
-
-                            <div class="pt-4 border-t border-slate-100 flex justify-end">
-                                <button type="submit" class="bg-lkdm-accent hover:bg-[#b53838] text-white font-medium px-8 py-3.5 rounded-[50px] transition shadow-sm w-full md:w-auto">
-                                    Envoyer la demande à LKDM
+                            <div class="pt-4">
+                                <button type="submit" class="w-full bg-lkdm-accent text-white py-3.5 rounded-[50px] font-medium text-sm hover:bg-[#b53838] transition shadow-sm">
+                                    Valider et publier la demande
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
 
-                <!-- TAB 3: AGENDA & SUIVI -->
-                <div id="tab-agenda" class="tab-content space-y-6">
-                    <div>
-                        <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Historique & Suivi</span>
-                        <h2 class="text-2xl font-bold text-lkdm-text mt-0.5">Vos Missions</h2>
-                    </div>
-
-                    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-                        <div class="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                            <h3 class="font-bold text-lkdm-text text-sm uppercase tracking-wide">Missions à venir</h3>
-                        </div>
-                        <div class="p-6 space-y-4">
-                            <!-- Mission Card -->
-                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-2xl border border-lkdm-accent bg-red-50/10">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-xl bg-white border border-slate-200 flex flex-col items-center justify-center text-lkdm-accent flex-shrink-0">
-                                        <span class="text-[10px] font-bold uppercase leading-none">Août</span>
-                                        <span class="text-lg font-bold leading-none mt-0.5">05</span>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-lkdm-text">Aide au rangement & discussion</h4>
-                                        <p class="text-xs text-lkdm-secondary mt-0.5">Mercredi à 14:00 (2.5h) • Étudiant: Alexandre D.</p>
-                                    </div>
-                                </div>
-                                <div>
-                                    <span class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-md text-xs font-bold inline-block border border-emerald-100"><i class="fa-solid fa-check mr-1"></i> Confirmée</span>
-                                </div>
-                            </div>
-
-                            <!-- Mission Card -->
-                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-2xl border border-slate-200 bg-lkdm-bg">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-xl bg-white border border-slate-200 flex flex-col items-center justify-center text-lkdm-secondary flex-shrink-0">
-                                        <span class="text-[10px] font-bold uppercase leading-none">Août</span>
-                                        <span class="text-lg font-bold leading-none mt-0.5">12</span>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-lkdm-text">Jardinage & taille légère</h4>
-                                        <p class="text-xs text-lkdm-secondary mt-0.5">Mercredi à 10:00 (2h) • Étudiant: En recherche...</p>
-                                    </div>
-                                </div>
-                                <div>
-                                    <span class="bg-white text-lkdm-secondary px-3 py-1.5 rounded-md text-xs font-bold inline-block border border-slate-200"><i class="fa-solid fa-hourglass-half mr-1"></i> En cours d'attribution</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 4: FACTURES -->
+                <!-- TAB 4: FACTURATION -->
                 <div id="tab-billing" class="tab-content space-y-6">
-                    <div class="flex justify-between items-end">
-                        <div>
-                            <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Comptabilité</span>
-                            <h2 class="text-2xl font-bold text-lkdm-text mt-0.5">Vos Factures</h2>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm text-lkdm-text">
-                                <thead class="bg-slate-50 text-xs font-semibold text-lkdm-secondary uppercase border-b border-slate-100">
-                                    <tr>
-                                        <th class="py-4 px-6">Mois de facturation</th>
-                                        <th class="py-4 px-6">Total Heures</th>
-                                        <th class="py-4 px-6">Montant (CHF)</th>
-                                        <th class="py-4 px-6">Statut</th>
-                                        <th class="py-4 px-6 text-right">Télécharger</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100 text-xs font-medium">
-                                    <tr class="hover:bg-slate-50/50 transition">
-                                        <td class="py-4 px-6 font-bold">Juillet 2026</td>
-                                        <td class="py-4 px-6 text-lkdm-secondary">12 heures</td>
-                                        <td class="py-4 px-6 font-bold">420.00</td>
-                                        <td class="py-4 px-6"><span class="text-emerald-600 bg-emerald-50 px-2 py-1 rounded font-bold"><i class="fa-solid fa-check"></i> Payé</span></td>
-                                        <td class="py-4 px-6 text-right"><button class="text-lkdm-accent hover:underline font-bold"><i class="fa-solid fa-download"></i> PDF</button></td>
-                                    </tr>
-                                    <tr class="hover:bg-slate-50/50 transition">
-                                        <td class="py-4 px-6 font-bold">Juin 2026</td>
-                                        <td class="py-4 px-6 text-lkdm-secondary">15 heures</td>
-                                        <td class="py-4 px-6 font-bold">525.00</td>
-                                        <td class="py-4 px-6"><span class="text-emerald-600 bg-emerald-50 px-2 py-1 rounded font-bold"><i class="fa-solid fa-check"></i> Payé</span></td>
-                                        <td class="py-4 px-6 text-right"><button class="text-lkdm-accent hover:underline font-bold"><i class="fa-solid fa-download"></i> PDF</button></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 5: PROFILE BENEFICIAIRE -->
-                <div id="tab-profile" class="tab-content space-y-6">
-                    <div>
-                        <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Dossier</span>
-                        <h2 class="text-2xl font-bold text-lkdm-text mt-0.5">Fiche Bénéficiaire</h2>
-                        <p class="text-sm text-lkdm-secondary mt-1">Informations transmises aux étudiants LKDM avant chaque mission.</p>
-                    </div>
-
-                    <div class="bg-white p-6 lg:p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-8">
-                        <div class="md:w-1/3 space-y-4">
-                            <div class="polaroid-effect mx-auto w-48 mb-4">
-                                <div class="bg-slate-100 h-32 flex items-center justify-center mb-2">
-                                    <i class="fa-solid fa-user text-4xl text-lkdm-secondary opacity-30"></i>
-                                </div>
-                                <p class="text-center font-bold text-sm text-lkdm-text">Mme Favre</p>
-                            </div>
-                            <button class="w-full bg-lkdm-bg border border-slate-200 text-lkdm-text font-medium py-2 rounded-xl text-xs hover:border-lkdm-secondary transition">Modifier la photo</button>
-                        </div>
-                        
-                        <div class="md:w-2/3 space-y-6">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <p class="text-[10px] uppercase font-bold text-lkdm-secondary tracking-wider">Nom complet</p>
-                                    <p class="text-sm font-semibold text-lkdm-text">Marguerite Favre</p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] uppercase font-bold text-lkdm-secondary tracking-wider">Téléphone du domicile</p>
-                                    <p class="text-sm font-semibold text-lkdm-text">027 322 XX XX</p>
-                                </div>
-                                <div class="sm:col-span-2">
-                                    <p class="text-[10px] uppercase font-bold text-lkdm-secondary tracking-wider">Adresse d'intervention</p>
-                                    <p class="text-sm font-semibold text-lkdm-text">Avenue de la Gare 14, 1950 Sion (3ème étage, ascenseur)</p>
-                                </div>
-                            </div>
-                            
-                            <div class="pt-4 border-t border-slate-100">
-                                <p class="text-[10px] uppercase font-bold text-lkdm-secondary tracking-wider mb-2">Notes pour les étudiants</p>
-                                <div class="bg-lkdm-bg p-4 rounded-xl text-xs text-lkdm-text border border-slate-200 leading-relaxed">
-                                    "Mme Favre est très souriante et aime discuter de jardinage. Elle se déplace avec une canne, merci de faire attention à ne rien laisser traîner dans les couloirs lors du ménage. Sonnettes : appuyer fort."
-                                </div>
-                            </div>
-                        </div>
+                    <h2 class="text-2xl font-bold text-lkdm-text">Facturation & Règlements</h2>
+                    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="bg-slate-50 text-xs font-semibold text-lkdm-secondary uppercase border-b border-slate-100">
+                                <tr>
+                                    <th class="py-4 px-6">N° Facture</th>
+                                    <th class="py-4 px-6">Date</th>
+                                    <th class="py-4 px-6">Montant Brut</th>
+                                    <th class="py-4 px-6 text-right">Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-sm" id="customer-billing-tbody"></tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -433,41 +209,104 @@
         </main>
     </div>
 
-    <!-- Script -->
     <script>
+        // Données mockées client (Mme Favre Marguerite)
+        let customerMissions = [
+            { id: 101, date: "05/08/2026", time: "14:00", title: "Aide ménage & discussion", student: "Alexandre Dubois", status: "completed", val: 80.00 },
+            { id: 103, date: "15/08/2026", time: "13:30", title: "Tri administratif", student: "Alexandre Dubois", status: "assigned", val: 65.00 },
+            { id: 104, date: "24/08/2026", time: "09:00", title: "Accompagnement courses", student: "En attente d'attribution", status: "unassigned", val: 95.00 }
+        ];
+
+        let customerInvoices = [
+            { id: "F-2608-01", date: "01/08/2026", amount: 160.00, status: "pending" }
+        ];
+
+        function renderCustomerDashboard() {
+            const container = document.getElementById('customer-upcoming-list');
+            container.innerHTML = '';
+            customerMissions.filter(m => m.status !== 'completed').forEach(m => {
+                container.innerHTML += `
+                    <div class="p-4 bg-slate-50 rounded-xl border flex justify-between items-center text-sm">
+                        <div>
+                            <p class="font-bold text-lkdm-text">${m.title}</p>
+                            <p class="text-xs text-lkdm-secondary">${m.date} à ${m.time} • Intervenant : <strong class="text-lkdm-text">${m.student}</strong></p>
+                        </div>
+                        <span class="text-xs font-bold px-2.5 py-1 rounded ${m.status==='assigned'?'bg-blue-50 text-blue-700':'bg-amber-50 text-amber-700'}">${m.status==='assigned'?'Planifiée':'Recherche en cours'}</span>
+                    </div>
+                `;
+            });
+        }
+
+        function renderCustomerMissions() {
+            const tbody = document.getElementById('customer-missions-tbody');
+            tbody.innerHTML = '';
+            customerMissions.forEach(m => {
+                let badge = m.status === 'completed' ? '<span class="text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded font-bold text-xs">Terminée</span>' :
+                            m.status === 'assigned' ? '<span class="text-blue-600 bg-blue-50 px-2.5 py-1 rounded font-bold text-xs">Planifiée</span>' :
+                            '<span class="text-amber-600 bg-amber-50 px-2.5 py-1 rounded font-bold text-xs">En attente</span>';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-4 px-6 font-bold text-lkdm-text">${m.date}<br><span class="text-xs text-lkdm-secondary font-normal">${m.time}</span></td>
+                        <td class="py-4 px-6 font-bold text-lkdm-text">${m.title}</td>
+                        <td class="py-4 px-6 text-sm text-lkdm-secondary">${m.student}</td>
+                        <td class="py-4 px-6 text-right">${badge}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function submitCustomerOrder(e) {
+            e.preventDefault();
+            const title = document.getElementById('ord-title').value;
+            const date = document.getElementById('ord-date').value.split('-').reverse().join('/');
+            const time = document.getElementById('ord-time').value;
+            const city = document.getElementById('ord-city').value;
+            const duration = document.getElementById('ord-duration').value + 'h';
+
+            customerMissions.unshift({
+                id: Date.now(), date, time, title, student: "Recherche en cours", status: "unassigned", val: 75.00
+            });
+
+            showToast("Demande enregistrée", "Votre mission a été transmise à l'équipe LKDM.");
+            switchTab('dashboard');
+            e.target.reset();
+        }
+
+        function renderCustomerBilling() {
+            const tbody = document.getElementById('customer-billing-tbody');
+            tbody.innerHTML = '';
+            customerInvoices.forEach(inv => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-4 px-6 font-medium text-lkdm-text">${inv.id}</td>
+                        <td class="py-4 px-6 text-lkdm-secondary">${inv.date}</td>
+                        <td class="py-4 px-6 font-bold text-lkdm-text">CHF ${inv.amount.toFixed(2)}</td>
+                        <td class="py-4 px-6 text-right"><span class="text-amber-600 bg-amber-50 px-2.5 py-1 rounded font-bold text-xs">En attente de paiement</span></td>
+                    </tr>
+                `;
+            });
+        }
+
         function switchTab(tabId) {
-            // Update Tab Content display
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById(`tab-${tabId}`).classList.add('active');
-
-            // Update Nav Buttons
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('bg-lkdm-accent', 'text-white', 'shadow-sm');
-                btn.classList.add('text-lkdm-text');
-            });
-            const activeBtn = document.getElementById(`nav-${tabId}`);
-            if(activeBtn) {
-                activeBtn.classList.add('bg-lkdm-accent', 'text-white', 'shadow-sm');
-                activeBtn.classList.remove('text-lkdm-text');
-            }
-
-            // Close mobile menu
-            document.getElementById('sidebar').classList.add('-translate-x-full');
+            document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('bg-lkdm-accent', 'text-white'); btn.classList.add('text-lkdm-text'); });
+            document.getElementById(`nav-${tabId}`).classList.add('bg-lkdm-accent', 'text-white');
+            document.getElementById(`nav-${tabId}`).classList.remove('text-lkdm-text');
+            if(tabId === 'dashboard') renderCustomerDashboard();
+            if(tabId === 'missions') renderCustomerMissions();
+            if(tabId === 'billing') renderCustomerBilling();
         }
 
-        function submitRequest(event) {
-            event.preventDefault();
+        function showToast(title, msg) {
             const toast = document.getElementById('toast');
             toast.classList.remove('hidden');
-            setTimeout(() => {
-                toast.classList.add('hidden');
-                switchTab('agenda'); // Redirect to agenda after submission
-            }, 3000);
+            setTimeout(() => toast.classList.add('hidden'), 4000);
         }
 
-        // Mobile Menu Toggle
-        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        window.addEventListener('DOMContentLoaded', () => {
+            renderCustomerDashboard();
         });
     </script>
 </body>
