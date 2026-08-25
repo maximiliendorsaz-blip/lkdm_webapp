@@ -43,7 +43,7 @@
                 <div class="px-2 flex justify-between items-center">
                     <div>
                         <h1 class="font-bold text-xl text-lkdm-text tracking-tight">Le Koup de Main</h1>
-                        <p class="text-xs text-lkdm-secondary font-medium tracking-wider uppercase mt-1">Super Admin • Sierre</p>
+                        <p class="text-xs text-lkdm-secondary font-medium tracking-wider uppercase mt-1">Super Admin</p>
                     </div>
                 </div>
 
@@ -114,14 +114,17 @@
                             <h2 class="text-3xl font-bold text-lkdm-text mt-1">Réseau Valaisan</h2>
                         </div>
                         <div class="flex flex-wrap gap-2">
-                            <button onclick="openModal('modal-create-mission'); prepareMissionModalOptions();" class="bg-lkdm-accent text-white px-5 py-2.5 rounded-[50px] text-sm font-medium shadow-sm hover:bg-[#b53838] transition flex items-center gap-2">
+                            <button onclick="openModal('modal-create-mission'); prepareMissionModalOptions();" class="bg-lkdm-accent text-white px-4 py-2.5 rounded-[50px] text-xs font-medium shadow-sm hover:bg-[#b53838] transition flex items-center gap-2">
                                 <i class="fa-solid fa-plus"></i> Créer mission
                             </button>
-                            <button onclick="openModal('modal-create-student')" class="bg-white border border-slate-200 text-lkdm-text px-5 py-2.5 rounded-[50px] text-sm font-medium shadow-sm hover:bg-slate-50 transition flex items-center gap-2">
+                            <button onclick="openModal('modal-create-student')" class="bg-white border border-slate-200 text-lkdm-text px-4 py-2.5 rounded-[50px] text-xs font-medium shadow-sm hover:bg-slate-50 transition flex items-center gap-2">
                                 <i class="fa-solid fa-graduation-cap"></i> Créer étudiant
                             </button>
-                            <button onclick="openModal('modal-create-client')" class="bg-white border border-slate-200 text-lkdm-text px-5 py-2.5 rounded-[50px] text-sm font-medium shadow-sm hover:bg-slate-50 transition flex items-center gap-2">
+                            <button onclick="openModal('modal-create-client')" class="bg-white border border-slate-200 text-lkdm-text px-4 py-2.5 rounded-[50px] text-xs font-medium shadow-sm hover:bg-slate-50 transition flex items-center gap-2">
                                 <i class="fa-solid fa-user-plus"></i> Créer client
+                            </button>
+                            <button onclick="openModal('modal-create-doc'); prepareDocModalOptions();" class="bg-slate-800 text-white px-4 py-2.5 rounded-[50px] text-xs font-medium shadow-sm hover:bg-slate-900 transition flex items-center gap-2">
+                                <i class="fa-solid fa-file-arrow-up"></i> Créer doc
                             </button>
                         </div>
                     </div>
@@ -456,6 +459,48 @@
         </div>
     </div>
 
+    <!-- MODAL : CRÉER / UPLOADER UN DOCUMENT -->
+    <div id="modal-create-doc" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-xl p-6 my-8 relative">
+            <button onclick="closeModal('modal-create-doc')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-times"></i></button>
+            <h3 class="text-xl font-bold text-lkdm-text mb-4">Uploader / Créer un Document</h3>
+            <form onsubmit="submitDocumentForm(event)" class="space-y-4 text-sm">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Titre du document *</label>
+                    <input type="text" id="doc-title" required placeholder="Ex: Contrat de travail..." class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Type de document *</label>
+                        <select id="doc-type-select" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Lier à un Client / Étudiant</label>
+                        <select id="doc-profile-link" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                            <option value="">-- Aucun lien profil --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Lier à une Mission</label>
+                        <select id="doc-mission-link" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                            <option value="">-- Aucune mission liée --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Fichier (PDF / Image) *</label>
+                        <input type="file" id="doc-file" required class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-lkdm-accent file:text-white hover:file:bg-[#b53838]">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 pt-4 border-t">
+                    <button type="button" onclick="closeModal('modal-create-doc')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Annuler</button>
+                    <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Uploader le document</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL : ÉDITION GLOBALE MISSION -->
     <div id="modal-edit-mission" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
@@ -668,6 +713,95 @@
                 sel.innerHTML = '';
                 LKDM_CONFIG.prospectSourceTypes.forEach(ts => sel.innerHTML += `<option value="${ts}">${ts}</option>`);
             });
+
+            // Types de documents depuis config.js
+            const docTypeSelects = document.querySelectorAll('#doc-type-select');
+            docTypeSelects.forEach(sel => {
+                sel.innerHTML = '';
+                if (LKDM_CONFIG.documentTypes) {
+                    LKDM_CONFIG.documentTypes.forEach(dt => sel.innerHTML += `<option value="${dt}">${dt}</option>`);
+                }
+            });
+        }
+
+        function prepareDocModalOptions() {
+            // Remplir la liste des profils (clients + étudiants)
+            const profileSelect = document.getElementById('doc-profile-link');
+            profileSelect.innerHTML = '<option value="">-- Aucun lien profil --</option>';
+            
+            const allProfiles = [...globalClientsData, ...globalStudentsData];
+            allProfiles.forEach(p => {
+                const roleLabel = p.role === 'client' ? 'Client' : 'Étudiant';
+                profileSelect.innerHTML += `<option value="${p.id}">${p.full_name} (${roleLabel})</option>`;
+            });
+
+            // Remplir la liste des missions
+            const missionSelect = document.getElementById('doc-mission-link');
+            missionSelect.innerHTML = '<option value="">-- Aucune mission liée --</option>';
+            globalMissionsData.forEach(m => {
+                missionSelect.innerHTML += `<option value="${m.id}">${m.mission_code} - ${m.exact_description || ''}</option>`;
+            });
+        }
+
+        async function submitDocumentForm(event) {
+            event.preventDefault();
+            const title = document.getElementById('doc-title').value.trim();
+            const docType = document.getElementById('doc-type-select').value;
+            const profileId = document.getElementById('doc-profile-link').value;
+            const missionId = document.getElementById('doc-mission-link').value;
+            const fileInput = document.getElementById('doc-file');
+
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert("Veuillez sélectionner un fichier.");
+                return;
+            }
+
+            const file = fileInput.files[0];
+
+            try {
+                // 1. Upload dans Storage Supabase
+                const fileName = `${Date.now()}_${file.name}`;
+                const { error: uploadErr } = await window.supabaseClient.storage
+                    .from('lkdm-documents')
+                    .upload(fileName, file);
+
+                if (uploadErr) throw uploadErr;
+
+                // 2. Obtenir l'URL publique
+                const { data: { publicUrl } } = window.supabaseClient.storage
+                    .from('lkdm-documents')
+                    .getPublicUrl(fileName);
+
+                // 3. Déterminer si le profile_id est client ou étudiant
+                let student_id = null;
+                let client_id = null;
+                if (profileId) {
+                    const isStudent = globalStudentsData.some(s => s.id == profileId);
+                    if (isStudent) student_id = profileId;
+                    else client_id = profileId;
+                }
+
+                // 4. Enregistrement dans la table 'documents'
+                const payload = {
+                    title: title,
+                    doc_type: docType,
+                    file_url: publicUrl,
+                    student_id: student_id,
+                    client_id: client_id,
+                    mission_id: missionId ? parseInt(missionId) : null,
+                    event_id: null
+                };
+
+                const { error: dbErr } = await window.supabaseClient.from('documents').insert([payload]);
+                if (dbErr) throw dbErr;
+
+                alert("Document créé et uploadé avec succès !");
+                closeModal('modal-create-doc');
+                loadSupabaseOverview();
+            } catch (error) {
+                console.error("Erreur lors de l'upload du document :", error.message);
+                alert("Erreur : " + error.message);
+            }
         }
 
         async function loadSupabaseOverview() {
