@@ -1,6 +1,6 @@
 // config.js - Centralisation de toutes les références de l'écosystème Le Koup de Main (LKDM)
 
-const LKDM_CONFIG = {
+const window.LKDM_CONFIG = {
     // Rôles utilisateurs
     roles: [
         "client",
