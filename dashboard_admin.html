@@ -88,8 +88,11 @@
                 </nav>
             </div>
 
-            <!-- Footer -->
-            <div class="pt-6 border-t border-slate-100">
+            <!-- Footer / Bouton Export CSV & Quitter -->
+            <div class="pt-4 border-t border-slate-100 space-y-2">
+                <button onclick="openModal('modal-export-csv')" class="w-full flex items-center justify-center gap-2 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition py-2.5 rounded-xl border border-emerald-200">
+                    <i class="fa-solid fa-file-csv"></i> Exporter en CSV
+                </button>
                 <a href="index.html" class="w-full flex items-center justify-center gap-2 text-xs font-medium text-lkdm-secondary hover:text-lkdm-accent transition py-2">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i> Quitter l'Admin
                 </a>
@@ -195,9 +198,9 @@
                 <!-- TAB 2: MISSIONS -->
                 <div id="tab-missions" class="tab-content space-y-6">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <h2 class="text-2xl font-bold text-lkdm-text">Gestion des Missions Ouvertes</h2>
+                        <h2 class="text-2xl font-bold text-lkdm-text">Gestion des Missions</h2>
                         <div class="flex items-center gap-2">
-                            <select id="mission-sort-order" onchange="loadSupabaseOverview()" class="bg-white border border-slate-200 text-lkdm-text text-xs font-medium rounded-xl px-3 py-2 shadow-sm">
+                            <select id="mission-sort-order" onchange="renderOpenMissionsTable()" class="bg-white border border-slate-200 text-lkdm-text text-xs font-medium rounded-xl px-3 py-2 shadow-sm">
                                 <option value="num">Trier par N° de mission</option>
                                 <option value="status">Trier par ordre de statut</option>
                             </select>
@@ -272,7 +275,7 @@
                     </div>
                 </div>
 
-                <!-- TAB 6: SUIVI HEURES & AVS -->
+                <!-- TAB 6: SUIVI HEURES -->
                 <div id="tab-avs-tracker" class="tab-content space-y-6">
                     <div class="flex justify-between items-center">
                         <div>
@@ -373,6 +376,67 @@
 
             </div>
         </main>
+    </div>
+
+    <!-- MODAL : EXPORT CSV INTERACTIF -->
+    <div id="modal-export-csv" class="hidden fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 my-8 relative">
+            <button onclick="closeModal('modal-export-csv')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
+            <h3 class="text-xl font-bold text-lkdm-text mb-2"><i class="fa-solid fa-file-csv mr-2 text-emerald-600"></i> Assistant Export CSV</h3>
+            <p class="text-xs text-slate-500 mb-5">Configurez vos critères de filtrage et de dates pour l'exportation sur mesure.</p>
+            
+            <div class="space-y-4 text-sm">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Date de début</label>
+                        <input type="date" id="exp-start-date" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Date de fin</label>
+                        <input type="date" id="exp-end-date" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Statut de la mission</label>
+                        <select id="exp-mission-status" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                            <option value="all">Tous les statuts</option>
+                            <option value="Nouveau">Nouveau</option>
+                            <option value="À facturer">À facturer</option>
+                            <option value="Mission effectuée">Mission effectuée</option>
+                            <option value="En attente de paiement">En attente de paiement</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Statut du paiement</label>
+                        <select id="exp-payment-status" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                            <option value="all">Tous les paiements</option>
+                            <option value="Facture non envoyée">Facture non envoyée</option>
+                            <option value="Facture envoyée">Facture envoyée</option>
+                            <option value="Payé">Payé</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Localité (Ville)</label>
+                    <select id="exp-city" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                        <option value="Toutes">Toutes les localités</option>
+                        <option value="Sion">Sion</option>
+                        <option value="Sierre">Sierre</option>
+                        <option value="Martigny">Martigny</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-6 border-t mt-6">
+                <button type="button" onclick="closeModal('modal-export-csv')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Annuler</button>
+                <button type="button" onclick="executeCustomCSVExport()" class="px-6 py-2.5 bg-emerald-600 text-white rounded-full text-xs font-medium shadow-sm hover:bg-emerald-700 transition">
+                    <i class="fa-solid fa-download mr-1"></i> Générer et Télécharger
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- MODAL : CRÉER ÉTUDIANT -->
@@ -1019,10 +1083,9 @@
             const tbody = document.getElementById('avs-tracker-tbody');
             if (!tbody) return;
             tbody.innerHTML = '';
-            const currentYear = new Date().getFullYear();
 
             globalStudentsData.forEach(s => {
-                const studentMissions = globalMissionsData.filter(m => m.student_id === s.id && m.mission_date && m.mission_date.startsWith(`${currentYear}`));
+                const studentMissions = globalMissionsData.filter(m => m.student_id === s.id);
                 let totalHours = 0;
                 studentMissions.forEach(m => totalHours += Number(m.real_hours) || 0);
 
@@ -1128,6 +1191,71 @@
             await window.supabaseClient.from('missions').update({ payment_status: 'Payé' }).eq('id', missionId);
             alert(`[Paiement Validé] Facture marquée comme payée.`);
             loadSupabaseOverview();
+        }
+
+        function executeCustomCSVExport() {
+            const startDate = document.getElementById('exp-start-date').value;
+            const endDate = document.getElementById('exp-end-date').value;
+            const missionStatus = document.getElementById('exp-mission-status').value;
+            const paymentStatus = document.getElementById('exp-payment-status').value;
+            const cityFilter = document.getElementById('exp-city').value;
+
+            let dataToExport = globalMissionsData.filter(m => {
+                let matchDate = true;
+                if (startDate && m.mission_date && m.mission_date < startDate) matchDate = false;
+                if (endDate && m.mission_date && m.mission_date > endDate) matchDate = false;
+
+                let matchMissionStatus = true;
+                if (missionStatus !== 'all' && m.matching_status !== missionStatus) matchMissionStatus = false;
+
+                let matchPaymentStatus = true;
+                if (paymentStatus !== 'all') {
+                    const pStatus = m.payment_status || 'Facture non envoyée';
+                    if (!pStatus.startsWith(paymentStatus)) matchPaymentStatus = false;
+                }
+
+                let matchCity = true;
+                if (cityFilter !== 'Toutes') {
+                    if (!m.client || m.client.city !== cityFilter) matchCity = false;
+                }
+
+                return matchDate && matchMissionStatus && matchPaymentStatus && matchCity;
+            });
+
+            if (dataToExport.length === 0) {
+                alert("Aucune donnée ne correspond aux critères sélectionnés.");
+                return;
+            }
+
+            const headers = ["Code Mission", "Date", "Description", "Client", "Ville Client", "Statut Mission", "Heures", "Montant (CHF)", "Statut Paiement"];
+            let csvRows = [headers.join(';')];
+
+            dataToExport.forEach(m => {
+                const code = `"${m.mission_code || ''}"`;
+                const date = `"${m.mission_date || ''}"`;
+                const desc = `"${(m.exact_description || '').replace(/"/g, '""')}"`;
+                const clientName = `"${m.client ? m.client.full_name : 'Inconnu'}"`;
+                const clientCity = `"${m.client ? m.client.city : ''}"`;
+                const status = `"${m.matching_status || ''}"`;
+                const hours = m.real_hours || 0;
+                const amount = m.total_amount || 0;
+                const paymentStat = `"${m.payment_status || 'Facture non envoyée'}"`;
+
+                csvRows.push([code, date, desc, clientName, clientCity, status, hours, amount, paymentStat].join(';'));
+            });
+
+            const csvString = csvRows.join('\n');
+            const blob = new Blob(["\uFEFF" + csvString], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `export_sur_mesure_lkdm_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            closeModal('modal-export-csv');
         }
 
         // --- OUVERTURE & ÉDITION MISSION ---
