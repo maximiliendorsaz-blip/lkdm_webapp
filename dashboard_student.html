@@ -45,7 +45,7 @@
                 <!-- User Profile Mini Card -->
                 <div class="bg-lkdm-bg p-4 rounded-2xl border border-slate-200/60 flex items-center gap-3">
                     <div id="student-avatar-initials" class="w-11 h-11 rounded-full bg-lkdm-secondary text-white flex items-center justify-center font-bold text-lg shadow-sm">
-                        AD
+                        MD
                     </div>
                     <div class="overflow-hidden">
                         <p id="student-name-display" class="text-sm font-semibold text-lkdm-text truncate">Chargement...</p>
@@ -70,8 +70,8 @@
                     <button onclick="switchTab('earnings')" id="nav-earnings" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-text hover:bg-lkdm-bg hover:text-lkdm-accent">
                         <i class="fa-solid fa-wallet w-5 text-center"></i> Mes Salaires
                     </button>
-                    <button onclick="switchTab('charter')" id="nav-charter" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-text hover:bg-lkdm-bg hover:text-lkdm-accent">
-                        <i class="fa-regular fa-file-alt w-5 text-center"></i> Charte LKDM
+                    <button onclick="switchTab('documents')" id="nav-documents" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-text hover:bg-lkdm-bg hover:text-lkdm-accent">
+                        <i class="fa-regular fa-folder-open w-5 text-center"></i> Documents
                     </button>
                 </nav>
             </div>
@@ -229,13 +229,27 @@
                             <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-emerald-600 font-medium"><i class="fa-solid fa-circle-check"></i> Déclarations fiscales à jour</div>
                         </div>
                     </div>
+
+                    <!-- Section Certificats de salaire -->
+                    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                        <h3 class="font-bold text-lkdm-text text-base"><i class="fa-solid fa-file-invoice-dollar mr-2 text-emerald-600"></i> Mes Certificats de Salaire</h3>
+                        <div id="salary-certificates-list" class="space-y-2 text-xs">
+                            <p class="text-slate-400">Aucun certificat de salaire disponible pour le moment.</p>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- TAB 5: CHARTER -->
-                <div id="tab-charter" class="tab-content space-y-6">
-                    <div class="bg-white p-6 lg:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-3">
-                        <h2 class="text-2xl font-bold text-lkdm-text mb-4">Charte d'engagement Le Koup de Main</h2>
-                        <p class="text-xs text-lkdm-secondary leading-relaxed">Règles d'or pour préserver le lien de confiance unique avec nos seniors valaisans : sourire, ponctualité, écoute et discrétion absolue.</p>
+                <!-- TAB 5: DOCUMENTS -->
+                <div id="tab-documents" class="tab-content space-y-6">
+                    <div class="bg-white p-6 lg:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+                        <div>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Espace personnel</span>
+                            <h2 class="text-2xl font-bold text-lkdm-text mt-0.5">Mes Documents & Attestations</h2>
+                            <p class="text-xs text-slate-500 mt-1">Retrouvez ci-dessous l'ensemble de vos documents officiels triés par catégorie.</p>
+                        </div>
+                        <div id="student-documents-container" class="space-y-6">
+                            <p class="text-xs text-slate-400">Chargement de vos documents...</p>
+                        </div>
                     </div>
                 </div>
 
@@ -249,10 +263,10 @@
     </div>
 
     <script>
-        let currentStudentId = null; // ID de l'étudiant connecté (simulé ou récupéré)
+        let currentStudentId = null; 
         let globalStudentProfile = null;
         let dbMissions = [];
-        let allClients = [];
+        let dbDocuments = [];
         let map = null;
         let markersGroup = null;
 
@@ -270,7 +284,7 @@
         async function initStudentSpace() {
             if (!window.supabaseClient) return;
 
-            // Récupérer le premier étudiant de la base pour simuler l'espace connecté (ou filtre par email si besoin)
+            // Récupérer le premier étudiant de la base pour simuler l'espace connecté
             const { data: students, error } = await window.supabaseClient.from('profiles').select('*').eq('role', 'student').limit(1);
             if (error || !students || students.length === 0) {
                 console.error("Aucun profil étudiant trouvé dans Supabase.");
@@ -280,7 +294,6 @@
             globalStudentProfile = students[0];
             currentStudentId = globalStudentProfile.id;
 
-            // Mettre à jour l'affichage des infos de l'étudiant
             document.getElementById('student-name-display').innerText = globalStudentProfile.full_name;
             document.getElementById('welcome-title').innerText = `Ravi de vous revoir, ${globalStudentProfile.first_name || 'Étudiant'} 👋`;
             
@@ -293,16 +306,18 @@
         async function loadStudentData() {
             if (!currentStudentId) return;
 
-            // Charger toutes les missions depuis Supabase avec le client associé
-            const { data: missions, error } = await window.supabaseClient.from('missions').select('*, client:client_id(*)');
-            if (error) { console.error("Erreur chargement missions", error); return; }
+            // Charger les missions et les documents liés à cet étudiant
+            const { data: missions } = await window.supabaseClient.from('missions').select('*, client:client_id(*)');
+            const { data: docs } = await window.supabaseClient.from('documents').select('*').eq('student_id', currentStudentId);
 
             dbMissions = missions || [];
+            dbDocuments = docs || [];
 
             renderMissions();
             renderUpcoming();
             renderCalendar();
             updateDashboardKPIs();
+            renderStudentDocuments();
         }
 
         function initMap() {
@@ -384,7 +399,7 @@
             updateMapMarkers();
         }
 
-        function openMissionDetails(id) {
+        function openMissionDetails(id, readOnly = false) {
             const m = dbMissions.find(x => x.id === id);
             if (!m) return;
             const modal = document.getElementById('mission-modal');
@@ -404,9 +419,9 @@
                     <p><strong>Lieu :</strong> ${clientAddress}</p>
                     <p><strong>Période :</strong> ${m.mission_periods || 'Flexible'} (${m.estimated_hours || 2.0}h)</p>
                     <p><strong>Rémunération :</strong> CHF ${payAmt.toFixed(2)}</p>
-                    ${!isMine && !m.student_id ? `<button onclick="acceptMission(${m.id})" class="w-full bg-lkdm-accent text-white py-3 rounded-[50px] font-medium transition shadow-sm hover:bg-[#b53838]">Accepter cette mission</button>` : ''}
+                    <p><strong>Statut :</strong> <span class="font-semibold text-lkdm-accent">${m.matching_status || 'Nouveau'}</span></p>
+                    ${!readOnly && !isMine && !m.student_id ? `<button onclick="acceptMission(${m.id})" class="w-full bg-lkdm-accent text-white py-3 rounded-[50px] font-medium transition shadow-sm hover:bg-[#b53838]">Accepter cette mission</button>` : ''}
                     ${isMine ? '<p class="text-emerald-600 font-bold text-center"><i class="fa-solid fa-check"></i> Mission acceptée par vous</p>' : ''}
-                    {!isMine && m.student_id ? '<p class="text-amber-600 font-bold text-center">Déjà assignée à un autre étudiant</p>' : ''}
                 </div>
             `;
             modal.classList.remove('hidden');
@@ -444,9 +459,9 @@
             myMissions.forEach(m => {
                 const payAmt = Number(m.total_amount) || 50.0;
                 container.innerHTML += `
-                    <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center text-sm">
+                    <div onclick="openMissionDetails(${m.id}, true)" class="cursor-pointer p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border flex justify-between items-center text-sm transition">
                         <span class="font-bold">${m.exact_description || m.mission_code} (${m.mission_date || 'Bientôt'})</span>
-                        <span class="text-emerald-600 font-bold">CHF ${payAmt.toFixed(2)}</span>
+                        <span class="text-emerald-600 font-bold">CHF ${payAmt.toFixed(2)} <i class="fa-solid fa-chevron-right ml-1 text-xs text-slate-400"></i></span>
                     </div>`;
             });
         }
@@ -463,8 +478,68 @@
                 grid.innerHTML += `
                     <div class="h-24 rounded-xl border ${match ? 'border-lkdm-accent bg-red-50/10' : 'bg-white'} p-2">
                         <span class="text-xs font-bold">${day}</span>
-                        ${match ? `<div class="bg-lkdm-accent text-white text-[9px] p-1 rounded mt-1 truncate">${match.exact_description || match.mission_code}</div>` : ''}
+                        ${match ? `<div onclick="openMissionDetails(${match.id}, true)" class="cursor-pointer bg-lkdm-accent text-white text-[9px] p-1 rounded mt-1 truncate hover:underline">${match.exact_description || match.mission_code}</div>` : ''}
                     </div>`;
+            }
+        }
+
+        function renderStudentDocuments() {
+            const container = document.getElementById('student-documents-container');
+            const salaryContainer = document.getElementById('salary-certificates-list');
+            if (!container || !salaryContainer) return;
+
+            container.innerHTML = '';
+            salaryContainer.innerHTML = '';
+
+            // Filtrer les certificats de salaire pour les mettre dans "Mes Salaires"
+            const salaryDocs = dbDocuments.filter(d => (d.doc_type || "").toLowerCase().includes("salaire") || (d.title || "").toLowerCase().includes("salaire"));
+            const otherDocs = dbDocuments.filter(d => !salaryDocs.includes(d));
+
+            // Remplir "Mes Salaires"
+            if (salaryDocs.length === 0) {
+                salaryContainer.innerHTML = `<p class="text-xs text-slate-400">Aucun certificat de salaire disponible.</p>`;
+            } else {
+                salaryDocs.forEach(d => {
+                    salaryContainer.innerHTML += `
+                        <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center">
+                            <span><strong>${d.title}</strong></span>
+                            <a href="${d.file_url}" target="_blank" class="text-lkdm-accent font-bold hover:underline text-xs"><i class="fa-solid fa-eye mr-1"></i> Consulter</a>
+                        </div>`;
+                });
+            }
+
+            // Remplir l'onglet "Documents" trié par catégories
+            if (otherDocs.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400">Aucun document personnel disponible pour le moment.</p>`;
+                return;
+            }
+
+            // Regrouper par type de document
+            let categories = {};
+            otherDocs.forEach(d => {
+                const type = d.doc_type || 'Autres documents';
+                if (!categories[type]) categories[type] = [];
+                categories[type].push(d);
+            });
+
+            for (const [categoryName, docsList] of Object.entries(categories)) {
+                let catHtml = `
+                    <div class="border-b pb-4 mb-4">
+                        <h4 class="font-bold text-sm text-lkdm-text uppercase tracking-wide mb-2 text-lkdm-secondary">${categoryName}</h4>
+                        <div class="space-y-2">`;
+                
+                docsList.forEach(d => {
+                    catHtml += `
+                        <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center text-xs">
+                            <span class="font-semibold text-lkdm-text">${d.title}</span>
+                            <a href="${d.file_url}" target="_blank" class="bg-lkdm-accent text-white px-3 py-1 rounded font-bold hover:bg-[#b53838] transition flex items-center gap-1">
+                                <i class="fa-solid fa-eye"></i> Voir le fichier
+                            </a>
+                        </div>`;
+                });
+
+                catHtml += `</div></div>`;
+                container.innerHTML += catHtml;
             }
         }
 
