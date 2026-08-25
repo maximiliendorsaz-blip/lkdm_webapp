@@ -19,6 +19,12 @@
     <script src="supabase-config.js"></script>
     <!-- Configuration Centralisée LKDM -->
     <script src="config.js"></script>
+    <style>
+        /* S'assure que la carte Leaflet reste bien sous les modales sans passer au premier plan de manière parasite */
+        #map { z-index: 10 !important; }
+        .leaflet-pane { z-index: 10 !important; }
+        .leaflet-top, .leaflet-bottom { z-index: 11 !important; }
+    </style>
 </head>
 <body class="antialiased flex flex-col min-h-screen selection:bg-lkdm-accent selection:text-white">
 
@@ -189,7 +195,7 @@
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div class="lg:col-span-1 space-y-3 h-[460px] overflow-y-auto pr-2 custom-scrollbar" id="missions-container"></div>
-                        <div class="lg:col-span-2 bg-white p-2 rounded-3xl border border-slate-200 shadow-sm">
+                        <div class="lg:col-span-2 bg-white p-2 rounded-3xl border border-slate-200 shadow-sm relative">
                             <div id="map" style="height: 460px; width: 100%; border-radius: 1.25rem;"></div>
                         </div>
                     </div>
@@ -258,7 +264,7 @@
     </div>
 
     <!-- Modale Détails Mission -->
-    <div id="mission-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+    <div id="mission-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300" id="mission-modal-content"></div>
     </div>
 
@@ -284,7 +290,6 @@
         async function initStudentSpace() {
             if (!window.supabaseClient) return;
 
-            // Récupérer le premier étudiant de la base pour simuler l'espace connecté
             const { data: students, error } = await window.supabaseClient.from('profiles').select('*').eq('role', 'student').limit(1);
             if (error || !students || students.length === 0) {
                 console.error("Aucun profil étudiant trouvé dans Supabase.");
@@ -306,7 +311,6 @@
         async function loadStudentData() {
             if (!currentStudentId) return;
 
-            // Charger les missions et les documents liés à cet étudiant
             const { data: missions } = await window.supabaseClient.from('missions').select('*, client:client_id(*)');
             const { data: docs } = await window.supabaseClient.from('documents').select('*').eq('student_id', currentStudentId);
 
@@ -335,7 +339,7 @@
 
             for (const m of dbMissions) {
                 const isMine = m.student_id === currentStudentId;
-                const isAvailable = !m.student_id;
+                const isAvailable = (!m.student_id && (m.matching_status || "").toLowerCase() === "nouveau");
 
                 if (statusFilter === 'available' && !isAvailable) continue;
                 if (statusFilter === 'accepted' && !isMine) continue;
@@ -368,7 +372,7 @@
 
             let filtered = dbMissions.filter(m => {
                 const isMine = m.student_id === currentStudentId;
-                const isAvailable = !m.student_id;
+                const isAvailable = (!m.student_id && (m.matching_status || "").toLowerCase() === "nouveau");
                 if (statusFilter === 'available') return isAvailable;
                 if (statusFilter === 'accepted') return isMine;
                 return true;
@@ -405,23 +409,25 @@
             const modal = document.getElementById('mission-modal');
             const content = document.getElementById('mission-modal-content');
             const clientName = m.client ? m.client.full_name : 'Client LKDM';
+            const clientPhone = m.client && m.client.phone ? m.client.phone : '';
             const clientAddress = m.client ? `${m.client.address}, ${m.client.npa || ''} ${m.client.city}` : 'Valais';
             const payAmt = Number(m.total_amount) || 50.0;
             const isMine = m.student_id === currentStudentId;
 
             content.innerHTML = `
                 <div class="p-6 border-b relative bg-slate-50">
-                    <button onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500"><i class="fa-solid fa-times"></i></button>
+                    <button onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 shadow-sm"><i class="fa-solid fa-times"></i></button>
                     <h3 class="text-xl font-bold text-lkdm-text">${m.exact_description || m.mission_code}</h3>
-                    <p class="text-xs text-lkdm-secondary">${clientName} • ${m.mission_date || 'Date à convenir'}</p>
+                    <p class="text-xs text-lkdm-secondary mt-0.5"><i class="fa-regular fa-calendar mr-1"></i> ${m.mission_date || 'Date à convenir'}</p>
                 </div>
-                <div class="p-6 space-y-4 text-sm">
+                <div class="p-6 space-y-3 text-sm">
+                    <p><strong>Nom du client :</strong> ${clientName}</p>
                     <p><strong>Lieu :</strong> ${clientAddress}</p>
-                    <p><strong>Période :</strong> ${m.mission_periods || 'Flexible'} (${m.estimated_hours || 2.0}h)</p>
-                    <p><strong>Rémunération :</strong> CHF ${payAmt.toFixed(2)}</p>
-                    <p><strong>Statut :</strong> <span class="font-semibold text-lkdm-accent">${m.matching_status || 'Nouveau'}</span></p>
-                    ${!readOnly && !isMine && !m.student_id ? `<button onclick="acceptMission(${m.id})" class="w-full bg-lkdm-accent text-white py-3 rounded-[50px] font-medium transition shadow-sm hover:bg-[#b53838]">Accepter cette mission</button>` : ''}
-                    ${isMine ? '<p class="text-emerald-600 font-bold text-center"><i class="fa-solid fa-check"></i> Mission acceptée par vous</p>' : ''}
+                    <p><strong>Téléphone :</strong> ${clientPhone ? `<a href="tel:${clientPhone}" class="text-lkdm-accent font-bold hover:underline">${clientPhone}</a>` : 'Non renseigné'}</p>
+                    <p><strong>Rémunération prévue :</strong> <span class="font-bold text-emerald-600">CHF ${payAmt.toFixed(2)}</span></p>
+                    
+                    ${!readOnly && !isMine && (!m.student_id && (m.matching_status || "").toLowerCase() === "nouveau") ? `<button onclick="acceptMission(${m.id})" class="w-full mt-2 bg-lkdm-accent text-white py-3 rounded-[50px] font-medium transition shadow-sm hover:bg-[#b53838]">Accepter cette mission</button>` : ''}
+                    ${isMine ? '<p class="text-emerald-600 font-bold text-center pt-2"><i class="fa-solid fa-check"></i> Mission acceptée par vous</p>' : ''}
                 </div>
             `;
             modal.classList.remove('hidden');
@@ -491,11 +497,9 @@
             container.innerHTML = '';
             salaryContainer.innerHTML = '';
 
-            // Filtrer les certificats de salaire pour les mettre dans "Mes Salaires"
             const salaryDocs = dbDocuments.filter(d => (d.doc_type || "").toLowerCase().includes("salaire") || (d.title || "").toLowerCase().includes("salaire"));
             const otherDocs = dbDocuments.filter(d => !salaryDocs.includes(d));
 
-            // Remplir "Mes Salaires"
             if (salaryDocs.length === 0) {
                 salaryContainer.innerHTML = `<p class="text-xs text-slate-400">Aucun certificat de salaire disponible.</p>`;
             } else {
@@ -508,13 +512,11 @@
                 });
             }
 
-            // Remplir l'onglet "Documents" trié par catégories
             if (otherDocs.length === 0) {
                 container.innerHTML = `<p class="text-xs text-slate-400">Aucun document personnel disponible pour le moment.</p>`;
                 return;
             }
 
-            // Regrouper par type de document
             let categories = {};
             otherDocs.forEach(d => {
                 const type = d.doc_type || 'Autres documents';
@@ -553,7 +555,7 @@
             document.getElementById('dash-kpi-salary').innerText = `CHF ${totalSalary.toFixed(2)}`;
             document.getElementById('earnings-next').innerText = `CHF ${totalSalary.toFixed(2)}`;
             document.getElementById('earnings-total').innerText = `CHF ${totalSalary.toFixed(2)}`;
-            document.getElementById('badge-dispo').innerText = dbMissions.filter(m => !m.student_id).length;
+            document.getElementById('badge-dispo').innerText = dbMissions.filter(m => !m.student_id && (m.matching_status || "").toLowerCase() === "nouveau").length;
         }
 
         function switchTab(tabId) {
