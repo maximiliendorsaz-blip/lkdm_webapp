@@ -17,6 +17,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Configuration Supabase -->
     <script src="supabase-config.js"></script>
+    <style>
+        #admin-map { z-index: 10 !important; }
+    </style>
 </head>
 <body class="antialiased flex flex-col min-h-screen selection:bg-lkdm-accent selection:text-white">
 
@@ -106,7 +109,7 @@
                             <h2 class="text-3xl font-bold text-lkdm-text mt-1">Réseau Valaisan</h2>
                         </div>
                         <div class="flex flex-wrap gap-2">
-                            <button onclick="openModal('modal-create-mission'); prepareMissionModal();" class="bg-lkdm-accent text-white px-5 py-2.5 rounded-[50px] text-sm font-medium shadow-sm hover:bg-[#b53838] transition flex items-center gap-2">
+                            <button onclick="openModal('modal-create-mission'); prepareMissionModalOptions();" class="bg-lkdm-accent text-white px-5 py-2.5 rounded-[50px] text-sm font-medium shadow-sm hover:bg-[#b53838] transition flex items-center gap-2">
                                 <i class="fa-solid fa-plus"></i> Créer mission
                             </button>
                             <button onclick="openModal('modal-create-student')" class="bg-white border border-slate-200 text-lkdm-text px-5 py-2.5 rounded-[50px] text-sm font-medium shadow-sm hover:bg-slate-50 transition flex items-center gap-2">
@@ -220,8 +223,8 @@
                         </div>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="bg-white p-3 rounded-3xl border border-slate-200 shadow-sm">
-                            <div id="admin-map" style="height: 450px;"></div>
+                        <div class="bg-white p-3 rounded-3xl border border-slate-200 shadow-sm relative">
+                            <div id="admin-map" style="height: 450px; border-radius: 1.5rem;"></div>
                         </div>
                         <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
                             <div class="flex items-center justify-between mb-4">
@@ -270,47 +273,49 @@
         </main>
     </div>
 
-    <!-- MODALE : ÉDITION D'UNE MISSION (TOUTES LES INFOS DB) -->
-    <div id="modal-edit-mission" class="hidden fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
-            <button onclick="closeModal('modal-edit-mission')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-times"></i></button>
-            <h3 class="text-xl font-bold text-lkdm-text mb-4" id="edit-mission-title">Détails et Modification Mission</h3>
+    <!-- MODALE : ÉDITION GLOBALE D'UNE MISSION (TOUTES LES INFOS) -->
+    <div id="modal-edit-mission" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('modal-edit-mission')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
+            <h3 class="text-xl font-bold text-lkdm-text mb-4" id="edit-mission-title">Modification Complète de la Mission</h3>
             <form onsubmit="submitEditMission(event)" class="space-y-4 text-sm">
                 <input type="hidden" id="edit-mis-id">
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-3 gap-4">
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Code Mission</label><input type="text" id="edit-mis-code" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Statut du matching</label>
-                        <select id="edit-mis-matching-status" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
-                            <option value="Nouveau">Nouveau</option>
-                            <option value="A publier">A publier</option>
-                            <option value="publié">publié</option>
-                            <option value="accepté">accepté</option>
-                            <option value="confirmé">confirmé</option>
-                            <option value="à facturer">à facturer</option>
-                            <option value="en attente de paiement">en attente de paiement</option>
-                            <option value="mission effectuée">mission effectuée</option>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Client lié</label>
+                        <select id="edit-mis-client" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Étudiant assigné</label>
+                        <select id="edit-mis-student" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                            <option value="">-- Aucun / À attribuer --</option>
                         </select>
                     </div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Date</label><input type="date" id="edit-mis-date" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Description exacte</label>
-                    <textarea id="edit-mis-desc" rows="2" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl p-3 text-xs"></textarea>
-                </div>
-                <div class="grid grid-cols-3 gap-4">
+                <div><label class="block text-xs font-bold text-slate-600 mb-1">Description exacte</label><textarea id="edit-mis-desc" rows="2" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl p-3 text-xs"></textarea></div>
+                <div class="grid grid-cols-4 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Statut matching</label>
+                        <select id="edit-mis-matching-status" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                            <option value="Nouveau">Nouveau</option><option value="A publier">A publier</option><option value="publié">publié</option><option value="accepté">accepté</option><option value="confirmé">confirmé</option><option value="à facturer">à facturer</option><option value="en attente de paiement">en attente de paiement</option><option value="mission effectuée">mission effectuée</option>
+                        </select>
+                    </div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Langue</label><input type="text" id="edit-mis-lang" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Périodes</label><input type="text" id="edit-mis-periods" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Paiement</label><input type="text" id="edit-mis-payment" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                 </div>
-                <div class="grid grid-cols-3 gap-4">
+                <div class="grid grid-cols-4 gap-3">
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Date</label><input type="date" id="edit-mis-date" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Heure début</label><input type="time" id="edit-mis-start" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Heure fin</label><input type="time" id="edit-mis-end" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Temps réel (h)</label><input type="number" step="0.5" id="edit-mis-real" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                 </div>
-                <div class="grid grid-cols-3 gap-4">
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Frais déplacement</label><input type="number" step="0.05" id="edit-mis-travel" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">NPS Senior</label><input type="number" id="edit-mis-senps" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">CSAT Senior</label><input type="number" step="0.1" id="edit-mis-sencsat" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                <div class="grid grid-cols-4 gap-3 bg-slate-50 p-3 rounded-2xl">
+                    <div><label class="block text-[10px] font-bold text-slate-600 mb-1">Frais dépl.</label><input type="number" step="0.05" id="edit-mis-travel" class="w-full bg-white border border-slate-200 rounded-xl px-2 py-1 text-xs"></div>
+                    <div><label class="block text-[10px] font-bold text-slate-600 mb-1">NPS Senior</label><input type="number" id="edit-mis-senps" class="w-full bg-white border border-slate-200 rounded-xl px-2 py-1 text-xs"></div>
+                    <div><label class="block text-[10px] font-bold text-slate-600 mb-1">CSAT Senior</label><input type="number" step="0.1" id="edit-mis-sencsat" class="w-full bg-white border border-slate-200 rounded-xl px-2 py-1 text-xs"></div>
+                    <div><label class="block text-[10px] font-bold text-slate-600 mb-1">NPS Étudiant</label><input type="number" id="edit-mis-stunps" class="w-full bg-white border border-slate-200 rounded-xl px-2 py-1 text-xs"></div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Récapitulatif DAR</label><input type="text" id="edit-mis-dar" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
@@ -318,7 +323,7 @@
                 </div>
                 <div class="flex justify-end gap-3 pt-4 border-t">
                     <button type="button" onclick="closeModal('modal-edit-mission')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Annuler</button>
-                    <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Enregistrer les modifications</button>
+                    <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Enregistrer toutes les modifications</button>
                 </div>
             </form>
         </div>
@@ -450,14 +455,7 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-600 mb-1">Statut du matching *</label>
                         <select id="mis-matching-status" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
-                            <option value="Nouveau">Nouveau</option>
-                            <option value="A publier">A publier</option>
-                            <option value="publié">publié</option>
-                            <option value="accepté">accepté</option>
-                            <option value="confirmé">confirmé</option>
-                            <option value="à facturer">à facturer</option>
-                            <option value="en attente de paiement">en attente de paiement</option>
-                            <option value="mission effectuée">mission effectuée</option>
+                            <option value="Nouveau">Nouveau</option><option value="A publier">A publier</option><option value="publié">publié</option><option value="accepté">accepté</option><option value="confirmé">confirmé</option><option value="à facturer">à facturer</option><option value="en attente de paiement">en attente de paiement</option><option value="mission effectuée">mission effectuée</option>
                         </select>
                     </div>
                     <div>
@@ -483,12 +481,22 @@
     <!-- SCRIPTS JAVASCRIPT ET LOGIQUE SUPABASE -->
     <script>
         let globalMissionsData = [];
+        let globalClientsData = [];
+        let globalStudentsData = [];
         let adminMap = null;
         let adminMarkers = null;
 
         const valaisZipMap = {
             "1950": "Sion", "3960": "Sierre", "1920": "Martigny", "1870": "Monthey", "3900": "Brig",
             "Sion": "1950", "Sierre": "3960", "Martigny": "1920", "Monthey": "1870", "Brig": "3900"
+        };
+
+        const cityCoords = {
+            "Sion": [46.2331, 7.3606],
+            "Sierre": [46.2917, 7.5333],
+            "Martigny": [46.1031, 7.0709],
+            "Monthey": [46.2528, 6.9538],
+            "Brig": [46.3181, 7.9866]
         };
 
         function syncLocation(prefix, sourceField) {
@@ -501,10 +509,8 @@
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-        // Gestion menu mobile hamburger
         function toggleMobileMenu() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('-translate-x-full');
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
         }
 
         async function loadSupabaseOverview() {
@@ -512,7 +518,7 @@
             const endDate = document.getElementById('filter-end-date').value;
             const cityFilter = document.getElementById('filter-city').value;
 
-            let mQuery = window.supabaseClient.from('missions').select('*, client:client_id(city, full_name)');
+            let mQuery = window.supabaseClient.from('missions').select('*, client:client_id(id, city, full_name), student:student_id(id, full_name)');
             if (startDate) mQuery = mQuery.gte('mission_date', startDate);
             if (endDate) mQuery = mQuery.lte('mission_date', endDate);
 
@@ -521,13 +527,17 @@
 
             globalMissionsData = missions || [];
 
+            const { data: clients } = await window.supabaseClient.from('profiles').select('*').eq('role', 'client');
+            const { data: students } = await window.supabaseClient.from('profiles').select('*').eq('role', 'student');
+            globalClientsData = clients || [];
+            globalStudentsData = students || [];
+
             let filteredMissions = globalMissionsData;
             if (cityFilter !== "Toutes") {
                 filteredMissions = filteredMissions.filter(m => m.client && m.client.city === cityFilter);
             }
 
             const { data: events } = await window.supabaseClient.from('events').select('*');
-            const { data: clients } = await window.supabaseClient.from('profiles').select('*').eq('role', 'client');
 
             let caMissions = 0, beneMissions = 0, completedCount = 0, attentionCount = 0;
             
@@ -541,7 +551,6 @@
                 if (["à facturer", "mission effectuée", "en attente de paiement"].includes(status)) {
                     completedCount++;
                 }
-                // Requiert l'attention : Nouveau, A publier, publié, accepté, confirmé, à facturer, en attente de paiement
                 if (["nouveau", "a publier", "publié", "accepté", "confirmé", "à facturer", "en attente de paiement"].includes(status)) {
                     attentionCount++;
                 }
@@ -559,7 +568,7 @@
             const beneTotal = beneMissions + beneEvents;
 
             let c1 = 0, c2to5 = 0, c5plus = 0;
-            (clients || []).forEach(cli => {
+            globalClientsData.forEach(cli => {
                 const count = filteredMissions.filter(m => m.client_id === cli.id).length;
                 if (count === 1) c1++;
                 else if (count >= 2 && count <= 5) c2to5++;
@@ -576,26 +585,23 @@
             document.getElementById('stat-missions-completed').innerText = completedCount;
             document.getElementById('dash-urgent-count').innerText = attentionCount;
             document.getElementById('badge-unassigned').innerText = attentionCount;
-            document.getElementById('stat-total-clients').innerText = `${(clients || []).length} clients`;
+            document.getElementById('stat-total-clients').innerText = `${globalClientsData.length} clients`;
             document.getElementById('stat-c-1').innerText = c1;
             document.getElementById('stat-c-2-5').innerText = c2to5;
             document.getElementById('stat-c-5plus').innerText = c5plus;
 
             renderOpenMissionsTable();
-            renderClientsTable(clients || []);
+            renderClientsTable(globalClientsData);
             renderStudentsGrid();
             if(adminMap) renderAdminMapCalendar();
         }
 
-        // Affichage des missions ouvertes (statut != mission effectuée) avec filtre haut droit
         function renderOpenMissionsTable() {
             const tbody = document.getElementById('admin-missions-tbody');
             const statusFilter = document.getElementById('mission-status-filter').value;
             tbody.innerHTML = '';
 
-            // Filtrer pour exclure "mission effectuée" par défaut
             let openMissions = globalMissionsData.filter(m => (m.matching_status || "").toLowerCase() !== "mission effectuée");
-
             if (statusFilter !== 'all') {
                 openMissions = openMissions.filter(m => m.matching_status === statusFilter);
             }
@@ -613,13 +619,21 @@
             });
         }
 
-        // Ouvrir la modale d'édition complète d'une mission
-        function openEditMissionModal(id) {
+        async function openEditMissionModal(id) {
             const m = globalMissionsData.find(x => x.id == id);
             if (!m) return;
 
+            // Remplir les listes déroulantes de la modale d'édition
+            const cliSelect = document.getElementById('edit-mis-client');
+            cliSelect.innerHTML = '<option value="">-- Sélectionner un client --</option>';
+            globalClientsData.forEach(c => cliSelect.innerHTML += `<option value="${c.id}" ${m.client_id === c.id ? 'selected' : ''}>${c.full_name}</option>`);
+
+            const stuSelect = document.getElementById('edit-mis-student');
+            stuSelect.innerHTML = '<option value="">-- Aucun / À attribuer --</option>';
+            globalStudentsData.forEach(s => stuSelect.innerHTML += `<option value="${s.id}" ${m.student_id === s.id ? 'selected' : ''}>${s.full_name}</option>`);
+
             document.getElementById('edit-mis-id').value = m.id;
-            document.getElementById('edit-mission-title').innerText = `Modifier Mission : ${m.mission_code || ''}`;
+            document.getElementById('edit-mis-code').value = m.mission_code || '';
             document.getElementById('edit-mis-matching-status').value = m.matching_status || 'Nouveau';
             document.getElementById('edit-mis-date').value = m.mission_date || '';
             document.getElementById('edit-mis-desc').value = m.exact_description || '';
@@ -632,6 +646,7 @@
             document.getElementById('edit-mis-travel').value = m.travel_expenses || 0;
             document.getElementById('edit-mis-senps').value = m.senior_nps || '';
             document.getElementById('edit-mis-sencsat').value = m.senior_csat || '';
+            document.getElementById('edit-mis-stunps').value = m.student_nps || '';
             document.getElementById('edit-mis-dar').value = m.dar_summary || '';
             document.getElementById('edit-mis-feedback').value = m.feedback || '';
 
@@ -644,6 +659,9 @@
             const realHours = parseFloat(document.getElementById('edit-mis-real').value) || 2.0;
 
             const payload = {
+                mission_code: document.getElementById('edit-mis-code').value,
+                client_id: document.getElementById('edit-mis-client').value,
+                student_id: document.getElementById('edit-mis-student').value || null,
                 matching_status: document.getElementById('edit-mis-matching-status').value,
                 mission_date: document.getElementById('edit-mis-date').value || null,
                 exact_description: document.getElementById('edit-mis-desc').value,
@@ -656,6 +674,7 @@
                 travel_expenses: parseFloat(document.getElementById('edit-mis-travel').value) || 0,
                 senior_nps: parseInt(document.getElementById('edit-mis-senps').value) || null,
                 senior_csat: parseFloat(document.getElementById('edit-mis-sencsat').value) || null,
+                student_nps: parseInt(document.getElementById('edit-mis-stunps').value) || null,
                 dar_summary: document.getElementById('edit-mis-dar').value,
                 feedback: document.getElementById('edit-mis-feedback').value,
                 lkdm_commission: realHours * 10,
@@ -690,7 +709,12 @@
                 let dayHtml = `<div class="bg-lkdm-bg border border-slate-200 rounded-xl p-1 flex flex-col h-16 md:h-20 overflow-hidden"><span class="text-[10px] font-bold text-slate-400 mb-1">${day}</span>`;
                 
                 missionsToday.forEach(m => {
-                    let color = m.matching_status === 'mission effectuée' ? '#2E7D32' : m.matching_status === 'confirmé' ? '#3b82f6' : '#D64545';
+                    let color = m.matching_status === 'mission effectuée' ? '#2E7D32' : '#D64545';
+                    if (adminMap && m.client && m.client.city && cityCoords[m.client.city]) {
+                        const coords = cityCoords[m.client.city];
+                        const icon = L.divIcon({ className: 'custom-pin', html: `<div style="background-color: ${color}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white;"></div>`, iconSize: [14, 14], iconAnchor: [7, 7] });
+                        L.marker(coords, { icon }).addTo(adminMarkers).on('click', () => openEditMissionModal(m.id));
+                    }
                     dayHtml += `<div onclick="openEditMissionModal('${m.id}')" class="cursor-pointer bg-red-100 text-lkdm-accent text-[9px] font-bold px-1 py-0.5 rounded mb-0.5 truncate">${m.mission_code}</div>`;
                 });
                 dayHtml += `</div>`;
@@ -714,9 +738,8 @@
 
         async function renderStudentsGrid() {
             const grid = document.getElementById('students-grid');
-            const { data: students } = await window.supabaseClient.from('profiles').select('*').eq('role', 'student');
             grid.innerHTML = '';
-            (students || []).forEach(s => {
+            globalStudentsData.forEach(s => {
                 grid.innerHTML += `
                     <div class="bg-white p-6 rounded-3xl border shadow-sm">
                         <h3 class="font-bold text-lkdm-text">${s.full_name}</h3>
@@ -726,17 +749,14 @@
             });
         }
 
-        async function prepareMissionModal() {
-            const { data: clients } = await window.supabaseClient.from('profiles').select('id, full_name').eq('role', 'client');
-            const { data: students } = await window.supabaseClient.from('profiles').select('id, full_name').eq('role', 'student');
-
+        async function prepareMissionModalOptions() {
             const cliSelect = document.getElementById('mis-client');
             cliSelect.innerHTML = '<option value="">-- Sélectionner un client --</option>';
-            (clients || []).forEach(c => cliSelect.innerHTML += `<option value="${c.id}">${c.full_name}</option>`);
+            globalClientsData.forEach(c => cliSelect.innerHTML += `<option value="${c.id}">${c.full_name}</option>`);
 
             const stuSelect = document.getElementById('mis-student');
             stuSelect.innerHTML = '<option value="">-- Aucun / À attribuer --</option>';
-            (students || []).forEach(s => stuSelect.innerHTML += `<option value="${s.id}">${s.full_name}</option>`);
+            globalStudentsData.forEach(s => stuSelect.innerHTML += `<option value="${s.id}">${s.full_name}</option>`);
         }
 
         async function submitStudentForm(event) {
@@ -837,7 +857,6 @@
             document.getElementById(`nav-${tabId}`).classList.add('bg-lkdm-accent', 'text-white');
             document.getElementById(`nav-${tabId}`).classList.remove('text-lkdm-secondary');
             
-            // Fermer la sidebar sur mobile en changeant d'onglet
             document.getElementById('sidebar').classList.add('-translate-x-full');
 
             if(tabId === 'calendar-map') {
