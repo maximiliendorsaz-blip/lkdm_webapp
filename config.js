@@ -5,7 +5,8 @@ window.LKDM_CONFIG = {
     roles: [
         "client",
         "student",
-        "admin"
+        "admin",
+        "test"
     ],
 
     // Langues gérées par la plateforme
