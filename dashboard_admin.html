@@ -82,6 +82,9 @@
                     <button onclick="switchTab('billing')" id="nav-billing" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
                         <i class="fa-solid fa-file-invoice-dollar w-5 text-center"></i> Facturation & Paiements
                     </button>
+                    <button onclick="switchTab('documents')" id="nav-documents" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
+                        <i class="fa-solid fa-folder-open w-5 text-center"></i> Documents & Archives
+                    </button>
                 </nav>
             </div>
 
@@ -312,6 +315,35 @@
                     </div>
                 </div>
 
+                <!-- TAB 8: DOCUMENTS & ARCHIVES -->
+                <div id="tab-documents" class="tab-content space-y-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-bold text-lkdm-text">Documents & Archives</h2>
+                            <p class="text-sm text-lkdm-secondary">Liste globale de tous les fichiers stockés et leurs liaisons (missions, profils).</p>
+                        </div>
+                        <button onclick="openModal('modal-create-doc'); prepareDocModalOptions();" class="bg-lkdm-accent text-white px-4 py-2 rounded-full text-xs font-medium shadow-sm">
+                            <i class="fa-solid fa-file-arrow-up mr-1"></i> Uploader un document
+                        </button>
+                    </div>
+                    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs whitespace-nowrap">
+                                <thead class="bg-slate-50 text-lkdm-secondary uppercase">
+                                    <tr>
+                                        <th class="p-3">Titre</th>
+                                        <th class="p-3">Type</th>
+                                        <th class="p-3">Lié à (Client / Étudiant)</th>
+                                        <th class="p-3">Lié à (Mission)</th>
+                                        <th class="p-3 text-right">Fichier</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="documents-table-tbody" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </main>
     </div>
@@ -536,6 +568,11 @@
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Heure fin</label><input type="time" id="edit-mis-end" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Temps réel (h)</label><input type="number" step="0.5" id="edit-mis-real" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                 </div>
+                <!-- Liste des documents liés à la mission -->
+                <div class="bg-slate-50 p-4 rounded-2xl space-y-2 border">
+                    <h4 class="font-bold text-xs uppercase text-lkdm-secondary">Documents liés à cette mission</h4>
+                    <div id="mission-docs-list" class="space-y-1 max-h-32 overflow-y-auto text-xs"></div>
+                </div>
                 <div class="flex justify-end gap-3 pt-4 border-t">
                     <button type="button" onclick="closeModal('modal-edit-mission')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Annuler</button>
                     <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Enregistrer</button>
@@ -580,6 +617,11 @@
                         <div id="stu-missions-list" class="space-y-1 max-h-32 overflow-y-auto text-xs"></div>
                     </div>
                 </div>
+                <!-- Liste des documents liés à l'étudiant -->
+                <div class="bg-slate-50 p-4 rounded-2xl space-y-2 border">
+                    <h4 class="font-bold text-xs uppercase text-lkdm-secondary">Documents de l'étudiant</h4>
+                    <div id="stu-documents-list" class="space-y-1 max-h-32 overflow-y-auto text-xs"></div>
+                </div>
                 <div class="flex justify-end gap-3 pt-4 border-t">
                     <button type="button" onclick="closeModal('modal-edit-student')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Fermer</button>
                     <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Mettre à jour</button>
@@ -619,6 +661,11 @@
                         <div id="cli-missions-list" class="space-y-1 max-h-32 overflow-y-auto text-xs"></div>
                     </div>
                 </div>
+                <!-- Liste des documents liés au client -->
+                <div class="bg-slate-50 p-4 rounded-2xl space-y-2 border">
+                    <h4 class="font-bold text-xs uppercase text-lkdm-secondary">Documents du client</h4>
+                    <div id="cli-documents-list" class="space-y-1 max-h-32 overflow-y-auto text-xs"></div>
+                </div>
                 <div class="flex justify-end gap-3 pt-4 border-t">
                     <button type="button" onclick="closeModal('modal-edit-client')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Fermer</button>
                     <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Mettre à jour</button>
@@ -633,6 +680,7 @@
         let globalClientsData = [];
         let globalStudentsData = [];
         let globalEventsData = [];
+        let globalDocumentsData = [];
         let adminMap = null;
         let adminMarkers = null;
 
@@ -667,54 +715,42 @@
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         function toggleMobileMenu() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
 
-        // Remplissage automatique de TOUS les SELECT depuis config.js
         function populateDynamicDropdowns() {
-            if (!window.LKDM_CONFIG) {
-                console.error("LKDM_CONFIG non chargé. Vérifiez config.js.");
-                return;
-            }
+            if (!window.LKDM_CONFIG) return;
 
-            // Statuts de mission
             const statusSelects = document.querySelectorAll('#mis-matching-status, #edit-mis-matching-status, #mission-status-filter');
             statusSelects.forEach(sel => {
                 const currentVal = sel.value;
                 const isFilter = sel.id === 'mission-status-filter';
                 sel.innerHTML = isFilter ? '<option value="all">Tous les statuts ouverts</option>' : '';
-                LKDM_CONFIG.missionStatuses.forEach(st => {
-                    sel.innerHTML += `<option value="${st}">${st}</option>`;
-                });
+                LKDM_CONFIG.missionStatuses.forEach(st => sel.innerHTML += `<option value="${st}">${st}</option>`);
                 if (currentVal) sel.value = currentVal;
             });
 
-            // Langues
             const langSelects = document.querySelectorAll('#stu-lang, #cli-lang, #mis-lang, #edit-mis-lang');
             langSelects.forEach(sel => {
                 sel.innerHTML = '';
                 LKDM_CONFIG.languages.forEach(l => sel.innerHTML += `<option value="${l}">${l}</option>`);
             });
 
-            // Nationalités
             const natSelects = document.querySelectorAll('#stu-nat');
             natSelects.forEach(sel => {
                 sel.innerHTML = '';
                 LKDM_CONFIG.nationalities.forEach(n => sel.innerHTML += `<option value="${n}">${n}</option>`);
             });
 
-            // Types de paiement
             const paySelects = document.querySelectorAll('#mis-payment, #edit-mis-payment');
             paySelects.forEach(sel => {
                 sel.innerHTML = '';
                 LKDM_CONFIG.paymentTypes.forEach(p => sel.innerHTML += `<option value="${p}">${p}</option>`);
             });
 
-            // Types d'origine prospect
             const typeSrcSelects = document.querySelectorAll('#cli-srctype');
             typeSrcSelects.forEach(sel => {
                 sel.innerHTML = '';
                 LKDM_CONFIG.prospectSourceTypes.forEach(ts => sel.innerHTML += `<option value="${ts}">${ts}</option>`);
             });
 
-            // Types de documents depuis config.js
             const docTypeSelects = document.querySelectorAll('#doc-type-select');
             docTypeSelects.forEach(sel => {
                 sel.innerHTML = '';
@@ -725,17 +761,14 @@
         }
 
         function prepareDocModalOptions() {
-            // Remplir la liste des profils (clients + étudiants)
             const profileSelect = document.getElementById('doc-profile-link');
             profileSelect.innerHTML = '<option value="">-- Aucun lien profil --</option>';
-            
             const allProfiles = [...globalClientsData, ...globalStudentsData];
             allProfiles.forEach(p => {
                 const roleLabel = p.role === 'client' ? 'Client' : 'Étudiant';
                 profileSelect.innerHTML += `<option value="${p.id}">${p.full_name} (${roleLabel})</option>`;
             });
 
-            // Remplir la liste des missions
             const missionSelect = document.getElementById('doc-mission-link');
             missionSelect.innerHTML = '<option value="">-- Aucune mission liée --</option>';
             globalMissionsData.forEach(m => {
@@ -759,7 +792,6 @@
             const file = fileInput.files[0];
 
             try {
-                // 1. Upload dans Storage Supabase
                 const fileName = `${Date.now()}_${file.name}`;
                 const { error: uploadErr } = await window.supabaseClient.storage
                     .from('lkdm_docs')
@@ -767,12 +799,10 @@
 
                 if (uploadErr) throw uploadErr;
 
-                // 2. Obtenir l'URL publique
                 const { data: { publicUrl } } = window.supabaseClient.storage
                     .from('lkdm_docs')
                     .getPublicUrl(fileName);
 
-                // 3. Déterminer si le profile_id est client ou étudiant
                 let student_id = null;
                 let client_id = null;
                 if (profileId) {
@@ -781,7 +811,6 @@
                     else client_id = profileId;
                 }
 
-                // 4. Enregistrement dans la table 'documents'
                 const payload = {
                     title: title,
                     doc_type: docType,
@@ -799,16 +828,13 @@
                 closeModal('modal-create-doc');
                 loadSupabaseOverview();
             } catch (error) {
-                console.error("Erreur lors de l'upload du document :", error.message);
+                console.error("Erreur upload document :", error.message);
                 alert("Erreur : " + error.message);
             }
         }
 
         async function loadSupabaseOverview() {
-            if (!window.supabaseClient) {
-                console.error("Client Supabase introuvable. Vérifiez supabase-config.js.");
-                return;
-            }
+            if (!window.supabaseClient) return;
 
             const startDate = document.getElementById('filter-start-date').value;
             const endDate = document.getElementById('filter-end-date').value;
@@ -819,17 +845,19 @@
             if (endDate) mQuery = mQuery.lte('mission_date', endDate);
 
             const { data: missions, error: mErr } = await mQuery;
-            if (mErr) { console.error("Erreur chargement missions:", mErr); return; }
+            if (mErr) return;
 
             globalMissionsData = missions || [];
 
             const { data: clients } = await window.supabaseClient.from('profiles').select('*').eq('role', 'client');
             const { data: students } = await window.supabaseClient.from('profiles').select('*').eq('role', 'student');
             const { data: events } = await window.supabaseClient.from('events').select('*');
+            const { data: docs } = await window.supabaseClient.from('documents').select('*, client:client_id(*), student:student_id(*), mission:mission_id(*)');
 
             globalClientsData = clients || [];
             globalStudentsData = students || [];
             globalEventsData = events || [];
+            globalDocumentsData = docs || [];
 
             let filteredMissions = globalMissionsData;
             if (cityFilter !== "Toutes") {
@@ -837,7 +865,6 @@
             }
 
             let caMissions = 0, beneMissions = 0, completedCount = 0, attentionCount = 0;
-            
             globalMissionsData.forEach(m => {
                 const amt = Number(m.total_amount) || 0;
                 const hours = Number(m.real_hours) || 0;
@@ -845,12 +872,8 @@
                 beneMissions += (hours * 10);
 
                 const status = (m.matching_status || "").toLowerCase();
-                if (["à facturer", "mission effectuée", "en attente de paiement"].includes(status)) {
-                    completedCount++;
-                }
-                if (["nouveau", "a publier", "publié", "accepté", "confirmé", "à facturer", "en attente de paiement"].includes(status)) {
-                    attentionCount++;
-                }
+                if (["à facturer", "mission effectuée", "en attente de paiement"].includes(status)) completedCount++;
+                if (["nouveau", "a publier", "publié", "accepté", "confirmé", "à facturer", "en attente de paiement"].includes(status)) attentionCount++;
             });
 
             let caEvents = 0, beneEvents = 0;
@@ -892,6 +915,7 @@
             renderStudentsGrid();
             renderAvsTracker();
             renderBillingTable();
+            renderDocumentsTable();
             if(adminMap) renderAdminMapCalendar();
         }
 
@@ -901,9 +925,7 @@
             tbody.innerHTML = '';
 
             let openMissions = globalMissionsData.filter(m => (m.matching_status || "").toLowerCase() !== "mission effectuée");
-            if (statusFilter !== 'all') {
-                openMissions = openMissions.filter(m => m.matching_status === statusFilter);
-            }
+            if (statusFilter !== 'all') openMissions = openMissions.filter(m => m.matching_status === statusFilter);
 
             openMissions.forEach(m => {
                 const colorClass = getStatusColorClass(m.matching_status);
@@ -914,6 +936,34 @@
                         <td class="py-4 px-6 text-sm">${m.client ? m.client.full_name : 'Inconnu'}</td>
                         <td class="py-4 px-6"><span class="${colorClass} px-2.5 py-1 rounded-full text-xs font-bold border">${m.matching_status || 'Nouveau'}</span></td>
                         <td class="py-4 px-6 text-right"><i class="fa-solid fa-chevron-right text-lkdm-secondary"></i></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderDocumentsTable() {
+            const tbody = document.getElementById('documents-table-tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            globalDocumentsData.forEach(d => {
+                let linkedProfile = 'Aucun';
+                if (d.client) linkedProfile = `${d.client.full_name} (Client)`;
+                if (d.student) linkedProfile = `${d.student.full_name} (Étudiant)`;
+
+                let linkedMission = d.mission ? d.mission.mission_code : 'Aucune';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 font-bold text-lkdm-text">${d.title}</td>
+                        <td class="p-3"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px] font-bold border">${d.doc_type}</span></td>
+                        <td class="p-3">${linkedProfile}</td>
+                        <td class="p-3 font-semibold text-lkdm-accent">${linkedMission}</td>
+                        <td class="p-3 text-right">
+                            <a href="${d.file_url}" target="_blank" class="bg-lkdm-accent text-white px-3 py-1 rounded text-[10px] font-bold inline-flex items-center gap-1 shadow-sm hover:bg-[#b53838]">
+                                <i class="fa-solid fa-eye"></i> Voir le fichier
+                            </a>
+                        </td>
                     </tr>
                 `;
             });
@@ -1045,6 +1095,16 @@
             document.getElementById('edit-mis-end').value = m.end_time || '';
             document.getElementById('edit-mis-real').value = m.real_hours || 2.0;
 
+            // Remplir les documents liés à cette mission
+            const missionDocs = globalDocumentsData.filter(d => d.mission_id == m.id);
+            const docsContainer = document.getElementById('mission-docs-list');
+            docsContainer.innerHTML = missionDocs.length ? missionDocs.map(d => `
+                <div class="bg-white p-2 rounded border flex justify-between items-center">
+                    <span><strong>[${d.doc_type}]</strong> ${d.title}</span>
+                    <a href="${d.file_url}" target="_blank" class="text-lkdm-accent font-bold hover:underline">Voir</a>
+                </div>
+            `).join('') : '<p class="text-slate-400">Aucun document lié.</p>';
+
             openModal('modal-edit-mission');
         }
 
@@ -1103,6 +1163,16 @@
             document.getElementById('stu-stat-payout').innerText = `CHF ${totalPayout.toFixed(2)}`;
             document.getElementById('stu-missions-list').innerHTML = missionsHtml;
 
+            // Remplir les documents liés à cet étudiant
+            const studentDocs = globalDocumentsData.filter(d => d.student_id == s.id);
+            const docsContainer = document.getElementById('stu-documents-list');
+            docsContainer.innerHTML = studentDocs.length ? studentDocs.map(d => `
+                <div class="bg-white p-2 rounded border flex justify-between items-center">
+                    <span><strong>[${d.doc_type}]</strong> ${d.title}</span>
+                    <a href="${d.file_url}" target="_blank" class="text-lkdm-accent font-bold hover:underline">Voir</a>
+                </div>
+            `).join('') : '<p class="text-slate-400">Aucun document lié.</p>';
+
             openModal('modal-edit-student');
         }
 
@@ -1151,6 +1221,16 @@
             document.getElementById('cli-stat-count').innerText = cliMissions.length;
             document.getElementById('cli-stat-amount').innerText = `CHF ${totalPaid.toFixed(2)}`;
             document.getElementById('cli-missions-list').innerHTML = missionsHtml;
+
+            // Remplir les documents liés à ce client
+            const clientDocs = globalDocumentsData.filter(d => d.client_id == c.id);
+            const docsContainer = document.getElementById('cli-documents-list');
+            docsContainer.innerHTML = clientDocs.length ? clientDocs.map(d => `
+                <div class="bg-white p-2 rounded border flex justify-between items-center">
+                    <span><strong>[${d.doc_type}]</strong> ${d.title}</span>
+                    <a href="${d.file_url}" target="_blank" class="text-lkdm-accent font-bold hover:underline">Voir</a>
+                </div>
+            `).join('') : '<p class="text-slate-400">Aucun document lié.</p>';
 
             openModal('modal-edit-client');
         }
