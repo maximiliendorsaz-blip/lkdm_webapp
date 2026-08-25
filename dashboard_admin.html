@@ -49,7 +49,7 @@
                 <div class="bg-lkdm-bg p-4 rounded-2xl border border-slate-200/60 flex items-center gap-3">
                     <div class="w-11 h-11 rounded-full bg-lkdm-accent text-white flex items-center justify-center font-bold text-lg shadow-sm">MB</div>
                     <div class="overflow-hidden">
-                        <p class="text-sm font-semibold text-lkdm-text truncate">Max</p>
+                        <p class="text-sm font-semibold text-lkdm-text truncate">Max & Ben</p>
                         <p class="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
                             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Système en ligne
                         </p>
@@ -75,7 +75,7 @@
                         <i class="fa-solid fa-house-chimney-user w-5 text-center"></i> Clients
                     </button>
                     <button onclick="switchTab('avs-tracker')" id="nav-avs-tracker" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
-                        <i class="fa-solid fa-shield-halved w-5 text-center"></i> Suivi AVS (92h)
+                        <i class="fa-solid fa-shield-halved w-5 text-center"></i> Suivi Heures & AVS
                     </button>
                     <button onclick="switchTab('billing')" id="nav-billing" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
                         <i class="fa-solid fa-file-invoice-dollar w-5 text-center"></i> Facturation & Paiements
@@ -264,12 +264,12 @@
                     </div>
                 </div>
 
-                <!-- TAB 6: SUIVI AVS (92h / 2300 CHF) -->
+                <!-- TAB 6: SUIVI HEURES & AVS -->
                 <div id="tab-avs-tracker" class="tab-content space-y-6">
                     <div class="flex justify-between items-center">
                         <div>
-                            <h2 class="text-2xl font-bold text-lkdm-text">Suivi AVS Étudiants (Seuil 92h / an)</h2>
-                            <p class="text-sm text-lkdm-secondary">Contrôle du volume horaire annuel civil pour éviter le dépassement de la franchise AVS (2'300 CHF).</p>
+                            <h2 class="text-2xl font-bold text-lkdm-text">Suivi des Heures Étudiants & AVS (Seuil 92h / an)</h2>
+                            <p class="text-sm text-lkdm-secondary">Contrôle du volume horaire annuel civil et suivi des versements étudiants.</p>
                         </div>
                     </div>
                     <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6">
@@ -279,7 +279,7 @@
                                     <tr>
                                         <th class="py-4 px-6">Étudiant</th>
                                         <th class="py-4 px-6">Heures Totales (2026)</th>
-                                        <th class="py-4 px-6">Montant Estimé (CHF)</th>
+                                        <th class="py-4 px-6">Montant À Verser (CHF)</th>
                                         <th class="py-4 px-6">Statut AVS</th>
                                     </tr>
                                 </thead>
@@ -294,47 +294,22 @@
                     <div class="flex justify-between items-center">
                         <h2 class="text-2xl font-bold text-lkdm-text">Facturation & Suivi des Paiements</h2>
                     </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Factures & Quittances Clients -->
-                        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6 space-y-4">
-                            <h3 class="font-bold text-lkdm-text text-base border-b pb-3 flex items-center gap-2">
-                                <i class="fa-solid fa-file-invoice-dollar text-lkdm-accent"></i> Factures & Rapports Clients
-                            </h3>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left text-xs whitespace-nowrap">
-                                    <thead class="bg-slate-50 text-lkdm-secondary uppercase">
-                                        <tr>
-                                            <th class="p-3">Mission</th>
-                                            <th class="p-3">Client</th>
-                                            <th class="p-3">Montant</th>
-                                            <th class="p-3">Paiement</th>
-                                            <th class="p-3 text-right">Actions Email</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="billing-clients-tbody" class="divide-y divide-slate-100"></tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- Virements Étudiants -->
-                        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6 space-y-4">
-                            <h3 class="font-bold text-lkdm-text text-base border-b pb-3 flex items-center gap-2">
-                                <i class="fa-solid fa-wallet text-emerald-600"></i> Suivi des Virements Étudiants
-                            </h3>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left text-xs whitespace-nowrap">
-                                    <thead class="bg-slate-50 text-lkdm-secondary uppercase">
-                                        <tr>
-                                            <th class="p-3">Mission</th>
-                                            <th class="p-3">Étudiant</th>
-                                            <th class="p-3">Heures</th>
-                                            <th class="p-3">À Verser</th>
-                                            <th class="p-3 text-right">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="billing-students-tbody" class="divide-y divide-slate-100"></tbody>
-                                </table>
-                            </div>
+                    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6 space-y-4">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs whitespace-nowrap">
+                                <thead class="bg-slate-50 text-lkdm-secondary uppercase">
+                                    <tr>
+                                        <th class="p-3">N° Mission</th>
+                                        <th class="p-3">Client</th>
+                                        <th class="p-3">Statut Mission</th>
+                                        <th class="p-3">Montant</th>
+                                        <th class="p-3">Paiement</th>
+                                        <th class="p-3">Statut Paiement</th>
+                                        <th class="p-3 text-right">Générer / Envoyer & Valider</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="billing-table-tbody" class="divide-y divide-slate-100"></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -364,7 +339,7 @@
                     </div>
                 </div>
                 <div><label class="block text-xs font-bold text-slate-600 mb-1">Description exacte</label><textarea id="edit-mis-desc" rows="2" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl p-3 text-xs"></textarea></div>
-                <div class="grid grid-cols-4 gap-3">
+                <div class="grid grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-600 mb-1">Statut matching</label>
                         <select id="edit-mis-matching-status" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
@@ -372,13 +347,7 @@
                         </select>
                     </div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Langue</label><input type="text" id="edit-mis-lang" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Périodes</label><input type="text" id="edit-mis-periods" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Statut Paiement</label>
-                        <select id="edit-mis-paystatus" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
-                            <option value="En attente">En attente</option><option value="Payé">Payé</option><option value="Retard">Retard</option>
-                        </select>
-                    </div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Paiement</label><input type="text" id="edit-mis-payment" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                 </div>
                 <div class="grid grid-cols-4 gap-3">
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Date</label><input type="date" id="edit-mis-date" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
@@ -562,7 +531,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Paiement *</label>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Type de paiement *</label>
                         <select id="mis-payment" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
                             <option value="TWINT">TWINT</option><option value="cash">Cash</option><option value="facture">Facture</option>
                         </select>
@@ -702,7 +671,7 @@
             renderClientsTable(globalClientsData);
             renderStudentsGrid();
             renderAvsTracker();
-            renderBillingTables();
+            renderBillingTable();
             if(adminMap) renderAdminMapCalendar();
         }
 
@@ -730,19 +699,18 @@
             });
         }
 
-        // --- SUIVI AVS ÉTUDIANTS (92H / AN) ---
+        // --- SUIVI HEURES & AVS ÉTUDIANTS (92H / AN) ---
         function renderAvsTracker() {
             const tbody = document.getElementById('avs-tracker-tbody');
             tbody.innerHTML = '';
             const currentYear = new Date().getFullYear();
 
             globalStudentsData.forEach(s => {
-                // Filtrer les missions de l'année en cours (2026)
                 const studentMissions = globalMissionsData.filter(m => m.student_id === s.id && m.mission_date && m.mission_date.startsWith(`${currentYear}`));
                 let totalHours = 0;
                 studentMissions.forEach(m => totalHours += Number(m.real_hours) || 0);
 
-                const totalEarned = totalHours * 25; // Base estimée
+                const totalEarned = totalHours * 25;
                 let badgeStyle = "bg-emerald-50 text-emerald-700 border-emerald-200";
                 let badgeText = "Conforme (< 92h)";
 
@@ -765,66 +733,82 @@
             });
         }
 
-        // --- ONGLET FACTURATION & SUIVI DES PAIEMENTS ---
-        function renderBillingTables() {
-            const clientTbody = document.getElementById('billing-clients-tbody');
-            const studentTbody = document.getElementById('billing-students-tbody');
-            clientTbody.innerHTML = '';
-            studentTbody.innerHTML = '';
+        // --- ONGLET FACTURATION & PAIEMENTS INTELLIGENTS ---
+        function renderBillingTable() {
+            const tbody = document.getElementById('billing-table-tbody');
+            tbody.innerHTML = '';
+            const today = new Date();
 
             globalMissionsData.forEach(m => {
                 const clientName = m.client ? m.client.full_name : 'Inconnu';
-                const studentName = m.student ? m.student.full_name : 'Non assigné';
                 const amount = Number(m.total_amount) || 0;
-                const hours = Number(m.real_hours) || 0;
-                const payout = hours * 25;
+                const payType = m.payment_type || 'Facture';
+                const missionStatus = m.matching_status || 'Nouveau';
 
-                clientTbody.innerHTML += `
+                // Gestion dynamique du statut de paiement
+                let paymentBadge = '';
+                const pStatus = m.payment_status || 'Facture non envoyée';
+
+                if (pStatus === 'Facture non envoyée') {
+                    paymentBadge = `<span class="bg-blue-100 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Facture non envoyée</span>`;
+                } else if (pStatus.startsWith('Facture envoyée')) {
+                    // Calcul du nombre de jours depuis l'envoi
+                    let daysElapsed = 0;
+                    if (m.invoice_sent_date) {
+                        const sentDate = new Date(m.invoice_sent_date);
+                        daysElapsed = Math.floor((today - sentDate) / (1000 * 60 * 60 * 24));
+                    }
+                    if (daysElapsed > 30) {
+                        const overdueDays = daysElapsed - 30;
+                        paymentBadge = `<span class="bg-red-100 text-lkdm-accent border border-red-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Facture en retard de ${overdueDays} j.</span>`;
+                    } else {
+                        paymentBadge = `<span class="bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Facture envoyée (${daysElapsed} j.)</span>`;
+                    }
+                } else if (pStatus === 'Payé') {
+                    paymentBadge = `<span class="bg-emerald-100 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Payé ✓</span>`;
+                }
+
+                tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition">
                         <td class="p-3 font-bold cursor-pointer text-lkdm-accent" onclick="openEditMissionModal('${m.id}')">${m.mission_code}</td>
                         <td class="p-3">${clientName}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${getStatusColorClass(missionStatus)}">${missionStatus}</span></td>
                         <td class="p-3 font-semibold">CHF ${amount.toFixed(2)}</td>
-                        <td class="p-3"><select onchange="updatePaymentStatus('${m.id}', this.value)" class="bg-slate-50 border rounded p-1 text-[11px]"><option value="En attente" ${m.payment_status === 'En attente' ? 'selected' : ''}>En attente</option><option value="Payé" ${m.payment_status === 'Payé' ? 'selected' : ''}>Payé</option><option value="Retard" ${m.payment_status === 'Retard' ? 'selected' : ''}>Retard</option></select></td>
+                        <td class="p-3 font-medium text-slate-600">${payType}</td>
+                        <td class="p-3">${paymentBadge}</td>
                         <td class="p-3 text-right space-x-1">
-                            <button onclick="sendDocumentEmail('${m.id}', 'Facture', '${clientName}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Facture"><i class="fa-solid fa-file-invoice"></i></button>
-                            <button onclick="sendDocumentEmail('${m.id}', 'Quittance', '${clientName}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Quittance"><i class="fa-solid fa-receipt"></i></button>
-                            <button onclick="sendDocumentEmail('${m.id}', 'Rapport', '${clientName}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Rapport DAR"><i class="fa-solid fa-flag-checkered"></i></button>
-                        </td>
-                    </tr>
-                `;
-
-                studentTbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-3 font-bold cursor-pointer text-lkdm-accent" onclick="openEditMissionModal('${m.id}')">${m.mission_code}</td>
-                        <td class="p-3">${studentName}</td>
-                        <td class="p-3">${hours}h</td>
-                        <td class="p-3 font-semibold text-emerald-600">CHF ${payout.toFixed(2)}</td>
-                        <td class="p-3 text-right">
-                            <button onclick="sendDocumentEmail('${m.id}', 'Virement', '${studentName}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold"><i class="fa-solid fa-check"></i> Virement</button>
+                            <button onclick="generateDoc('${m.id}', 'Facture')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Générer Facture"><i class="fa-solid fa-file-invoice"></i></button>
+                            <button onclick="generateDoc('${m.id}', 'Quittance')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Générer Quittance"><i class="fa-solid fa-receipt"></i></button>
+                            <button onclick="generateDoc('${m.id}', 'Rapport')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Générer Rapport"><i class="fa-solid fa-flag-checkered"></i></button>
+                            <button onclick="sendBillingEmail('${m.id}', '${clientName}')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-bold" title="Envoyer par email"><i class="fa-solid fa-paper-plane"></i> Envoyer</button>
+                            <button onclick="validatePayment('${m.id}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold" title="Valider paiement"><i class="fa-solid fa-check"></i> Valider</button>
                         </td>
                     </tr>
                 `;
             });
         }
 
-        async function updatePaymentStatus(missionId, status) {
-            await window.supabaseClient.from('missions').update({ payment_status: status }).eq('id', missionId);
+        function generateDoc(missionId, docType) {
+            alert(`[Génération 1-clic] ${docType} générée avec succès pour la mission.`);
+        }
+
+        async function sendBillingEmail(missionId, clientName) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            await window.supabaseClient.from('missions').update({ 
+                payment_status: 'Facture envoyée', 
+                invoice_sent_date: todayStr 
+            }).eq('id', missionId);
+            alert(`[Email Automatique] Facture, quittance et rapport envoyés avec succès à ${clientName} !`);
             loadSupabaseOverview();
         }
 
-        async function sendDocumentEmail(missionId, docType, recipient) {
-            let updateField = {};
-            if (docType === 'Facture') updateField = { invoice_sent: true };
-            if (docType === 'Quittance') updateField = { receipt_sent: true };
-            if (docType === 'Rapport') updateField = { dar_sent: true };
-
-            if (Object.keys(updateField).length > 0) {
-                await window.supabaseClient.from('missions').update(updateField).eq('id', missionId);
-            }
-            alert(`[Email Automatique] ${docType} envoyé avec succès à ${recipient} !`);
+        async function validatePayment(missionId) {
+            await window.supabaseClient.from('missions').update({ payment_status: 'Payé' }).eq('id', missionId);
+            alert(`[Paiement Validé] La facture est maintenant marquée comme payée.`);
             loadSupabaseOverview();
         }
 
+        // --- GESTION ÉDITION MISSION ---
         async function openEditMissionModal(id) {
             const m = globalMissionsData.find(x => x.id == id);
             if (!m) return;
@@ -840,11 +824,9 @@
             document.getElementById('edit-mis-id').value = m.id;
             document.getElementById('edit-mis-code').value = m.mission_code || '';
             document.getElementById('edit-mis-matching-status').value = m.matching_status || 'Nouveau';
-            document.getElementById('edit-mis-paystatus').value = m.payment_status || 'En attente';
             document.getElementById('edit-mis-date').value = m.mission_date || '';
             document.getElementById('edit-mis-desc').value = m.exact_description || '';
             document.getElementById('edit-mis-lang').value = m.mission_language || 'Français';
-            document.getElementById('edit-mis-periods').value = m.mission_periods || '';
             document.getElementById('edit-mis-payment').value = m.payment_type || 'TWINT';
             document.getElementById('edit-mis-start').value = m.start_time || '';
             document.getElementById('edit-mis-end').value = m.end_time || '';
@@ -863,11 +845,9 @@
                 client_id: document.getElementById('edit-mis-client').value,
                 student_id: document.getElementById('edit-mis-student').value || null,
                 matching_status: document.getElementById('edit-mis-matching-status').value,
-                payment_status: document.getElementById('edit-mis-paystatus').value,
                 mission_date: document.getElementById('edit-mis-date').value || null,
                 exact_description: document.getElementById('edit-mis-desc').value,
                 mission_language: document.getElementById('edit-mis-lang').value,
-                mission_periods: document.getElementById('edit-mis-periods').value,
                 payment_type: document.getElementById('edit-mis-payment').value,
                 start_time: document.getElementById('edit-mis-start').value || null,
                 end_time: document.getElementById('edit-mis-end').value || null,
@@ -1107,7 +1087,7 @@
                 real_hours: estHours,
                 lkdm_commission: estHours * 10,
                 total_amount: estHours * 35,
-                payment_status: 'En attente'
+                payment_status: 'Facture non envoyée'
             };
 
             const { error } = await window.supabaseClient.from('missions').insert([payload]);
