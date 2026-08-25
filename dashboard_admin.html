@@ -90,8 +90,8 @@
 
             <!-- Footer / Bouton Export CSV & Quitter -->
             <div class="pt-4 border-t border-slate-100 space-y-2">
-                <button onclick="openModal('modal-export-csv')" class="w-full flex items-center justify-center gap-2 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition py-2.5 rounded-xl border border-emerald-200">
-                    <i class="fa-solid fa-file-csv"></i> Exporter en CSV
+                <button onclick="openModal('modal-export-csv')" class="w-full flex items-center justify-center gap-2 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition py-2.5 rounded-xl border border-emerald-200 shadow-sm">
+                    <i class="fa-solid fa-file-csv"></i> Exporter en CSV (Tout)
                 </button>
                 <a href="index.html" class="w-full flex items-center justify-center gap-2 text-xs font-medium text-lkdm-secondary hover:text-lkdm-accent transition py-2">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i> Quitter l'Admin
@@ -378,21 +378,32 @@
         </main>
     </div>
 
-    <!-- MODAL : EXPORT CSV INTERACTIF -->
+    <!-- MODAL : EXPORT CSV UNIVERSEL -->
     <div id="modal-export-csv" class="hidden fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 my-8 relative">
             <button onclick="closeModal('modal-export-csv')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
-            <h3 class="text-xl font-bold text-lkdm-text mb-2"><i class="fa-solid fa-file-csv mr-2 text-emerald-600"></i> Assistant Export CSV</h3>
-            <p class="text-xs text-slate-500 mb-5">Configurez vos critères de filtrage et de dates pour l'exportation sur mesure.</p>
+            <h3 class="text-xl font-bold text-lkdm-text mb-2"><i class="fa-solid fa-file-csv mr-2 text-emerald-600"></i> Assistant Export CSV (Complet)</h3>
+            <p class="text-xs text-slate-500 mb-5">Sélectionnez la base de données et les critères à exporter.</p>
             
             <div class="space-y-4 text-sm">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Que souhaitez-vous exporter ? *</label>
+                    <select id="exp-category" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold">
+                        <option value="missions">Toutes les Missions (Détails, statuts, montants, heures)</option>
+                        <option value="clients">Tous les Clients (Profils, adresses, contacts)</option>
+                        <option value="students">Tous les Étudiants (Profils, AVS, IBAN, contacts)</option>
+                        <option value="events">Tous les Événements (Revenus, dépenses, budgets)</option>
+                        <option value="documents">Tous les Documents & Liens</option>
+                    </select>
+                </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Date de début</label>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Date de début (optionnel)</label>
                         <input type="date" id="exp-start-date" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Date de fin</label>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Date de fin (optionnel)</label>
                         <input type="date" id="exp-end-date" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
                     </div>
                 </div>
@@ -409,31 +420,21 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Statut du paiement</label>
-                        <select id="exp-payment-status" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
-                            <option value="all">Tous les paiements</option>
-                            <option value="Facture non envoyée">Facture non envoyée</option>
-                            <option value="Facture envoyée">Facture envoyée</option>
-                            <option value="Payé">Payé</option>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Localité (Ville)</label>
+                        <select id="exp-city" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                            <option value="Toutes">Toutes les localités</option>
+                            <option value="Sion">Sion</option>
+                            <option value="Sierre">Sierre</option>
+                            <option value="Martigny">Martigny</option>
                         </select>
                     </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Localité (Ville)</label>
-                    <select id="exp-city" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
-                        <option value="Toutes">Toutes les localités</option>
-                        <option value="Sion">Sion</option>
-                        <option value="Sierre">Sierre</option>
-                        <option value="Martigny">Martigny</option>
-                    </select>
                 </div>
             </div>
 
             <div class="flex justify-end gap-3 pt-6 border-t mt-6">
                 <button type="button" onclick="closeModal('modal-export-csv')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Annuler</button>
-                <button type="button" onclick="executeCustomCSVExport()" class="px-6 py-2.5 bg-emerald-600 text-white rounded-full text-xs font-medium shadow-sm hover:bg-emerald-700 transition">
-                    <i class="fa-solid fa-download mr-1"></i> Générer et Télécharger
+                <button type="button" onclick="executeUniversalCSVExport()" class="px-6 py-2.5 bg-emerald-600 text-white rounded-full text-xs font-medium shadow-sm hover:bg-emerald-700 transition">
+                    <i class="fa-solid fa-download mr-1"></i> Télécharger le CSV complet
                 </button>
             </div>
         </div>
@@ -938,22 +939,7 @@
             const { data: missions, error: mErr } = await mQuery;
             if (mErr) return;
 
-            const sortOrder = document.getElementById('mission-sort-order')?.value || 'num';
-            const statusPriority = {
-                "nouveau": 1, "a publier": 2, "publié": 3, "accepté": 4,
-                "confirmé": 5, "à facturer": 6, "en attente de paiement": 7, "mission effectuée": 8
-            };
-
-            globalMissionsData = (missions || []).sort((a, b) => {
-                if (sortOrder === 'status') {
-                    const pA = statusPriority[(a.matching_status || "").toLowerCase()] || 99;
-                    const pB = statusPriority[(b.matching_status || "").toLowerCase()] || 99;
-                    if (pA !== pB) return pA - pB;
-                }
-                const numA = parseInt((a.mission_code || "").split('_')[1]) || 0;
-                const numB = parseInt((b.mission_code || "").split('_')[1]) || 0;
-                return numA - numB;
-            });
+            globalMissionsData = missions || [];
 
             const { data: clients } = await window.supabaseClient.from('profiles').select('*').eq('role', 'client');
             const { data: students } = await window.supabaseClient.from('profiles').select('*').eq('role', 'student');
@@ -1028,15 +1014,36 @@
         function renderOpenMissionsTable() {
             const tbody = document.getElementById('admin-missions-tbody');
             const statusFilter = document.getElementById('mission-status-filter').value;
+            const sortOrder = document.getElementById('mission-sort-order')?.value || 'num';
             tbody.innerHTML = '';
         
-            let missionsToDisplay = globalMissionsData;
+            const statusPriority = {
+                "nouveau": 1, "a publier": 2, "publié": 3, "accepté": 4,
+                "confirmé": 5, "à facturer": 6, "en attente de paiement": 7, "mission effectuée": 8
+            };
+
+            let missionsToDisplay = [...globalMissionsData];
+
+            // 1. Tri dynamique (par statut ou par numéro)
+            missionsToDisplay.sort((a, b) => {
+                if (sortOrder === 'status') {
+                    const pA = statusPriority[(a.matching_status || "").toLowerCase()] || 99;
+                    const pB = statusPriority[(b.matching_status || "").toLowerCase()] || 99;
+                    if (pA !== pB) return pA - pB;
+                }
+                const numA = parseInt((a.mission_code || "").split('_')[1]) || 0;
+                const numB = parseInt((b.mission_code || "").split('_')[1]) || 0;
+                return numA - numB;
+            });
+
+            // 2. Filtrage par statut
             if (statusFilter === 'all-open') {
-                missionsToDisplay = globalMissionsData.filter(m => (m.matching_status || "").toLowerCase() !== "mission effectuée");
+                missionsToDisplay = missionsToDisplay.filter(m => (m.matching_status || "").toLowerCase() !== "mission effectuée");
             } else if (statusFilter !== 'all') {
-                missionsToDisplay = globalMissionsData.filter(m => m.matching_status === statusFilter);
+                missionsToDisplay = missionsToDisplay.filter(m => m.matching_status === statusFilter);
             }
         
+            // 3. Affichage
             missionsToDisplay.forEach(m => {
                 const colorClass = getStatusColorClass(m.matching_status);
                 tbody.innerHTML += `
@@ -1193,55 +1200,109 @@
             loadSupabaseOverview();
         }
 
-        function executeCustomCSVExport() {
+        function executeUniversalCSVExport() {
+            const category = document.getElementById('exp-category').value;
             const startDate = document.getElementById('exp-start-date').value;
             const endDate = document.getElementById('exp-end-date').value;
             const missionStatus = document.getElementById('exp-mission-status').value;
-            const paymentStatus = document.getElementById('exp-payment-status').value;
             const cityFilter = document.getElementById('exp-city').value;
 
-            let dataToExport = globalMissionsData.filter(m => {
-                let matchDate = true;
-                if (startDate && m.mission_date && m.mission_date < startDate) matchDate = false;
-                if (endDate && m.mission_date && m.mission_date > endDate) matchDate = false;
+            let dataToExport = [];
+            let headers = [];
+            let filenamePrefix = category;
 
-                let matchMissionStatus = true;
-                if (missionStatus !== 'all' && m.matching_status !== missionStatus) matchMissionStatus = false;
-
-                let matchPaymentStatus = true;
-                if (paymentStatus !== 'all') {
-                    const pStatus = m.payment_status || 'Facture non envoyée';
-                    if (!pStatus.startsWith(paymentStatus)) matchPaymentStatus = false;
-                }
-
-                let matchCity = true;
-                if (cityFilter !== 'Toutes') {
-                    if (!m.client || m.client.city !== cityFilter) matchCity = false;
-                }
-
-                return matchDate && matchMissionStatus && matchPaymentStatus && matchCity;
-            });
+            if (category === 'missions') {
+                dataToExport = globalMissionsData.filter(m => {
+                    if (startDate && m.mission_date && m.mission_date < startDate) return false;
+                    if (endDate && m.mission_date && m.mission_date > endDate) return false;
+                    if (missionStatus !== 'all' && m.matching_status !== missionStatus) return false;
+                    if (cityFilter !== 'Toutes' && (!m.client || m.client.city !== cityFilter)) return false;
+                    return true;
+                });
+                headers = ["ID", "Code Mission", "Date", "Description", "Client", "Ville Client", "Statut Mission", "Heures Est.", "Heures Réelles", "Montant (CHF)", "Commission LKDM", "Type Paiement", "Statut Paiement"];
+            } else if (category === 'clients') {
+                dataToExport = globalClientsData;
+                headers = ["ID", "Prénom", "Nom", "Nom complet", "Email", "Téléphone", "Adresse", "NPA", "Ville", "Date Naissance", "Sexe", "Langue", "Statut"];
+            } else if (category === 'students') {
+                dataToExport = globalStudentsData;
+                headers = ["ID", "Prénom", "Nom", "Nom complet", "Email", "Téléphone", "Adresse", "NPA", "Ville", "Date Naissance", "Sexe", "Langue", "Nationalité", "IBAN", "AVS", "Statut"];
+            } else if (category === 'events') {
+                dataToExport = globalEventsData;
+                headers = ["ID", "Titre", "Date", "Lieu", "Revenus (CHF)", "Dépenses (CHF)"];
+            } else if (category === 'documents') {
+                dataToExport = globalDocumentsData;
+                headers = ["ID", "Titre", "Type Document", "URL Fichier", "Client ID", "Étudiant ID", "Mission ID"];
+            }
 
             if (dataToExport.length === 0) {
-                alert("Aucune donnée ne correspond aux critères sélectionnés.");
+                alert("Aucune donnée disponible pour les critères sélectionnés.");
                 return;
             }
 
-            const headers = ["Code Mission", "Date", "Description", "Client", "Ville Client", "Statut Mission", "Heures", "Montant (CHF)", "Statut Paiement"];
             let csvRows = [headers.join(';')];
 
-            dataToExport.forEach(m => {
-                const code = `"${m.mission_code || ''}"`;
-                const date = `"${m.mission_date || ''}"`;
-                const desc = `"${(m.exact_description || '').replace(/"/g, '""')}"`;
-                const clientName = `"${m.client ? m.client.full_name : 'Inconnu'}"`;
-                const clientCity = `"${m.client ? m.client.city : ''}"`;
-                const status = `"${m.matching_status || ''}"`;
-                const hours = m.real_hours || 0;
-                const amount = m.total_amount || 0;
-                const paymentStat = `"${m.payment_status || 'Facture non envoyée'}"`;
-
-                csvRows.push([code, date, desc, clientName, clientCity, status, hours, amount, paymentStat].join(';'));
+            dataToExport.forEach(item => {
+                let row = [];
+                if (category === 'missions') {
+                    row = [
+                        `"${item.id || ''}"`,
+                        `"${item.mission_code || ''}"`,
+                        `"${item.mission_date || ''}"`,
+                        `"${(item.exact_description || '').replace(/"/g, '""')}"`,
+                        `"${item.client ? item.client.full_name : 'Inconnu'}"`,
+                        `"${item.client ? item.client.city : ''}"`,
+                        `"${item.matching_status || ''}"`,
+                        item.estimated_hours || 0,
+                        item.real_hours || 0,
+                        item.total_amount || 0,
+                        item.lkdm_commission || 0,
+                        `"${item.payment_type || ''}"`,
+                        `"${item.payment_status || ''}"`
+                    ];
+                } else if (category === 'clients' || category === 'students') {
+                    row = [
+                        `"${item.id || ''}"`,
+                        `"${item.first_name || ''}"`,
+                        `"${item.last_name || ''}"`,
+                        `"${item.full_name || ''}"`,
+                        `"${item.email || ''}"`,
+                        `"${item.phone || ''}"`,
+                        `"${item.address || ''}"`,
+                        `"${item.npa || ''}"`,
+                        `"${item.city || ''}"`,
+                        `"${item.birth_date || ''}"`,
+                        `"${item.gender || ''}"`,
+                        `"${item.language || ''}"`
+                    ];
+                    if (category === 'students') {
+                        row.push(
+                            `"${item.nationality || ''}"`,
+                            `"${item.iban || ''}"`,
+                            `"${item.avs_number || ''}"`
+                        );
+                    }
+                    row.push(`"${item.status || ''}"`);
+                } else if (category === 'events') {
+                    row = [
+                        `"${item.id || ''}"`,
+                        `"${item.title || ''}"`,
+                        `"${item.event_date || ''}"`,
+                        `"${item.location || ''}"`,
+                        item.revenue_chf || 0,
+                        item.expenses_chf || 0
+                    ];
+                } else if (category === 'documents') {
+                    row = [
+                        `"${item.id || ''}"`,
+                        `"${item.title || ''}"`,
+                        `"${item.doc_type || ''}"`,
+                        `"${item.file_url || ''}"`,
+                        `"${item.client_id || ''}"`,
+                        `"${item.student_id || ''}"`,
+                        `"${item.mission_id || ''}"`
+                    ];
+                }
+                csvRows.push(row.join(';'));
             });
 
             const csvString = csvRows.join('\n');
@@ -1250,7 +1311,7 @@
             
             const a = document.createElement('a');
             a.setAttribute('href', url);
-            a.setAttribute('download', `export_sur_mesure_lkdm_${new Date().toISOString().split('T')[0]}.csv`);
+            a.setAttribute('download', `export_${filenamePrefix}_lkdm_${new Date().toISOString().split('T')[0]}.csv`);
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
