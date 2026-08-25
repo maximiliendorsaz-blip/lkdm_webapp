@@ -1065,10 +1065,16 @@
 
             globalDocumentsData.forEach(d => {
                 let linkedProfile = 'Aucun';
-                if (d.client) linkedProfile = `${d.client.full_name} (Client)`;
-                if (d.student) linkedProfile = `${d.student.full_name} (Étudiant)`;
-
-                let linkedMission = d.mission ? d.mission.mission_code : 'Aucune';
+                if (d.client) {
+                    linkedProfile = `<span onclick="openEditClientModal('${d.client.id}')" class="text-lkdm-accent font-bold cursor-pointer hover:underline">${d.client.full_name} (Client)</span>`;
+                } else if (d.student) {
+                    linkedProfile = `<span onclick="openEditStudentModal('${d.student.id}')" class="text-lkdm-accent font-bold cursor-pointer hover:underline">${d.student.full_name} (Étudiant)</span>`;
+                }
+                
+                let linkedMission = 'Aucune';
+                if (d.mission) {
+                    linkedMission = `<span onclick="openEditMissionModal('${d.mission.id}')" class="text-lkdm-accent font-bold cursor-pointer hover:underline">${d.mission.mission_code}</span>`;
+                }
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition">
