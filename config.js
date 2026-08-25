@@ -13,8 +13,7 @@ window.LKDM_CONFIG = {
         "Français",
         "Allemand",
         "Anglais",
-        "Italien",
-        "Chinois"
+        "Italien"
     ],
 
     // Nationalités
