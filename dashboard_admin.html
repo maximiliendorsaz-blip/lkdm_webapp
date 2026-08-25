@@ -49,7 +49,7 @@
                 <div class="bg-lkdm-bg p-4 rounded-2xl border border-slate-200/60 flex items-center gap-3">
                     <div class="w-11 h-11 rounded-full bg-lkdm-accent text-white flex items-center justify-center font-bold text-lg shadow-sm">MB</div>
                     <div class="overflow-hidden">
-                        <p class="text-sm font-semibold text-lkdm-text truncate">Max & Ben</p>
+                        <p class="text-sm font-semibold text-lkdm-text truncate">Max</p>
                         <p class="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
                             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Système en ligne
                         </p>
@@ -73,6 +73,9 @@
                     </button>
                     <button onclick="switchTab('clients')" id="nav-clients" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
                         <i class="fa-solid fa-house-chimney-user w-5 text-center"></i> Clients
+                    </button>
+                    <button onclick="switchTab('avs-tracker')" id="nav-avs-tracker" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
+                        <i class="fa-solid fa-shield-halved w-5 text-center"></i> Suivi AVS (92h)
                     </button>
                     <button onclick="switchTab('billing')" id="nav-billing" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
                         <i class="fa-solid fa-file-invoice-dollar w-5 text-center"></i> Facturation & Paiements
@@ -261,7 +264,32 @@
                     </div>
                 </div>
 
-                <!-- TAB 6: FACTURATION & SUIVI DES PAIEMENTS -->
+                <!-- TAB 6: SUIVI AVS (92h / 2300 CHF) -->
+                <div id="tab-avs-tracker" class="tab-content space-y-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-bold text-lkdm-text">Suivi AVS Étudiants (Seuil 92h / an)</h2>
+                            <p class="text-sm text-lkdm-secondary">Contrôle du volume horaire annuel civil pour éviter le dépassement de la franchise AVS (2'300 CHF).</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm whitespace-nowrap">
+                                <thead class="bg-slate-50 text-xs font-semibold text-lkdm-secondary uppercase border-b border-slate-100">
+                                    <tr>
+                                        <th class="py-4 px-6">Étudiant</th>
+                                        <th class="py-4 px-6">Heures Totales (2026)</th>
+                                        <th class="py-4 px-6">Montant Estimé (CHF)</th>
+                                        <th class="py-4 px-6">Statut AVS</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="avs-tracker-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 7: FACTURATION & SUIVI DES PAIEMENTS -->
                 <div id="tab-billing" class="tab-content space-y-6">
                     <div class="flex justify-between items-center">
                         <h2 class="text-2xl font-bold text-lkdm-text">Facturation & Suivi des Paiements</h2>
@@ -279,7 +307,7 @@
                                             <th class="p-3">Mission</th>
                                             <th class="p-3">Client</th>
                                             <th class="p-3">Montant</th>
-                                            <th class="p-3">Statut Paiement</th>
+                                            <th class="p-3">Paiement</th>
                                             <th class="p-3 text-right">Actions Email</th>
                                         </tr>
                                     </thead>
@@ -345,7 +373,12 @@
                     </div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Langue</label><input type="text" id="edit-mis-lang" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Périodes</label><input type="text" id="edit-mis-periods" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Paiement</label><input type="text" id="edit-mis-payment" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Statut Paiement</label>
+                        <select id="edit-mis-paystatus" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                            <option value="En attente">En attente</option><option value="Payé">Payé</option><option value="Retard">Retard</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="grid grid-cols-4 gap-3">
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Date</label><input type="date" id="edit-mis-date" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
@@ -353,19 +386,9 @@
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Heure fin</label><input type="time" id="edit-mis-end" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Temps réel (h)</label><input type="number" step="0.5" id="edit-mis-real" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                 </div>
-                <div class="grid grid-cols-4 gap-3 bg-slate-50 p-3 rounded-2xl">
-                    <div><label class="block text-[10px] font-bold text-slate-600 mb-1">Frais dépl.</label><input type="number" step="0.05" id="edit-mis-travel" class="w-full bg-white border border-slate-200 rounded-xl px-2 py-1 text-xs"></div>
-                    <div><label class="block text-[10px] font-bold text-slate-600 mb-1">NPS Senior</label><input type="number" id="edit-mis-senps" class="w-full bg-white border border-slate-200 rounded-xl px-2 py-1 text-xs"></div>
-                    <div><label class="block text-[10px] font-bold text-slate-600 mb-1">CSAT Senior</label><input type="number" step="0.1" id="edit-mis-sencsat" class="w-full bg-white border border-slate-200 rounded-xl px-2 py-1 text-xs"></div>
-                    <div><label class="block text-[10px] font-bold text-slate-600 mb-1">NPS Étudiant</label><input type="number" id="edit-mis-stunps" class="w-full bg-white border border-slate-200 rounded-xl px-2 py-1 text-xs"></div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Récapitulatif DAR</label><input type="text" id="edit-mis-dar" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Feedback</label><input type="text" id="edit-mis-feedback" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                </div>
                 <div class="flex justify-end gap-3 pt-4 border-t">
                     <button type="button" onclick="closeModal('modal-edit-mission')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Annuler</button>
-                    <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Enregistrer toutes les modifications</button>
+                    <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Enregistrer</button>
                 </div>
             </form>
         </div>
@@ -386,15 +409,6 @@
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Téléphone</label><input type="text" id="edit-stu-phone" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Email</label><input type="email" id="edit-stu-email" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                 </div>
-                <div class="grid grid-cols-3 gap-4">
-                    <div class="col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">Rue et numéro</label><input type="text" id="edit-stu-address" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">NPA</label><input type="text" id="edit-stu-npa" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                </div>
-                <div class="grid grid-cols-3 gap-4">
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Localité</label><input type="text" id="edit-stu-city" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">IBAN</label><input type="text" id="edit-stu-iban" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">AVS</label><input type="text" id="edit-stu-avs" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                </div>
                 <div class="bg-slate-50 p-4 rounded-2xl space-y-2 border">
                     <h4 class="font-bold text-xs uppercase text-lkdm-secondary">Statistiques & Activités</h4>
                     <div class="flex justify-between text-xs font-semibold text-lkdm-text">
@@ -405,14 +419,10 @@
                         <p class="text-[11px] font-bold text-slate-500 mb-1">Missions effectuées :</p>
                         <div id="stu-missions-list" class="space-y-1 max-h-32 overflow-y-auto text-xs"></div>
                     </div>
-                    <div class="mt-2">
-                        <p class="text-[11px] font-bold text-slate-500 mb-1">Événements participants :</p>
-                        <div id="stu-events-list" class="space-y-1 max-h-24 overflow-y-auto text-xs"></div>
-                    </div>
                 </div>
                 <div class="flex justify-end gap-3 pt-4 border-t">
                     <button type="button" onclick="closeModal('modal-edit-student')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Fermer</button>
-                    <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Mettre à jour l'étudiant</button>
+                    <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Mettre à jour</button>
                 </div>
             </form>
         </div>
@@ -433,33 +443,20 @@
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Téléphone</label><input type="text" id="edit-cli-phone" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Email</label><input type="email" id="edit-cli-email" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                 </div>
-                <div class="grid grid-cols-3 gap-4">
-                    <div class="col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">Rue et numéro</label><input type="text" id="edit-cli-address" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">NPA</label><input type="text" id="edit-cli-npa" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Localité</label><input type="text" id="edit-cli-city" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Langue</label><input type="text" id="edit-cli-lang" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                </div>
                 <div class="bg-slate-50 p-4 rounded-2xl space-y-2 border">
                     <h4 class="font-bold text-xs uppercase text-lkdm-secondary">Statistiques & Activités</h4>
                     <div class="flex justify-between text-xs font-semibold text-lkdm-text">
                         <span>Total Missions : <span id="cli-stat-count" class="text-lkdm-accent">0</span></span>
-                        <span>Total Heures : <span id="cli-stat-hours" class="text-lkdm-accent">0h</span></span>
                         <span>Montant Payé : <span id="cli-stat-amount" class="text-emerald-600">CHF 0</span></span>
                     </div>
                     <div class="mt-2">
                         <p class="text-[11px] font-bold text-slate-500 mb-1">Missions commandées :</p>
                         <div id="cli-missions-list" class="space-y-1 max-h-32 overflow-y-auto text-xs"></div>
                     </div>
-                    <div class="mt-2">
-                        <p class="text-[11px] font-bold text-slate-500 mb-1">Événements participants :</p>
-                        <div id="cli-events-list" class="space-y-1 max-h-24 overflow-y-auto text-xs"></div>
-                    </div>
                 </div>
                 <div class="flex justify-end gap-3 pt-4 border-t">
                     <button type="button" onclick="closeModal('modal-edit-client')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Fermer</button>
-                    <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Mettre à jour le client</button>
+                    <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Mettre à jour</button>
                 </div>
             </form>
         </div>
@@ -480,35 +477,17 @@
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Email *</label><input type="email" id="stu-email" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
                 </div>
                 <div class="grid grid-cols-3 gap-4">
-                    <div class="col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">Rue et numéro *</label><input type="text" id="stu-address" required placeholder="Ex: Av. de la Gare 12" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">NPA *</label><input type="text" id="stu-npa" required oninput="syncLocation('stu', 'npa')" placeholder="1950" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
+                    <div class="col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">Rue et numéro *</label><input type="text" id="stu-address" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">NPA *</label><input type="text" id="stu-npa" required oninput="syncLocation('stu', 'npa')" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
                 </div>
                 <div class="grid grid-cols-3 gap-4">
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Localité *</label><input type="text" id="stu-city" required oninput="syncLocation('stu', 'city')" placeholder="Sion" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Localité *</label><input type="text" id="stu-city" required oninput="syncLocation('stu', 'city')" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Date naissance *</label><input type="date" id="stu-birth" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Sexe *</label><select id="stu-gender" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"><option value="homme">Homme</option><option value="femme">Femme</option></select></div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Contact d'urgence (Nom) *</label><input type="text" id="stu-urg-name" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Contact d'urgence (Numéro) *</label><input type="text" id="stu-urg-phone" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Langue *</label>
-                        <select id="stu-lang" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
-                            <option value="Français">Français</option><option value="Allemand">Allemand</option><option value="Anglais">Anglais</option><option value="Italien">Italien</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Nationalité *</label>
-                        <select id="stu-nat" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
-                            <option value="Suisse">Suisse</option><option value="Française">Française</option><option value="Italienne">Italienne</option><option value="Allemande">Allemande</option><option value="Autre">Autre</option>
-                        </select>
-                    </div>
-                </div>
                 <div class="flex justify-end gap-3 pt-4 border-t">
                     <button type="button" onclick="closeModal('modal-create-student')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Annuler</button>
-                    <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Créer l'étudiant</button>
+                    <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Créer</button>
                 </div>
             </form>
         </div>
@@ -528,27 +507,17 @@
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Email *</label><input type="email" id="cli-email" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
                 </div>
                 <div class="grid grid-cols-3 gap-4">
-                    <div class="col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">Rue et numéro *</label><input type="text" id="cli-address" required placeholder="Ex: Rue du Grand-Pont 3" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">NPA *</label><input type="text" id="cli-npa" required oninput="syncLocation('cli', 'npa')" placeholder="1950" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
+                    <div class="col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">Rue et numéro *</label><input type="text" id="cli-address" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">NPA *</label><input type="text" id="cli-npa" required oninput="syncLocation('cli', 'npa')" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
                 </div>
                 <div class="grid grid-cols-3 gap-4">
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Localité *</label><input type="text" id="cli-city" required oninput="syncLocation('cli', 'city')" placeholder="Sion" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Localité *</label><input type="text" id="cli-city" required oninput="syncLocation('cli', 'city')" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Date de naissance *</label><input type="date" id="cli-birth" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Sexe *</label><select id="cli-gender" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"><option value="homme">Homme</option><option value="femme">Femme</option></select></div>
                 </div>
-                <div class="grid grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Langue *</label>
-                        <select id="cli-lang" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
-                            <option value="Français">Français</option><option value="Allemand">Allemand</option><option value="Anglais">Anglais</option><option value="Italien">Italien</option>
-                        </select>
-                    </div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Type d'origine *</label><input type="text" id="cli-srctype" required placeholder="Ex: Réseaux sociaux" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Origine prospect *</label><input type="text" id="cli-src" required placeholder="Ex: Instagram" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                </div>
                 <div class="flex justify-end gap-3 pt-4 border-t">
                     <button type="button" onclick="closeModal('modal-create-client')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Annuler</button>
-                    <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Créer le client</button>
+                    <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Créer</button>
                 </div>
             </form>
         </div>
@@ -572,7 +541,7 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Description exacte de la mission *</label>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Description exacte *</label>
                     <textarea id="mis-desc" required rows="2" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl p-3 text-xs" placeholder="Ex: Aide au ménage..."></textarea>
                 </div>
                 <div class="grid grid-cols-3 gap-4">
@@ -582,31 +551,27 @@
                             <option value="Français">Français</option><option value="Allemand">Allemand</option><option value="Anglais">Anglais</option><option value="Italien">Italien</option>
                         </select>
                     </div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Périodes de préférence *</label><input type="text" id="mis-periods" required placeholder="Ex: Après-midi" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Périodes *</label><input type="text" id="mis-periods" required placeholder="Ex: Après-midi" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Temps estimé (h) *</label><input type="number" step="0.5" id="mis-est-hours" required value="2.0" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                 </div>
                 <div class="grid grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Statut du matching *</label>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Statut *</label>
                         <select id="mis-matching-status" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
                             <option value="Nouveau">Nouveau</option><option value="A publier">A publier</option><option value="publié">publié</option><option value="accepté">accepté</option><option value="confirmé">confirmé</option><option value="à facturer">à facturer</option><option value="en attente de paiement">en attente de paiement</option><option value="mission effectuée">mission effectuée</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Type de paiement *</label>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Paiement *</label>
                         <select id="mis-payment" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
                             <option value="TWINT">TWINT</option><option value="cash">Cash</option><option value="facture">Facture</option>
                         </select>
                     </div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Date de la mission</label><input type="date" id="mis-date" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                </div>
-                <div class="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded-2xl">
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Heure de début</label><input type="time" id="mis-start" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Heure de fin</label><input type="time" id="mis-end" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Date</label><input type="date" id="mis-date" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                 </div>
                 <div class="flex justify-end gap-3 pt-4 border-t">
                     <button type="button" onclick="closeModal('modal-create-mission')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Annuler</button>
-                    <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Créer la mission</button>
+                    <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Créer</button>
                 </div>
             </form>
         </div>
@@ -736,6 +701,7 @@
             renderOpenMissionsTable();
             renderClientsTable(globalClientsData);
             renderStudentsGrid();
+            renderAvsTracker();
             renderBillingTables();
             if(adminMap) renderAdminMapCalendar();
         }
@@ -764,6 +730,41 @@
             });
         }
 
+        // --- SUIVI AVS ÉTUDIANTS (92H / AN) ---
+        function renderAvsTracker() {
+            const tbody = document.getElementById('avs-tracker-tbody');
+            tbody.innerHTML = '';
+            const currentYear = new Date().getFullYear();
+
+            globalStudentsData.forEach(s => {
+                // Filtrer les missions de l'année en cours (2026)
+                const studentMissions = globalMissionsData.filter(m => m.student_id === s.id && m.mission_date && m.mission_date.startsWith(`${currentYear}`));
+                let totalHours = 0;
+                studentMissions.forEach(m => totalHours += Number(m.real_hours) || 0);
+
+                const totalEarned = totalHours * 25; // Base estimée
+                let badgeStyle = "bg-emerald-50 text-emerald-700 border-emerald-200";
+                let badgeText = "Conforme (< 92h)";
+
+                if (totalHours >= 80 && totalHours < 92) {
+                    badgeStyle = "bg-amber-50 text-amber-700 border-amber-200";
+                    badgeText = "Attention proche du seuil";
+                } else if (totalHours >= 92) {
+                    badgeStyle = "bg-red-50 text-lkdm-accent border-red-200";
+                    badgeText = "SEUIL ATTEINT / DÉPASSÉ";
+                }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-4 px-6 font-bold text-lkdm-text">${s.full_name}</td>
+                        <td class="py-4 px-6 font-semibold">${totalHours}h / 92h</td>
+                        <td class="py-4 px-6">CHF ${totalEarned.toFixed(2)}</td>
+                        <td class="py-4 px-6"><span class="${badgeStyle} px-2.5 py-1 rounded-full text-xs font-bold border">${badgeText}</span></td>
+                    </tr>
+                `;
+            });
+        }
+
         // --- ONGLET FACTURATION & SUIVI DES PAIEMENTS ---
         function renderBillingTables() {
             const clientTbody = document.getElementById('billing-clients-tbody');
@@ -776,24 +777,22 @@
                 const studentName = m.student ? m.student.full_name : 'Non assigné';
                 const amount = Number(m.total_amount) || 0;
                 const hours = Number(m.real_hours) || 0;
-                const payout = hours * 25; // 25 CHF/h pour l'étudiant par exemple
+                const payout = hours * 25;
 
-                // Tableau Factures Clients
                 clientTbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition">
                         <td class="p-3 font-bold cursor-pointer text-lkdm-accent" onclick="openEditMissionModal('${m.id}')">${m.mission_code}</td>
                         <td class="p-3">${clientName}</td>
                         <td class="p-3 font-semibold">CHF ${amount.toFixed(2)}</td>
-                        <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${getStatusColorClass(m.matching_status)}">${m.matching_status}</span></td>
+                        <td class="p-3"><select onchange="updatePaymentStatus('${m.id}', this.value)" class="bg-slate-50 border rounded p-1 text-[11px]"><option value="En attente" ${m.payment_status === 'En attente' ? 'selected' : ''}>En attente</option><option value="Payé" ${m.payment_status === 'Payé' ? 'selected' : ''}>Payé</option><option value="Retard" ${m.payment_status === 'Retard' ? 'selected' : ''}>Retard</option></select></td>
                         <td class="p-3 text-right space-x-1">
-                            <button onclick="sendEmailAction('Facture', '${clientName}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Envoyer Facture"><i class="fa-solid fa-file-invoice"></i></button>
-                            <button onclick="sendEmailAction('Quittance', '${clientName}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Envoyer Quittance"><i class="fa-solid fa-receipt"></i></button>
-                            <button onclick="sendEmailAction('Rapport de mission', '${clientName}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Envoyer Rapport DAR"><i class="fa-solid fa-flag-checkered"></i></button>
+                            <button onclick="sendDocumentEmail('${m.id}', 'Facture', '${clientName}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Facture"><i class="fa-solid fa-file-invoice"></i></button>
+                            <button onclick="sendDocumentEmail('${m.id}', 'Quittance', '${clientName}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Quittance"><i class="fa-solid fa-receipt"></i></button>
+                            <button onclick="sendDocumentEmail('${m.id}', 'Rapport', '${clientName}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Rapport DAR"><i class="fa-solid fa-flag-checkered"></i></button>
                         </td>
                     </tr>
                 `;
 
-                // Tableau Virements Étudiants
                 studentTbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition">
                         <td class="p-3 font-bold cursor-pointer text-lkdm-accent" onclick="openEditMissionModal('${m.id}')">${m.mission_code}</td>
@@ -801,18 +800,31 @@
                         <td class="p-3">${hours}h</td>
                         <td class="p-3 font-semibold text-emerald-600">CHF ${payout.toFixed(2)}</td>
                         <td class="p-3 text-right">
-                            <button onclick="sendEmailAction('Virement effectué', '${studentName}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold"><i class="fa-solid fa-check"></i> Virement</button>
+                            <button onclick="sendDocumentEmail('${m.id}', 'Virement', '${studentName}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold"><i class="fa-solid fa-check"></i> Virement</button>
                         </td>
                     </tr>
                 `;
             });
         }
 
-        function sendEmailAction(type, recipient) {
-            alert(`[Simulation Email] ${type} envoyée avec succès à ${recipient} !`);
+        async function updatePaymentStatus(missionId, status) {
+            await window.supabaseClient.from('missions').update({ payment_status: status }).eq('id', missionId);
+            loadSupabaseOverview();
         }
 
-        // --- GESTION ÉDITION MISSION ---
+        async function sendDocumentEmail(missionId, docType, recipient) {
+            let updateField = {};
+            if (docType === 'Facture') updateField = { invoice_sent: true };
+            if (docType === 'Quittance') updateField = { receipt_sent: true };
+            if (docType === 'Rapport') updateField = { dar_sent: true };
+
+            if (Object.keys(updateField).length > 0) {
+                await window.supabaseClient.from('missions').update(updateField).eq('id', missionId);
+            }
+            alert(`[Email Automatique] ${docType} envoyé avec succès à ${recipient} !`);
+            loadSupabaseOverview();
+        }
+
         async function openEditMissionModal(id) {
             const m = globalMissionsData.find(x => x.id == id);
             if (!m) return;
@@ -828,6 +840,7 @@
             document.getElementById('edit-mis-id').value = m.id;
             document.getElementById('edit-mis-code').value = m.mission_code || '';
             document.getElementById('edit-mis-matching-status').value = m.matching_status || 'Nouveau';
+            document.getElementById('edit-mis-paystatus').value = m.payment_status || 'En attente';
             document.getElementById('edit-mis-date').value = m.mission_date || '';
             document.getElementById('edit-mis-desc').value = m.exact_description || '';
             document.getElementById('edit-mis-lang').value = m.mission_language || 'Français';
@@ -836,12 +849,6 @@
             document.getElementById('edit-mis-start').value = m.start_time || '';
             document.getElementById('edit-mis-end').value = m.end_time || '';
             document.getElementById('edit-mis-real').value = m.real_hours || 2.0;
-            document.getElementById('edit-mis-travel').value = m.travel_expenses || 0;
-            document.getElementById('edit-mis-senps').value = m.senior_nps || '';
-            document.getElementById('edit-mis-sencsat').value = m.senior_csat || '';
-            document.getElementById('edit-mis-stunps').value = m.student_nps || '';
-            document.getElementById('edit-mis-dar').value = m.dar_summary || '';
-            document.getElementById('edit-mis-feedback').value = m.feedback || '';
 
             openModal('modal-edit-mission');
         }
@@ -856,6 +863,7 @@
                 client_id: document.getElementById('edit-mis-client').value,
                 student_id: document.getElementById('edit-mis-student').value || null,
                 matching_status: document.getElementById('edit-mis-matching-status').value,
+                payment_status: document.getElementById('edit-mis-paystatus').value,
                 mission_date: document.getElementById('edit-mis-date').value || null,
                 exact_description: document.getElementById('edit-mis-desc').value,
                 mission_language: document.getElementById('edit-mis-lang').value,
@@ -864,12 +872,6 @@
                 start_time: document.getElementById('edit-mis-start').value || null,
                 end_time: document.getElementById('edit-mis-end').value || null,
                 real_hours: realHours,
-                travel_expenses: parseFloat(document.getElementById('edit-mis-travel').value) || 0,
-                senior_nps: parseInt(document.getElementById('edit-mis-senps').value) || null,
-                senior_csat: parseFloat(document.getElementById('edit-mis-sencsat').value) || null,
-                student_nps: parseInt(document.getElementById('edit-mis-stunps').value) || null,
-                dar_summary: document.getElementById('edit-mis-dar').value,
-                feedback: document.getElementById('edit-mis-feedback').value,
                 lkdm_commission: realHours * 10,
                 total_amount: realHours * 35
             };
@@ -879,7 +881,6 @@
             else { closeModal('modal-edit-mission'); loadSupabaseOverview(); }
         }
 
-        // --- GESTION FICHE ÉTUDIANT & CLIENT INTERACTIVE ---
         function openEditStudentModal(id) {
             const s = globalStudentsData.find(x => x.id == id);
             if (!s) return;
@@ -889,11 +890,6 @@
             document.getElementById('edit-stu-lastname').value = s.last_name || '';
             document.getElementById('edit-stu-phone').value = s.phone || '';
             document.getElementById('edit-stu-email').value = s.email || '';
-            document.getElementById('edit-stu-address').value = s.address || '';
-            document.getElementById('edit-stu-npa').value = s.npa || '';
-            document.getElementById('edit-stu-city').value = s.city || '';
-            document.getElementById('edit-stu-iban').value = s.iban || '';
-            document.getElementById('edit-stu-avs').value = s.avs_number || '';
 
             const stuMissions = globalMissionsData.filter(m => m.student_id === s.id);
             let totalHours = 0;
@@ -908,10 +904,6 @@
             document.getElementById('stu-stat-payout').innerText = `CHF ${totalPayout.toFixed(2)}`;
             document.getElementById('stu-missions-list').innerHTML = missionsHtml;
 
-            const stuEvents = globalEventsData.filter(e => e.student_uuids && e.student_uuids.includes(s.id));
-            const eventsHtml = stuEvents.length ? stuEvents.map(e => `<div class="bg-white p-2 rounded border"><strong>${e.event_code}</strong> - ${e.concept}</div>`).join('') : '<p class="text-slate-400">Aucun événement.</p>';
-            document.getElementById('stu-events-list').innerHTML = eventsHtml;
-
             openModal('modal-edit-student');
         }
 
@@ -923,12 +915,7 @@
                 last_name: document.getElementById('edit-stu-lastname').value,
                 full_name: `${document.getElementById('edit-stu-firstname').value} ${document.getElementById('edit-stu-lastname').value}`,
                 phone: document.getElementById('edit-stu-phone').value,
-                email: document.getElementById('edit-stu-email').value,
-                address: document.getElementById('edit-stu-address').value,
-                npa: document.getElementById('edit-stu-npa').value,
-                city: document.getElementById('edit-stu-city').value,
-                iban: document.getElementById('edit-stu-iban').value,
-                avs_number: document.getElementById('edit-stu-avs').value
+                email: document.getElementById('edit-stu-email').value
             };
             const { error } = await window.supabaseClient.from('profiles').update(payload).eq('id', id);
             if (error) alert("Erreur : " + error.message);
@@ -944,28 +931,17 @@
             document.getElementById('edit-cli-lastname').value = c.last_name || '';
             document.getElementById('edit-cli-phone').value = c.phone || '';
             document.getElementById('edit-cli-email').value = c.email || '';
-            document.getElementById('edit-cli-address').value = c.address || '';
-            document.getElementById('edit-cli-npa').value = c.npa || '';
-            document.getElementById('edit-cli-city').value = c.city || '';
-            document.getElementById('edit-cli-lang').value = c.language || 'Français';
 
             const cliMissions = globalMissionsData.filter(m => m.client_id === c.id);
-            let totalHours = 0;
             let totalPaid = 0;
             const missionsHtml = cliMissions.length ? cliMissions.map(m => {
-                totalHours += Number(m.real_hours) || 0;
                 totalPaid += Number(m.total_amount) || 0;
                 return `<div onclick="openEditMissionModal('${m.id}'); closeModal('modal-edit-client');" class="cursor-pointer bg-white p-2 rounded border hover:border-lkdm-accent flex justify-between"><span><strong>${m.mission_code}</strong> - ${m.exact_description}</span><span class="text-lkdm-secondary">CHF ${m.total_amount || 0}</span></div>`;
             }).join('') : '<p class="text-slate-400">Aucune mission commandée.</p>';
 
             document.getElementById('cli-stat-count').innerText = cliMissions.length;
-            document.getElementById('cli-stat-hours').innerText = `${totalHours}h`;
             document.getElementById('cli-stat-amount').innerText = `CHF ${totalPaid.toFixed(2)}`;
             document.getElementById('cli-missions-list').innerHTML = missionsHtml;
-
-            const cliEvents = globalEventsData.filter(e => e.participant_uuids && e.participant_uuids.includes(c.id));
-            const eventsHtml = cliEvents.length ? cliEvents.map(e => `<div class="bg-white p-2 rounded border"><strong>${e.event_code}</strong> - ${e.concept}</div>`).join('') : '<p class="text-slate-400">Aucun événement.</p>';
-            document.getElementById('cli-events-list').innerHTML = eventsHtml;
 
             openModal('modal-edit-client');
         }
@@ -978,18 +954,13 @@
                 last_name: document.getElementById('edit-cli-lastname').value,
                 full_name: `${document.getElementById('edit-cli-firstname').value} ${document.getElementById('edit-cli-lastname').value}`,
                 phone: document.getElementById('edit-cli-phone').value,
-                email: document.getElementById('edit-cli-email').value,
-                address: document.getElementById('edit-cli-address').value,
-                npa: document.getElementById('edit-cli-npa').value,
-                city: document.getElementById('edit-cli-city').value,
-                language: document.getElementById('edit-cli-lang').value
+                email: document.getElementById('edit-cli-email').value
             };
             const { error } = await window.supabaseClient.from('profiles').update(payload).eq('id', id);
             if (error) alert("Erreur : " + error.message);
             else { closeModal('modal-edit-client'); loadSupabaseOverview(); }
         }
 
-        // --- GÉOLOCALISATION EXACTE & CARTE LEAFLET ---
         async function initAdminMap() {
             if (adminMap) { adminMap.invalidateSize(); return; }
             adminMap = L.map('admin-map').setView([46.2331, 7.3606], 11);
@@ -1011,7 +982,6 @@
                 
                 for (const m of missionsToday) {
                     const hexColor = getStatusHexColor(m.matching_status);
-                    
                     if (m.client && m.client.address && m.client.city) {
                         const fullAddress = `${m.client.address}, ${m.client.npa || ''} ${m.client.city}, Switzerland`;
                         try {
@@ -1024,10 +994,9 @@
                                 L.marker([lat, lon], { icon }).addTo(adminMarkers).on('click', () => openEditMissionModal(m.id));
                             }
                         } catch (e) {
-                            console.error("Erreur géocodage adresse exacte", e);
+                            console.error("Erreur géocodage", e);
                         }
                     }
-
                     dayHtml += `<div onclick="openEditMissionModal('${m.id}')" class="cursor-pointer text-[9px] font-bold px-1 py-0.5 rounded mb-0.5 truncate border" style="background-color: ${hexColor}20; color: ${hexColor}; border-color: ${hexColor}40;">${m.mission_code}</div>`;
                 }
                 dayHtml += `</div>`;
@@ -1044,7 +1013,6 @@
                         <td class="py-4 px-6 font-bold text-lkdm-text">${c.full_name || ''}</td>
                         <td class="py-4 px-6 text-sm text-slate-500">${c.city || ''}</td>
                         <td class="py-4 px-6 text-sm text-slate-500">${c.email || ''} • ${c.phone || ''}</td>
-                        <td class="py-4 px-6 text-right"><i class="fa-solid fa-chevron-right text-lkdm-secondary"></i></td>
                     </tr>
                 `;
             });
@@ -1086,10 +1054,6 @@
                 city: document.getElementById('stu-city').value,
                 birth_date: document.getElementById('stu-birth').value,
                 gender: document.getElementById('stu-gender').value,
-                emergency_contact_name: document.getElementById('stu-urg-name').value,
-                emergency_contact_phone: document.getElementById('stu-urg-phone').value,
-                language: document.getElementById('stu-lang').value,
-                nationality: document.getElementById('stu-nat').value,
                 role: 'student',
                 status: 'Actif'
             };
@@ -1111,11 +1075,8 @@
                 city: document.getElementById('cli-city').value,
                 birth_date: document.getElementById('cli-birth').value,
                 gender: document.getElementById('cli-gender').value,
-                language: document.getElementById('cli-lang').value,
-                prospect_source_type: [document.getElementById('cli-srctype').value],
-                prospect_source: [document.getElementById('cli-src').value],
-                status: 'Actif',
-                role: 'client'
+                role: 'client',
+                status: 'Actif'
             };
             const { error } = await window.supabaseClient.from('profiles').insert([payload]);
             if (error) alert("Erreur : " + error.message);
@@ -1130,16 +1091,7 @@
             const nextNum = (count || 0) + 1;
             const finalCode = `${prefix}${nextNum}`;
 
-            const startTime = document.getElementById('mis-start').value;
-            const endTime = document.getElementById('mis-end').value;
-            let realHours = parseFloat(document.getElementById('mis-est-hours').value) || 2.0;
-
-            if (startTime && endTime) {
-                const [startH, startM] = startTime.split(':').map(Number);
-                const [endH, endM] = endTime.split(':').map(Number);
-                const diffMinutes = (endH * 60 + endM) - (startH * 60 + startM);
-                if (diffMinutes > 0) realHours = parseFloat((diffMinutes / 60).toFixed(2));
-            }
+            const estHours = parseFloat(document.getElementById('mis-est-hours').value) || 2.0;
 
             const payload = {
                 mission_code: finalCode,
@@ -1148,15 +1100,14 @@
                 exact_description: document.getElementById('mis-desc').value,
                 mission_language: document.getElementById('mis-lang').value,
                 mission_periods: document.getElementById('mis-periods').value,
-                estimated_hours: parseFloat(document.getElementById('mis-est-hours').value),
+                estimated_hours: estHours,
                 matching_status: document.getElementById('mis-matching-status').value,
                 payment_type: document.getElementById('mis-payment').value,
                 mission_date: document.getElementById('mis-date').value || null,
-                start_time: startTime || null,
-                end_time: endTime || null,
-                real_hours: realHours,
-                lkdm_commission: realHours * 10,
-                total_amount: realHours * 35
+                real_hours: estHours,
+                lkdm_commission: estHours * 10,
+                total_amount: estHours * 35,
+                payment_status: 'En attente'
             };
 
             const { error } = await window.supabaseClient.from('missions').insert([payload]);
