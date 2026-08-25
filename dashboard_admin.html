@@ -51,7 +51,7 @@
                 <div class="bg-lkdm-bg p-4 rounded-2xl border border-slate-200/60 flex items-center gap-3">
                     <div class="w-11 h-11 rounded-full bg-lkdm-accent text-white flex items-center justify-center font-bold text-lg shadow-sm">MB</div>
                     <div class="overflow-hidden">
-                        <p class="text-sm font-semibold text-lkdm-text truncate">Max & Ben</p>
+                        <p class="text-sm font-semibold text-lkdm-text truncate">Maximilien Dorsaz</p>
                         <p class="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
                             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Système en ligne
                         </p>
@@ -77,7 +77,7 @@
                         <i class="fa-solid fa-house-chimney-user w-5 text-center"></i> Clients
                     </button>
                     <button onclick="switchTab('avs-tracker')" id="nav-avs-tracker" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
-                        <i class="fa-solid fa-shield-halved w-5 text-center"></i> Suivi Heures & AVS
+                        <i class="fa-solid fa-shield-halved w-5 text-center"></i> Suivi Heures
                     </button>
                     <button onclick="switchTab('billing')" id="nav-billing" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
                         <i class="fa-solid fa-file-invoice-dollar w-5 text-center"></i> Facturation & Paiements
@@ -197,7 +197,8 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <h2 class="text-2xl font-bold text-lkdm-text">Gestion des Missions Ouvertes</h2>
                         <select id="mission-status-filter" onchange="renderOpenMissionsTable()" class="bg-white border border-slate-200 text-lkdm-text text-sm font-medium rounded-xl px-4 py-2.5 shadow-sm">
-                            <option value="all">Tous les statuts ouverts</option>
+                            <option value="all-open">Tous les statuts ouverts</option>
+                            <option value="all">Toutes les missions (ouvertes et effectuées)</option>
                         </select>
                     </div>
                     <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
@@ -294,6 +295,26 @@
                 <div id="tab-billing" class="tab-content space-y-6">
                     <div class="flex justify-between items-center">
                         <h2 class="text-2xl font-bold text-lkdm-text">Facturation & Suivi des Paiements</h2>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+                        <span class="text-xs font-bold text-lkdm-secondary uppercase">Filtres :</span>
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs text-lkdm-secondary">Statut Mission :</label>
+                            <select id="billing-mission-filter" onchange="renderBillingTable()" class="bg-lkdm-bg border border-slate-200 text-xs rounded-xl px-3 py-2">
+                                <option value="all">Tous</option>
+                                <option value="À facturer">À facturer</option>
+                                <option value="Mission effectuée">Mission effectuée</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs text-lkdm-secondary">Statut Paiement :</label>
+                            <select id="billing-payment-filter" onchange="renderBillingTable()" class="bg-lkdm-bg border border-slate-200 text-xs rounded-xl px-3 py-2">
+                                <option value="all">Tous</option>
+                                <option value="Facture non envoyée">Facture non envoyée</option>
+                                <option value="Facture envoyée">Facture envoyée</option>
+                                <option value="Payé">Payé</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6 space-y-4">
                         <div class="overflow-x-auto">
@@ -847,8 +868,11 @@
             const { data: missions, error: mErr } = await mQuery;
             if (mErr) return;
 
-            globalMissionsData = missions || [];
-
+            globalMissionsData = (missions || []).sort((a, b) => {
+                const numA = parseInt((a.mission_code || "").split('_')[1]) || 0;
+                const numB = parseInt((b.mission_code || "").split('_')[1]) || 0;
+                return numA - numB;
+            });
             const { data: clients } = await window.supabaseClient.from('profiles').select('*').eq('role', 'client');
             const { data: students } = await window.supabaseClient.from('profiles').select('*').eq('role', 'student');
             const { data: events } = await window.supabaseClient.from('events').select('*');
@@ -923,11 +947,15 @@
             const tbody = document.getElementById('admin-missions-tbody');
             const statusFilter = document.getElementById('mission-status-filter').value;
             tbody.innerHTML = '';
-
-            let openMissions = globalMissionsData.filter(m => (m.matching_status || "").toLowerCase() !== "mission effectuée");
-            if (statusFilter !== 'all') openMissions = openMissions.filter(m => m.matching_status === statusFilter);
-
-            openMissions.forEach(m => {
+        
+            let missionsToDisplay = globalMissionsData;
+            if (statusFilter === 'all-open') {
+                missionsToDisplay = globalMissionsData.filter(m => (m.matching_status || "").toLowerCase() !== "mission effectuée");
+            } else if (statusFilter !== 'all') {
+                missionsToDisplay = globalMissionsData.filter(m => m.matching_status === statusFilter);
+            }
+        
+            missionsToDisplay.forEach(m => {
                 const colorClass = getStatusColorClass(m.matching_status);
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition cursor-pointer" onclick="openEditMissionModal('${m.id}')">
@@ -1002,12 +1030,24 @@
             });
         }
 
-        function renderBillingTable() {
+function renderBillingTable() {
             const tbody = document.getElementById('billing-table-tbody');
+            if (!tbody) return;
             tbody.innerHTML = '';
             const today = new Date();
 
-            globalMissionsData.forEach(m => {
+            const missionFilterVal = document.getElementById('billing-mission-filter')?.value || 'all';
+            const paymentFilterVal = document.getElementById('billing-payment-filter')?.value || 'all';
+
+            let filteredMissions = globalMissionsData.filter(m => {
+                const mStatus = m.matching_status || 'Nouveau';
+                const pStatus = m.payment_status || 'Facture non envoyée';
+                let matchMission = (missionFilterVal === 'all' || mStatus === missionFilterVal);
+                let matchPayment = (paymentFilterVal === 'all' || pStatus.startsWith(paymentFilterVal));
+                return matchMission && matchPayment;
+            });
+
+            filteredMissions.forEach(m => {
                 const clientName = m.client ? m.client.full_name : 'Inconnu';
                 const amount = Number(m.total_amount) || 0;
                 const payType = m.payment_type || 'Facture';
