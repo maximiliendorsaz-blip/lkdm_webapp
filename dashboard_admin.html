@@ -25,7 +25,7 @@
         <div class="flex items-center gap-2">
             <span class="font-bold text-lg tracking-tight">LKDM Admin</span>
         </div>
-        <button id="mobileMenuBtn" class="text-lkdm-text hover:text-lkdm-accent focus:outline-none">
+        <button id="mobileMenuBtn" onclick="toggleMobileMenu()" class="text-lkdm-text hover:text-lkdm-accent focus:outline-none">
             <i class="fa-solid fa-bars text-2xl"></i>
         </button>
     </header>
@@ -35,9 +35,11 @@
         <aside id="sidebar" class="bg-white border-r border-slate-200/80 w-72 space-y-6 py-8 px-5 absolute inset-y-0 left-0 transform -translate-x-full lg:relative lg:translate-x-0 transition duration-300 ease-in-out z-40 flex flex-col justify-between shadow-xl lg:shadow-none">
             <div class="space-y-8">
                 <!-- Logo LKDM -->
-                <div class="px-2">
-                    <h1 class="font-bold text-xl text-lkdm-text tracking-tight">Le Koup de Main</h1>
-                    <p class="text-xs text-lkdm-secondary font-medium tracking-wider uppercase mt-1">Super Admin • Sierre</p>
+                <div class="px-2 flex justify-between items-center">
+                    <div>
+                        <h1 class="font-bold text-xl text-lkdm-text tracking-tight">Le Koup de Main</h1>
+                        <p class="text-xs text-lkdm-secondary font-medium tracking-wider uppercase mt-1">Super Admin • Sierre</p>
+                    </div>
                 </div>
 
                 <!-- User Profile Mini Card -->
@@ -176,13 +178,19 @@
                     </div>
                 </div>
 
-                <!-- TAB 2: MISSIONS -->
+                <!-- TAB 2: MISSIONS (GESTION DES MISSIONS OUVERTES + FILTRE STATUT) -->
                 <div id="tab-missions" class="tab-content space-y-6">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <h2 class="text-2xl font-bold text-lkdm-text">Gestion des Missions</h2>
-                        <select id="admin-filter" onchange="loadSupabaseOverview()" class="bg-white border border-slate-200 text-lkdm-text text-sm font-medium rounded-xl px-4 py-2.5 shadow-sm">
-                            <option value="all">Toutes les missions</option>
-                            <option value="unassigned" selected>À attribuer (Urgent)</option>
+                        <h2 class="text-2xl font-bold text-lkdm-text">Gestion des Missions Ouvertes</h2>
+                        <select id="mission-status-filter" onchange="renderOpenMissionsTable()" class="bg-white border border-slate-200 text-lkdm-text text-sm font-medium rounded-xl px-4 py-2.5 shadow-sm">
+                            <option value="all">Tous les statuts ouverts</option>
+                            <option value="Nouveau">Nouveau</option>
+                            <option value="A publier">A publier</option>
+                            <option value="publié">publié</option>
+                            <option value="accepté">accepté</option>
+                            <option value="confirmé">confirmé</option>
+                            <option value="à facturer">à facturer</option>
+                            <option value="en attente de paiement">en attente de paiement</option>
                         </select>
                     </div>
                     <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
@@ -194,6 +202,7 @@
                                         <th class="py-5 px-6">Description</th>
                                         <th class="py-5 px-6">Client</th>
                                         <th class="py-5 px-6">Statut</th>
+                                        <th class="py-5 px-6 text-right">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="admin-missions-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
@@ -204,9 +213,25 @@
 
                 <!-- TAB 3: CALENDAR & MAP -->
                 <div id="tab-calendar-map" class="tab-content space-y-6">
-                    <h2 class="text-2xl font-bold text-lkdm-text">Calendrier & Carte</h2>
-                    <div class="bg-white p-3 rounded-3xl border border-slate-200 shadow-sm">
-                        <div id="admin-map" style="height: 400px;"></div>
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-lkdm-text">Calendrier & Carte</h2>
+                            <p class="text-sm text-lkdm-secondary">Visualisation géographique et temporelle des missions Supabase.</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white p-3 rounded-3xl border border-slate-200 shadow-sm">
+                            <div id="admin-map" style="height: 450px;"></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-bold text-lkdm-text text-lg">Août 2026</h3>
+                            </div>
+                            <div class="grid grid-cols-7 gap-2 text-center text-[10px] font-semibold text-lkdm-secondary mb-2 uppercase">
+                                <div>Lun</div><div>Mar</div><div>Mer</div><div>Jeu</div><div>Ven</div><div>Sam</div><div>Dim</div>
+                            </div>
+                            <div id="admin-calendar-grid" class="grid grid-cols-7 gap-2 flex-1 auto-rows-fr"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -245,7 +270,61 @@
         </main>
     </div>
 
-    <!-- MODAL : CRÉER ÉTUDIANT (Champs obligatoires + Synchro NPA/Localité) -->
+    <!-- MODALE : ÉDITION D'UNE MISSION (TOUTES LES INFOS DB) -->
+    <div id="modal-edit-mission" class="hidden fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('modal-edit-mission')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-times"></i></button>
+            <h3 class="text-xl font-bold text-lkdm-text mb-4" id="edit-mission-title">Détails et Modification Mission</h3>
+            <form onsubmit="submitEditMission(event)" class="space-y-4 text-sm">
+                <input type="hidden" id="edit-mis-id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Statut du matching</label>
+                        <select id="edit-mis-matching-status" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                            <option value="Nouveau">Nouveau</option>
+                            <option value="A publier">A publier</option>
+                            <option value="publié">publié</option>
+                            <option value="accepté">accepté</option>
+                            <option value="confirmé">confirmé</option>
+                            <option value="à facturer">à facturer</option>
+                            <option value="en attente de paiement">en attente de paiement</option>
+                            <option value="mission effectuée">mission effectuée</option>
+                        </select>
+                    </div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Date</label><input type="date" id="edit-mis-date" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Description exacte</label>
+                    <textarea id="edit-mis-desc" rows="2" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl p-3 text-xs"></textarea>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Langue</label><input type="text" id="edit-mis-lang" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Périodes</label><input type="text" id="edit-mis-periods" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Paiement</label><input type="text" id="edit-mis-payment" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Heure début</label><input type="time" id="edit-mis-start" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Heure fin</label><input type="time" id="edit-mis-end" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Temps réel (h)</label><input type="number" step="0.5" id="edit-mis-real" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Frais déplacement</label><input type="number" step="0.05" id="edit-mis-travel" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">NPS Senior</label><input type="number" id="edit-mis-senps" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">CSAT Senior</label><input type="number" step="0.1" id="edit-mis-sencsat" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Récapitulatif DAR</label><input type="text" id="edit-mis-dar" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Feedback</label><input type="text" id="edit-mis-feedback" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                </div>
+                <div class="flex justify-end gap-3 pt-4 border-t">
+                    <button type="button" onclick="closeModal('modal-edit-mission')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Annuler</button>
+                    <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Enregistrer les modifications</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL : CRÉER ÉTUDIANT -->
     <div id="modal-create-student" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeModal('modal-create-student')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-times"></i></button>
@@ -286,10 +365,6 @@
                         </select>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4 border-t pt-3">
-                    <div><label class="block text-xs font-bold text-amber-800 mb-1">IBAN (Étudiant)</label><input type="text" id="stu-iban" class="w-full bg-amber-50/50 border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                    <div><label class="block text-xs font-bold text-amber-800 mb-1">Numéro AVS (Étudiant)</label><input type="text" id="stu-avs" class="w-full bg-amber-50/50 border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                </div>
                 <div class="flex justify-end gap-3 pt-4 border-t">
                     <button type="button" onclick="closeModal('modal-create-student')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Annuler</button>
                     <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Créer l'étudiant</button>
@@ -298,7 +373,7 @@
         </div>
     </div>
 
-    <!-- MODAL : CRÉER CLIENT (Champs obligatoires + Synchro NPA/Localité) -->
+    <!-- MODAL : CRÉER CLIENT -->
     <div id="modal-create-client" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeModal('modal-create-client')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-times"></i></button>
@@ -339,7 +414,7 @@
         </div>
     </div>
 
-    <!-- MODAL : CRÉER MISSION (7 critères obligatoires + temps réel automatique) -->
+    <!-- MODAL : CRÉER MISSION -->
     <div id="modal-create-mission" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeModal('modal-create-mission')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-times"></i></button>
@@ -351,7 +426,7 @@
                         <select id="mis-client" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs"></select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Étudiant assigné (Optionnel)</label>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Étudiant assigné</label>
                         <select id="mis-student" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
                             <option value="">-- Aucun / À attribuer --</option>
                         </select>
@@ -393,7 +468,6 @@
                     </div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Date de la mission</label><input type="date" id="mis-date" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                 </div>
-                <!-- Horaires pour calcul automatique du temps réel -->
                 <div class="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded-2xl">
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Heure de début</label><input type="time" id="mis-start" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Heure de fin</label><input type="time" id="mis-end" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
@@ -406,9 +480,12 @@
         </div>
     </div>
 
-    <!-- SCRIPTS DE SYNCHRONISATION & SUPABASE -->
+    <!-- SCRIPTS JAVASCRIPT ET LOGIQUE SUPABASE -->
     <script>
-        // Dictionnaire de liaison automatique NPA <=> Localité (Valais / Suisse)
+        let globalMissionsData = [];
+        let adminMap = null;
+        let adminMarkers = null;
+
         const valaisZipMap = {
             "1950": "Sion", "3960": "Sierre", "1920": "Martigny", "1870": "Monthey", "3900": "Brig",
             "Sion": "1950", "Sierre": "3960", "Martigny": "1920", "Monthey": "1870", "Brig": "3900"
@@ -417,22 +494,18 @@
         function syncLocation(prefix, sourceField) {
             const npaInput = document.getElementById(`${prefix}-npa`);
             const cityInput = document.getElementById(`${prefix}-city`);
-
-            if (sourceField === 'npa') {
-                const val = npaInput.value.trim();
-                if (valaisZipMap[val]) {
-                    cityInput.value = valaisZipMap[val];
-                }
-            } else if (sourceField === 'city') {
-                const val = cityInput.value.trim();
-                if (valaisZipMap[val]) {
-                    npaInput.value = valaisZipMap[val];
-                }
-            }
+            if (sourceField === 'npa' && valaisZipMap[npaInput.value.trim()]) cityInput.value = valaisZipMap[npaInput.value.trim()];
+            if (sourceField === 'city' && valaisZipMap[cityInput.value.trim()]) npaInput.value = valaisZipMap[cityInput.value.trim()];
         }
 
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        // Gestion menu mobile hamburger
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        }
 
         async function loadSupabaseOverview() {
             const startDate = document.getElementById('filter-start-date').value;
@@ -446,20 +519,19 @@
             const { data: missions, error: mErr } = await mQuery;
             if (mErr) { console.error("Erreur chargement missions:", mErr); return; }
 
-            let filteredMissions = missions || [];
+            globalMissionsData = missions || [];
+
+            let filteredMissions = globalMissionsData;
             if (cityFilter !== "Toutes") {
                 filteredMissions = filteredMissions.filter(m => m.client && m.client.city === cityFilter);
             }
 
-            const { data: events, error: eErr } = await window.supabaseClient.from('events').select('*');
-            if (eErr) console.error("Erreur chargement events:", eErr);
+            const { data: events } = await window.supabaseClient.from('events').select('*');
+            const { data: clients } = await window.supabaseClient.from('profiles').select('*').eq('role', 'client');
 
-            const { data: clients, error: cErr } = await window.supabaseClient.from('profiles').select('*').eq('role', 'client');
-            if (cErr) console.error("Erreur chargement clients:", cErr);
-
-            let caMissions = 0, beneMissions = 0, completedCount = 0, urgentCount = 0;
+            let caMissions = 0, beneMissions = 0, completedCount = 0, attentionCount = 0;
             
-            filteredMissions.forEach(m => {
+            globalMissionsData.forEach(m => {
                 const amt = Number(m.total_amount) || 0;
                 const hours = Number(m.real_hours) || 0;
                 caMissions += amt;
@@ -469,8 +541,9 @@
                 if (["à facturer", "mission effectuée", "en attente de paiement"].includes(status)) {
                     completedCount++;
                 }
-                if (["nouveau", "a publier", "publié", "envoyé"].includes(status)) {
-                    urgentCount++;
+                // Requiert l'attention : Nouveau, A publier, publié, accepté, confirmé, à facturer, en attente de paiement
+                if (["nouveau", "a publier", "publié", "accepté", "confirmé", "à facturer", "en attente de paiement"].includes(status)) {
+                    attentionCount++;
                 }
             });
 
@@ -501,31 +574,128 @@
             document.getElementById('stat-bene-events').innerText = `CHF ${beneEvents.toLocaleString()}`;
             document.getElementById('stat-missions-total').innerText = filteredMissions.length;
             document.getElementById('stat-missions-completed').innerText = completedCount;
-            document.getElementById('dash-urgent-count').innerText = urgentCount;
-            document.getElementById('badge-unassigned').innerText = urgentCount;
+            document.getElementById('dash-urgent-count').innerText = attentionCount;
+            document.getElementById('badge-unassigned').innerText = attentionCount;
             document.getElementById('stat-total-clients').innerText = `${(clients || []).length} clients`;
             document.getElementById('stat-c-1').innerText = c1;
             document.getElementById('stat-c-2-5').innerText = c2to5;
             document.getElementById('stat-c-5plus').innerText = c5plus;
 
-            renderMissionsTable(filteredMissions);
+            renderOpenMissionsTable();
             renderClientsTable(clients || []);
             renderStudentsGrid();
+            if(adminMap) renderAdminMapCalendar();
         }
 
-        function renderMissionsTable(missions) {
+        // Affichage des missions ouvertes (statut != mission effectuée) avec filtre haut droit
+        function renderOpenMissionsTable() {
             const tbody = document.getElementById('admin-missions-tbody');
+            const statusFilter = document.getElementById('mission-status-filter').value;
             tbody.innerHTML = '';
-            missions.forEach(m => {
+
+            // Filtrer pour exclure "mission effectuée" par défaut
+            let openMissions = globalMissionsData.filter(m => (m.matching_status || "").toLowerCase() !== "mission effectuée");
+
+            if (statusFilter !== 'all') {
+                openMissions = openMissions.filter(m => m.matching_status === statusFilter);
+            }
+
+            openMissions.forEach(m => {
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition">
+                    <tr class="hover:bg-slate-50 transition cursor-pointer" onclick="openEditMissionModal('${m.id}')">
                         <td class="py-4 px-6 font-bold text-lkdm-text">${m.mission_code || 'N/A'}<br><span class="text-xs text-slate-400">${m.mission_date || ''}</span></td>
                         <td class="py-4 px-6 text-sm text-lkdm-text">${m.exact_description || ''}</td>
                         <td class="py-4 px-6 text-sm">${m.client ? m.client.full_name : 'Inconnu'}</td>
-                        <td class="py-4 px-6"><span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full text-xs font-bold">${m.matching_status}</span></td>
+                        <td class="py-4 px-6"><span class="bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full text-xs font-bold">${m.matching_status || 'Nouveau'}</span></td>
+                        <td class="py-4 px-6 text-right"><i class="fa-solid fa-chevron-right text-lkdm-secondary"></i></td>
                     </tr>
                 `;
             });
+        }
+
+        // Ouvrir la modale d'édition complète d'une mission
+        function openEditMissionModal(id) {
+            const m = globalMissionsData.find(x => x.id == id);
+            if (!m) return;
+
+            document.getElementById('edit-mis-id').value = m.id;
+            document.getElementById('edit-mission-title').innerText = `Modifier Mission : ${m.mission_code || ''}`;
+            document.getElementById('edit-mis-matching-status').value = m.matching_status || 'Nouveau';
+            document.getElementById('edit-mis-date').value = m.mission_date || '';
+            document.getElementById('edit-mis-desc').value = m.exact_description || '';
+            document.getElementById('edit-mis-lang').value = m.mission_language || 'Français';
+            document.getElementById('edit-mis-periods').value = m.mission_periods || '';
+            document.getElementById('edit-mis-payment').value = m.payment_type || 'TWINT';
+            document.getElementById('edit-mis-start').value = m.start_time || '';
+            document.getElementById('edit-mis-end').value = m.end_time || '';
+            document.getElementById('edit-mis-real').value = m.real_hours || 2.0;
+            document.getElementById('edit-mis-travel').value = m.travel_expenses || 0;
+            document.getElementById('edit-mis-senps').value = m.senior_nps || '';
+            document.getElementById('edit-mis-sencsat').value = m.senior_csat || '';
+            document.getElementById('edit-mis-dar').value = m.dar_summary || '';
+            document.getElementById('edit-mis-feedback').value = m.feedback || '';
+
+            openModal('modal-edit-mission');
+        }
+
+        async function submitEditMission(event) {
+            event.preventDefault();
+            const id = document.getElementById('edit-mis-id').value;
+            const realHours = parseFloat(document.getElementById('edit-mis-real').value) || 2.0;
+
+            const payload = {
+                matching_status: document.getElementById('edit-mis-matching-status').value,
+                mission_date: document.getElementById('edit-mis-date').value || null,
+                exact_description: document.getElementById('edit-mis-desc').value,
+                mission_language: document.getElementById('edit-mis-lang').value,
+                mission_periods: document.getElementById('edit-mis-periods').value,
+                payment_type: document.getElementById('edit-mis-payment').value,
+                start_time: document.getElementById('edit-mis-start').value || null,
+                end_time: document.getElementById('edit-mis-end').value || null,
+                real_hours: realHours,
+                travel_expenses: parseFloat(document.getElementById('edit-mis-travel').value) || 0,
+                senior_nps: parseInt(document.getElementById('edit-mis-senps').value) || null,
+                senior_csat: parseFloat(document.getElementById('edit-mis-sencsat').value) || null,
+                dar_summary: document.getElementById('edit-mis-dar').value,
+                feedback: document.getElementById('edit-mis-feedback').value,
+                lkdm_commission: realHours * 10,
+                total_amount: realHours * 35
+            };
+
+            const { error } = await window.supabaseClient.from('missions').update(payload).eq('id', id);
+            if (error) alert("Erreur mise à jour : " + error.message);
+            else {
+                closeModal('modal-edit-mission');
+                loadSupabaseOverview();
+            }
+        }
+
+        function initAdminMap() {
+            if (adminMap) { adminMap.invalidateSize(); return; }
+            adminMap = L.map('admin-map').setView([46.2331, 7.3606], 10);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(adminMap);
+            adminMarkers = L.layerGroup().addTo(adminMap);
+            renderAdminMapCalendar();
+        }
+
+        function renderAdminMapCalendar() {
+            if(adminMarkers) adminMarkers.clearLayers();
+            const grid = document.getElementById('admin-calendar-grid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 5; i++) grid.innerHTML += '<div class="bg-slate-100/50 rounded-xl"></div>';
+
+            for (let day = 1; day <= 31; day++) {
+                const dayStr = day < 10 ? '0'+day : ''+day;
+                const missionsToday = globalMissionsData.filter(m => m.mission_date && m.mission_date.endsWith(`-08-${dayStr}`));
+                let dayHtml = `<div class="bg-lkdm-bg border border-slate-200 rounded-xl p-1 flex flex-col h-16 md:h-20 overflow-hidden"><span class="text-[10px] font-bold text-slate-400 mb-1">${day}</span>`;
+                
+                missionsToday.forEach(m => {
+                    let color = m.matching_status === 'mission effectuée' ? '#2E7D32' : m.matching_status === 'confirmé' ? '#3b82f6' : '#D64545';
+                    dayHtml += `<div onclick="openEditMissionModal('${m.id}')" class="cursor-pointer bg-red-100 text-lkdm-accent text-[9px] font-bold px-1 py-0.5 rounded mb-0.5 truncate">${m.mission_code}</div>`;
+                });
+                dayHtml += `</div>`;
+                grid.innerHTML += dayHtml;
+            }
         }
 
         async function renderClientsTable(clients) {
@@ -586,8 +756,6 @@
                 emergency_contact_phone: document.getElementById('stu-urg-phone').value,
                 language: document.getElementById('stu-lang').value,
                 nationality: document.getElementById('stu-nat').value,
-                iban: document.getElementById('stu-iban').value || null,
-                avs_number: document.getElementById('stu-avs').value || null,
                 role: 'student',
                 status: 'Actif'
             };
@@ -628,7 +796,6 @@
             const nextNum = (count || 0) + 1;
             const finalCode = `${prefix}${nextNum}`;
 
-            // Calcul automatique du temps réel basé sur heure de fin - heure de début si renseignées
             const startTime = document.getElementById('mis-start').value;
             const endTime = document.getElementById('mis-end').value;
             let realHours = parseFloat(document.getElementById('mis-est-hours').value) || 2.0;
@@ -637,9 +804,7 @@
                 const [startH, startM] = startTime.split(':').map(Number);
                 const [endH, endM] = endTime.split(':').map(Number);
                 const diffMinutes = (endH * 60 + endM) - (startH * 60 + startM);
-                if (diffMinutes > 0) {
-                    realHours = parseFloat((diffMinutes / 60).toFixed(2));
-                }
+                if (diffMinutes > 0) realHours = parseFloat((diffMinutes / 60).toFixed(2));
             }
 
             const payload = {
@@ -671,6 +836,13 @@
             document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('bg-lkdm-accent', 'text-white'); btn.classList.add('text-lkdm-secondary'); });
             document.getElementById(`nav-${tabId}`).classList.add('bg-lkdm-accent', 'text-white');
             document.getElementById(`nav-${tabId}`).classList.remove('text-lkdm-secondary');
+            
+            // Fermer la sidebar sur mobile en changeant d'onglet
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+
+            if(tabId === 'calendar-map') {
+                setTimeout(() => initAdminMap(), 150);
+            }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
