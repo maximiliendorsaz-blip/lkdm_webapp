@@ -49,7 +49,7 @@
                 <div class="bg-lkdm-bg p-4 rounded-2xl border border-slate-200/60 flex items-center gap-3">
                     <div class="w-11 h-11 rounded-full bg-lkdm-accent text-white flex items-center justify-center font-bold text-lg shadow-sm">MB</div>
                     <div class="overflow-hidden">
-                        <p class="text-sm font-semibold text-lkdm-text truncate">MDorsaz</p>
+                        <p class="text-sm font-semibold text-lkdm-text truncate">Max & Ben</p>
                         <p class="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
                             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Système en ligne
                         </p>
@@ -75,7 +75,7 @@
                         <i class="fa-solid fa-house-chimney-user w-5 text-center"></i> Clients
                     </button>
                     <button onclick="switchTab('billing')" id="nav-billing" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
-                        <i class="fa-solid fa-file-invoice-dollar w-5 text-center"></i> Facturation
+                        <i class="fa-solid fa-file-invoice-dollar w-5 text-center"></i> Facturation & Paiements
                     </button>
                 </nav>
             </div>
@@ -261,11 +261,53 @@
                     </div>
                 </div>
 
-                <!-- TAB 6: FACTURATION -->
+                <!-- TAB 6: FACTURATION & SUIVI DES PAIEMENTS -->
                 <div id="tab-billing" class="tab-content space-y-6">
-                    <h2 class="text-2xl font-bold text-lkdm-text">Facturation & Comptabilité</h2>
-                    <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm">
-                        <p class="text-sm text-slate-500">Module de facturation relié aux montants totaux des missions.</p>
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-lkdm-text">Facturation & Suivi des Paiements</h2>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Factures & Quittances Clients -->
+                        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6 space-y-4">
+                            <h3 class="font-bold text-lkdm-text text-base border-b pb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-file-invoice-dollar text-lkdm-accent"></i> Factures & Rapports Clients
+                            </h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs whitespace-nowrap">
+                                    <thead class="bg-slate-50 text-lkdm-secondary uppercase">
+                                        <tr>
+                                            <th class="p-3">Mission</th>
+                                            <th class="p-3">Client</th>
+                                            <th class="p-3">Montant</th>
+                                            <th class="p-3">Statut Paiement</th>
+                                            <th class="p-3 text-right">Actions Email</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="billing-clients-tbody" class="divide-y divide-slate-100"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Virements Étudiants -->
+                        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6 space-y-4">
+                            <h3 class="font-bold text-lkdm-text text-base border-b pb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-wallet text-emerald-600"></i> Suivi des Virements Étudiants
+                            </h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs whitespace-nowrap">
+                                    <thead class="bg-slate-50 text-lkdm-secondary uppercase">
+                                        <tr>
+                                            <th class="p-3">Mission</th>
+                                            <th class="p-3">Étudiant</th>
+                                            <th class="p-3">Heures</th>
+                                            <th class="p-3">À Verser</th>
+                                            <th class="p-3 text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="billing-students-tbody" class="divide-y divide-slate-100"></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -329,7 +371,7 @@
         </div>
     </div>
 
-    <!-- MODAL : FICHE ETUDIANT COMPLÈTE & MODIFIABLE -->
+    <!-- MODAL : FICHE ÉTUDIANT -->
     <div id="modal-edit-student" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeModal('modal-edit-student')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
@@ -353,8 +395,6 @@
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">IBAN</label><input type="text" id="edit-stu-iban" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">AVS</label><input type="text" id="edit-stu-avs" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                 </div>
-                
-                <!-- Statistiques & Historique cliquable -->
                 <div class="bg-slate-50 p-4 rounded-2xl space-y-2 border">
                     <h4 class="font-bold text-xs uppercase text-lkdm-secondary">Statistiques & Activités</h4>
                     <div class="flex justify-between text-xs font-semibold text-lkdm-text">
@@ -370,7 +410,6 @@
                         <div id="stu-events-list" class="space-y-1 max-h-24 overflow-y-auto text-xs"></div>
                     </div>
                 </div>
-
                 <div class="flex justify-end gap-3 pt-4 border-t">
                     <button type="button" onclick="closeModal('modal-edit-student')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Fermer</button>
                     <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Mettre à jour l'étudiant</button>
@@ -379,7 +418,7 @@
         </div>
     </div>
 
-    <!-- MODAL : FICHE CLIENT COMPLÈTE & MODIFIABLE -->
+    <!-- MODAL : FICHE CLIENT -->
     <div id="modal-edit-client" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeModal('modal-edit-client')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
@@ -402,8 +441,6 @@
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Localité</label><input type="text" id="edit-cli-city" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Langue</label><input type="text" id="edit-cli-lang" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                 </div>
-
-                <!-- Statistiques & Historique cliquable -->
                 <div class="bg-slate-50 p-4 rounded-2xl space-y-2 border">
                     <h4 class="font-bold text-xs uppercase text-lkdm-secondary">Statistiques & Activités</h4>
                     <div class="flex justify-between text-xs font-semibold text-lkdm-text">
@@ -420,7 +457,6 @@
                         <div id="cli-events-list" class="space-y-1 max-h-24 overflow-y-auto text-xs"></div>
                     </div>
                 </div>
-
                 <div class="flex justify-end gap-3 pt-4 border-t">
                     <button type="button" onclick="closeModal('modal-edit-client')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Fermer</button>
                     <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Mettre à jour le client</button>
@@ -429,7 +465,7 @@
         </div>
     </div>
 
-    <!-- MODALS CRÉATION (Étudiant, Client, Mission) -->
+    <!-- Modals de création -->
     <div id="modal-create-student" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeModal('modal-create-student')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-times"></i></button>
@@ -590,27 +626,21 @@
             "Sion": "1950", "Sierre": "3960", "Martigny": "1920", "Monthey": "1870", "Brig": "3900"
         };
 
-        // Fonction pour obtenir la couleur selon le statut à 4 états
         function getStatusColorClass(status) {
             const st = (status || "").toLowerCase();
-            if (["nouveau", "a publier", "publié", "accepté"].includes(st)) {
-                return "bg-red-100 text-lkdm-accent border-red-200"; // Rouge (Non en cours)
-            } else if (["confirmé"].includes(st)) {
-                return "bg-amber-100 text-amber-700 border-amber-200"; // Jaune (En cours)
-            } else if (["à facturer", "en attente de paiement"].includes(st)) {
-                return "bg-blue-100 text-blue-700 border-blue-200"; // Bleu (Finies mais pas complètes)
-            } else if (["mission effectuée"].includes(st)) {
-                return "bg-emerald-100 text-emerald-700 border-emerald-200"; // Vert (Complètes et finies)
-            }
+            if (["nouveau", "a publier", "publié", "accepté"].includes(st)) return "bg-red-100 text-lkdm-accent border-red-200";
+            if (["confirmé"].includes(st)) return "bg-amber-100 text-amber-700 border-amber-200";
+            if (["à facturer", "en attente de paiement"].includes(st)) return "bg-blue-100 text-blue-700 border-blue-200";
+            if (["mission effectuée"].includes(st)) return "bg-emerald-100 text-emerald-700 border-emerald-200";
             return "bg-slate-100 text-slate-700 border-slate-200";
         }
 
         function getStatusHexColor(status) {
             const st = (status || "").toLowerCase();
-            if (["nouveau", "a publier", "publié", "accepté"].includes(st)) return '#D64545'; // Rouge
-            if (["confirmé"].includes(st)) return '#D97706'; // Jaune / Or
-            if (["à facturer", "en attente de paiement"].includes(st)) return '#2563EB'; // Bleu
-            if (["mission effectuée"].includes(st)) return '#059669'; // Vert
+            if (["nouveau", "a publier", "publié", "accepté"].includes(st)) return '#D64545';
+            if (["confirmé"].includes(st)) return '#D97706';
+            if (["à facturer", "en attente de paiement"].includes(st)) return '#2563EB';
+            if (["mission effectuée"].includes(st)) return '#059669';
             return '#64748B';
         }
 
@@ -706,6 +736,7 @@
             renderOpenMissionsTable();
             renderClientsTable(globalClientsData);
             renderStudentsGrid();
+            renderBillingTables();
             if(adminMap) renderAdminMapCalendar();
         }
 
@@ -731,6 +762,54 @@
                     </tr>
                 `;
             });
+        }
+
+        // --- ONGLET FACTURATION & SUIVI DES PAIEMENTS ---
+        function renderBillingTables() {
+            const clientTbody = document.getElementById('billing-clients-tbody');
+            const studentTbody = document.getElementById('billing-students-tbody');
+            clientTbody.innerHTML = '';
+            studentTbody.innerHTML = '';
+
+            globalMissionsData.forEach(m => {
+                const clientName = m.client ? m.client.full_name : 'Inconnu';
+                const studentName = m.student ? m.student.full_name : 'Non assigné';
+                const amount = Number(m.total_amount) || 0;
+                const hours = Number(m.real_hours) || 0;
+                const payout = hours * 25; // 25 CHF/h pour l'étudiant par exemple
+
+                // Tableau Factures Clients
+                clientTbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 font-bold cursor-pointer text-lkdm-accent" onclick="openEditMissionModal('${m.id}')">${m.mission_code}</td>
+                        <td class="p-3">${clientName}</td>
+                        <td class="p-3 font-semibold">CHF ${amount.toFixed(2)}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${getStatusColorClass(m.matching_status)}">${m.matching_status}</span></td>
+                        <td class="p-3 text-right space-x-1">
+                            <button onclick="sendEmailAction('Facture', '${clientName}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Envoyer Facture"><i class="fa-solid fa-file-invoice"></i></button>
+                            <button onclick="sendEmailAction('Quittance', '${clientName}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Envoyer Quittance"><i class="fa-solid fa-receipt"></i></button>
+                            <button onclick="sendEmailAction('Rapport de mission', '${clientName}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Envoyer Rapport DAR"><i class="fa-solid fa-flag-checkered"></i></button>
+                        </td>
+                    </tr>
+                `;
+
+                // Tableau Virements Étudiants
+                studentTbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 font-bold cursor-pointer text-lkdm-accent" onclick="openEditMissionModal('${m.id}')">${m.mission_code}</td>
+                        <td class="p-3">${studentName}</td>
+                        <td class="p-3">${hours}h</td>
+                        <td class="p-3 font-semibold text-emerald-600">CHF ${payout.toFixed(2)}</td>
+                        <td class="p-3 text-right">
+                            <button onclick="sendEmailAction('Virement effectué', '${studentName}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold"><i class="fa-solid fa-check"></i> Virement</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function sendEmailAction(type, recipient) {
+            alert(`[Simulation Email] ${type} envoyée avec succès à ${recipient} !`);
         }
 
         // --- GESTION ÉDITION MISSION ---
@@ -816,13 +895,12 @@
             document.getElementById('edit-stu-iban').value = s.iban || '';
             document.getElementById('edit-stu-avs').value = s.avs_number || '';
 
-            // Missions de l'étudiant
             const stuMissions = globalMissionsData.filter(m => m.student_id === s.id);
             let totalHours = 0;
             let totalPayout = 0;
             const missionsHtml = stuMissions.length ? stuMissions.map(m => {
                 totalHours += Number(m.real_hours) || 0;
-                totalPayout += (Number(m.real_hours) || 0) * 25; // Exemple calcul versement étudiant
+                totalPayout += (Number(m.real_hours) || 0) * 25;
                 return `<div onclick="openEditMissionModal('${m.id}'); closeModal('modal-edit-student');" class="cursor-pointer bg-white p-2 rounded border hover:border-lkdm-accent flex justify-between"><span><strong>${m.mission_code}</strong> - ${m.exact_description}</span><span class="text-lkdm-secondary">${m.matching_status}</span></div>`;
             }).join('') : '<p class="text-slate-400">Aucune mission assignée.</p>';
 
@@ -830,7 +908,6 @@
             document.getElementById('stu-stat-payout').innerText = `CHF ${totalPayout.toFixed(2)}`;
             document.getElementById('stu-missions-list').innerHTML = missionsHtml;
 
-            // Événements de l'étudiant
             const stuEvents = globalEventsData.filter(e => e.student_uuids && e.student_uuids.includes(s.id));
             const eventsHtml = stuEvents.length ? stuEvents.map(e => `<div class="bg-white p-2 rounded border"><strong>${e.event_code}</strong> - ${e.concept}</div>`).join('') : '<p class="text-slate-400">Aucun événement.</p>';
             document.getElementById('stu-events-list').innerHTML = eventsHtml;
@@ -872,7 +949,6 @@
             document.getElementById('edit-cli-city').value = c.city || '';
             document.getElementById('edit-cli-lang').value = c.language || 'Français';
 
-            // Missions commandées par le client
             const cliMissions = globalMissionsData.filter(m => m.client_id === c.id);
             let totalHours = 0;
             let totalPaid = 0;
@@ -887,7 +963,6 @@
             document.getElementById('cli-stat-amount').innerText = `CHF ${totalPaid.toFixed(2)}`;
             document.getElementById('cli-missions-list').innerHTML = missionsHtml;
 
-            // Événements du client
             const cliEvents = globalEventsData.filter(e => e.participant_uuids && e.participant_uuids.includes(c.id));
             const eventsHtml = cliEvents.length ? cliEvents.map(e => `<div class="bg-white p-2 rounded border"><strong>${e.event_code}</strong> - ${e.concept}</div>`).join('') : '<p class="text-slate-400">Aucun événement.</p>';
             document.getElementById('cli-events-list').innerHTML = eventsHtml;
@@ -937,7 +1012,6 @@
                 for (const m of missionsToday) {
                     const hexColor = getStatusHexColor(m.matching_status);
                     
-                    // Géocodage exact via l'adresse du client liée
                     if (m.client && m.client.address && m.client.city) {
                         const fullAddress = `${m.client.address}, ${m.client.npa || ''} ${m.client.city}, Switzerland`;
                         try {
