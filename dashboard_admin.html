@@ -762,14 +762,14 @@
                 // 1. Upload dans Storage Supabase
                 const fileName = `${Date.now()}_${file.name}`;
                 const { error: uploadErr } = await window.supabaseClient.storage
-                    .from('lkdm-documents')
+                    .from('lkdm_docs')
                     .upload(fileName, file);
 
                 if (uploadErr) throw uploadErr;
 
                 // 2. Obtenir l'URL publique
                 const { data: { publicUrl } } = window.supabaseClient.storage
-                    .from('lkdm-documents')
+                    .from('lkdm_docs')
                     .getPublicUrl(fileName);
 
                 // 3. Déterminer si le profile_id est client ou étudiant
