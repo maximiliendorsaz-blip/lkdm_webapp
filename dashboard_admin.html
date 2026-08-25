@@ -49,7 +49,7 @@
 
                 <!-- User Profile Mini Card -->
                 <div class="bg-lkdm-bg p-4 rounded-2xl border border-slate-200/60 flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-full bg-lkdm-accent text-white flex items-center justify-center font-bold text-lg shadow-sm">MB</div>
+                    <div class="w-11 h-11 rounded-full bg-lkdm-accent text-white flex items-center justify-center font-bold text-lg shadow-sm">MD</div>
                     <div class="overflow-hidden">
                         <p class="text-sm font-semibold text-lkdm-text truncate">Maximilien Dorsaz</p>
                         <p class="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
@@ -113,8 +113,8 @@
                 <div id="tab-dashboard" class="tab-content active space-y-8">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
-                            <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Pilotage Central</span>
-                            <h2 class="text-3xl font-bold text-lkdm-text mt-1">Réseau Valaisan</h2>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">V1</span>
+                            <h2 class="text-3xl font-bold text-lkdm-text mt-1">Pilotage central</h2>
                         </div>
                         <div class="flex flex-wrap gap-2">
                             <button onclick="openModal('modal-create-mission'); prepareMissionModalOptions();" class="bg-lkdm-accent text-white px-4 py-2.5 rounded-[50px] text-xs font-medium shadow-sm hover:bg-[#b53838] transition flex items-center gap-2">
@@ -196,14 +196,16 @@
                 <div id="tab-missions" class="tab-content space-y-6">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <h2 class="text-2xl font-bold text-lkdm-text">Gestion des Missions Ouvertes</h2>
-                        <select id="mission-sort-order" onchange="loadSupabaseOverview()" class="bg-white border border-slate-200 text-lkdm-text text-sm font-medium rounded-xl px-4 py-2.5 shadow-sm">
-                            <option value="num">Trier par N° de mission</option>
-                            <option value="status">Trier par ordre de statut</option>
-                        </select>
-                        <select id="mission-status-filter" onchange="renderOpenMissionsTable()" class="bg-white border border-slate-200 text-lkdm-text text-sm font-medium rounded-xl px-4 py-2.5 shadow-sm">
-                            <option value="all-open">Tous les statuts ouverts</option>
-                            <option value="all">Toutes les missions (ouvertes et effectuées)</option>
-                        </select>
+                        <div class="flex items-center gap-2">
+                            <select id="mission-sort-order" onchange="loadSupabaseOverview()" class="bg-white border border-slate-200 text-lkdm-text text-xs font-medium rounded-xl px-3 py-2 shadow-sm">
+                                <option value="num">Trier par N° de mission</option>
+                                <option value="status">Trier par ordre de statut</option>
+                            </select>
+                            <select id="mission-status-filter" onchange="renderOpenMissionsTable()" class="bg-white border border-slate-200 text-lkdm-text text-xs font-medium rounded-xl px-3 py-2 shadow-sm">
+                                <option value="all-open">Tous les statuts ouverts</option>
+                                <option value="all">Toutes les missions</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
                         <div class="overflow-x-auto custom-scrollbar">
@@ -747,7 +749,7 @@
             statusSelects.forEach(sel => {
                 const currentVal = sel.value;
                 const isFilter = sel.id === 'mission-status-filter';
-                sel.innerHTML = isFilter ? '<option value="all">Tous les statuts ouverts</option>' : '';
+                sel.innerHTML = isFilter ? '<option value="all-open">Tous les statuts ouverts</option><option value="all">Toutes les missions</option>' : '';
                 LKDM_CONFIG.missionStatuses.forEach(st => sel.innerHTML += `<option value="${st}">${st}</option>`);
                 if (currentVal) sel.value = currentVal;
             });
@@ -858,7 +860,7 @@
             }
         }
 
-         async function loadSupabaseOverview() {
+        async function loadSupabaseOverview() {
             if (!window.supabaseClient) return;
 
             const startDate = document.getElementById('filter-start-date').value;
@@ -1015,6 +1017,7 @@
 
         function renderAvsTracker() {
             const tbody = document.getElementById('avs-tracker-tbody');
+            if (!tbody) return;
             tbody.innerHTML = '';
             const currentYear = new Date().getFullYear();
 
@@ -1046,7 +1049,7 @@
             });
         }
 
-function renderBillingTable() {
+        function renderBillingTable() {
             const tbody = document.getElementById('billing-table-tbody');
             if (!tbody) return;
             tbody.innerHTML = '';
@@ -1151,7 +1154,6 @@ function renderBillingTable() {
             document.getElementById('edit-mis-end').value = m.end_time || '';
             document.getElementById('edit-mis-real').value = m.real_hours || 2.0;
 
-            // Remplir les documents liés à cette mission
             const missionDocs = globalDocumentsData.filter(d => d.mission_id == m.id);
             const docsContainer = document.getElementById('mission-docs-list');
             docsContainer.innerHTML = missionDocs.length ? missionDocs.map(d => `
@@ -1219,7 +1221,6 @@ function renderBillingTable() {
             document.getElementById('stu-stat-payout').innerText = `CHF ${totalPayout.toFixed(2)}`;
             document.getElementById('stu-missions-list').innerHTML = missionsHtml;
 
-            // Remplir les documents liés à cet étudiant
             const studentDocs = globalDocumentsData.filter(d => d.student_id == s.id);
             const docsContainer = document.getElementById('stu-documents-list');
             docsContainer.innerHTML = studentDocs.length ? studentDocs.map(d => `
@@ -1278,7 +1279,6 @@ function renderBillingTable() {
             document.getElementById('cli-stat-amount').innerText = `CHF ${totalPaid.toFixed(2)}`;
             document.getElementById('cli-missions-list').innerHTML = missionsHtml;
 
-            // Remplir les documents liés à ce client
             const clientDocs = globalDocumentsData.filter(d => d.client_id == c.id);
             const docsContainer = document.getElementById('cli-documents-list');
             docsContainer.innerHTML = clientDocs.length ? clientDocs.map(d => `
