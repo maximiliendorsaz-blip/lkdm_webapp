@@ -49,7 +49,7 @@
                 <div class="bg-lkdm-bg p-4 rounded-2xl border border-slate-200/60 flex items-center gap-3">
                     <div class="w-11 h-11 rounded-full bg-lkdm-accent text-white flex items-center justify-center font-bold text-lg shadow-sm">MB</div>
                     <div class="overflow-hidden">
-                        <p class="text-sm font-semibold text-lkdm-text truncate">Maximilien Dorsaz</p>
+                        <p class="text-sm font-semibold text-lkdm-text truncate">MDorsaz</p>
                         <p class="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
                             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Système en ligne
                         </p>
@@ -181,7 +181,7 @@
                     </div>
                 </div>
 
-                <!-- TAB 2: MISSIONS (GESTION DES MISSIONS OUVERTES + FILTRE STATUT) -->
+                <!-- TAB 2: MISSIONS -->
                 <div id="tab-missions" class="tab-content space-y-6">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <h2 class="text-2xl font-bold text-lkdm-text">Gestion des Missions Ouvertes</h2>
@@ -219,7 +219,7 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <h2 class="text-2xl font-bold text-lkdm-text">Calendrier & Carte</h2>
-                            <p class="text-sm text-lkdm-secondary">Visualisation géographique et temporelle des missions Supabase.</p>
+                            <p class="text-sm text-lkdm-secondary">Visualisation géographique exacte et temporelle.</p>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -273,7 +273,7 @@
         </main>
     </div>
 
-    <!-- MODALE : ÉDITION GLOBALE D'UNE MISSION (TOUTES LES INFOS) -->
+    <!-- MODAL : ÉDITION GLOBALE MISSION -->
     <div id="modal-edit-mission" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeModal('modal-edit-mission')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
@@ -329,7 +329,107 @@
         </div>
     </div>
 
-    <!-- MODAL : CRÉER ÉTUDIANT -->
+    <!-- MODAL : FICHE ETUDIANT COMPLÈTE & MODIFIABLE -->
+    <div id="modal-edit-student" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('modal-edit-student')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
+            <h3 class="text-xl font-bold text-lkdm-text mb-4">Fiche Étudiant & Historique</h3>
+            <form onsubmit="submitEditStudent(event)" class="space-y-4 text-sm">
+                <input type="hidden" id="edit-stu-id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Prénom</label><input type="text" id="edit-stu-firstname" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Nom</label><input type="text" id="edit-stu-lastname" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Téléphone</label><input type="text" id="edit-stu-phone" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Email</label><input type="email" id="edit-stu-email" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">Rue et numéro</label><input type="text" id="edit-stu-address" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">NPA</label><input type="text" id="edit-stu-npa" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Localité</label><input type="text" id="edit-stu-city" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">IBAN</label><input type="text" id="edit-stu-iban" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">AVS</label><input type="text" id="edit-stu-avs" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                </div>
+                
+                <!-- Statistiques & Historique cliquable -->
+                <div class="bg-slate-50 p-4 rounded-2xl space-y-2 border">
+                    <h4 class="font-bold text-xs uppercase text-lkdm-secondary">Statistiques & Activités</h4>
+                    <div class="flex justify-between text-xs font-semibold text-lkdm-text">
+                        <span>Total Heures : <span id="stu-stat-hours" class="text-lkdm-accent">0h</span></span>
+                        <span>Total Versé : <span id="stu-stat-payout" class="text-emerald-600">CHF 0</span></span>
+                    </div>
+                    <div class="mt-2">
+                        <p class="text-[11px] font-bold text-slate-500 mb-1">Missions effectuées :</p>
+                        <div id="stu-missions-list" class="space-y-1 max-h-32 overflow-y-auto text-xs"></div>
+                    </div>
+                    <div class="mt-2">
+                        <p class="text-[11px] font-bold text-slate-500 mb-1">Événements participants :</p>
+                        <div id="stu-events-list" class="space-y-1 max-h-24 overflow-y-auto text-xs"></div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t">
+                    <button type="button" onclick="closeModal('modal-edit-student')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Fermer</button>
+                    <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Mettre à jour l'étudiant</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL : FICHE CLIENT COMPLÈTE & MODIFIABLE -->
+    <div id="modal-edit-client" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('modal-edit-client')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
+            <h3 class="text-xl font-bold text-lkdm-text mb-4">Fiche Client & Historique</h3>
+            <form onsubmit="submitEditClient(event)" class="space-y-4 text-sm">
+                <input type="hidden" id="edit-cli-id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Prénom</label><input type="text" id="edit-cli-firstname" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Nom</label><input type="text" id="edit-cli-lastname" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Téléphone</label><input type="text" id="edit-cli-phone" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Email</label><input type="email" id="edit-cli-email" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">Rue et numéro</label><input type="text" id="edit-cli-address" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">NPA</label><input type="text" id="edit-cli-npa" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Localité</label><input type="text" id="edit-cli-city" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Langue</label><input type="text" id="edit-cli-lang" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                </div>
+
+                <!-- Statistiques & Historique cliquable -->
+                <div class="bg-slate-50 p-4 rounded-2xl space-y-2 border">
+                    <h4 class="font-bold text-xs uppercase text-lkdm-secondary">Statistiques & Activités</h4>
+                    <div class="flex justify-between text-xs font-semibold text-lkdm-text">
+                        <span>Total Missions : <span id="cli-stat-count" class="text-lkdm-accent">0</span></span>
+                        <span>Total Heures : <span id="cli-stat-hours" class="text-lkdm-accent">0h</span></span>
+                        <span>Montant Payé : <span id="cli-stat-amount" class="text-emerald-600">CHF 0</span></span>
+                    </div>
+                    <div class="mt-2">
+                        <p class="text-[11px] font-bold text-slate-500 mb-1">Missions commandées :</p>
+                        <div id="cli-missions-list" class="space-y-1 max-h-32 overflow-y-auto text-xs"></div>
+                    </div>
+                    <div class="mt-2">
+                        <p class="text-[11px] font-bold text-slate-500 mb-1">Événements participants :</p>
+                        <div id="cli-events-list" class="space-y-1 max-h-24 overflow-y-auto text-xs"></div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t">
+                    <button type="button" onclick="closeModal('modal-edit-client')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Fermer</button>
+                    <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Mettre à jour le client</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALS CRÉATION (Étudiant, Client, Mission) -->
     <div id="modal-create-student" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeModal('modal-create-student')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-times"></i></button>
@@ -341,7 +441,7 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Téléphone *</label><input type="text" id="stu-phone" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Adresse email *</label><input type="email" id="stu-email" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Email *</label><input type="email" id="stu-email" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
                 </div>
                 <div class="grid grid-cols-3 gap-4">
                     <div class="col-span-2"><label class="block text-xs font-bold text-slate-600 mb-1">Rue et numéro *</label><input type="text" id="stu-address" required placeholder="Ex: Av. de la Gare 12" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
@@ -349,7 +449,7 @@
                 </div>
                 <div class="grid grid-cols-3 gap-4">
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Localité *</label><input type="text" id="stu-city" required oninput="syncLocation('stu', 'city')" placeholder="Sion" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Date de naissance *</label><input type="date" id="stu-birth" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Date naissance *</label><input type="date" id="stu-birth" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Sexe *</label><select id="stu-gender" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"><option value="homme">Homme</option><option value="femme">Femme</option></select></div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
@@ -378,7 +478,6 @@
         </div>
     </div>
 
-    <!-- MODAL : CRÉER CLIENT -->
     <div id="modal-create-client" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeModal('modal-create-client')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-times"></i></button>
@@ -419,7 +518,6 @@
         </div>
     </div>
 
-    <!-- MODAL : CRÉER MISSION -->
     <div id="modal-create-mission" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeModal('modal-create-mission')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-times"></i></button>
@@ -483,6 +581,7 @@
         let globalMissionsData = [];
         let globalClientsData = [];
         let globalStudentsData = [];
+        let globalEventsData = [];
         let adminMap = null;
         let adminMarkers = null;
 
@@ -491,13 +590,29 @@
             "Sion": "1950", "Sierre": "3960", "Martigny": "1920", "Monthey": "1870", "Brig": "3900"
         };
 
-        const cityCoords = {
-            "Sion": [46.2331, 7.3606],
-            "Sierre": [46.2917, 7.5333],
-            "Martigny": [46.1031, 7.0709],
-            "Monthey": [46.2528, 6.9538],
-            "Brig": [46.3181, 7.9866]
-        };
+        // Fonction pour obtenir la couleur selon le statut à 4 états
+        function getStatusColorClass(status) {
+            const st = (status || "").toLowerCase();
+            if (["nouveau", "a publier", "publié", "accepté"].includes(st)) {
+                return "bg-red-100 text-lkdm-accent border-red-200"; // Rouge (Non en cours)
+            } else if (["confirmé"].includes(st)) {
+                return "bg-amber-100 text-amber-700 border-amber-200"; // Jaune (En cours)
+            } else if (["à facturer", "en attente de paiement"].includes(st)) {
+                return "bg-blue-100 text-blue-700 border-blue-200"; // Bleu (Finies mais pas complètes)
+            } else if (["mission effectuée"].includes(st)) {
+                return "bg-emerald-100 text-emerald-700 border-emerald-200"; // Vert (Complètes et finies)
+            }
+            return "bg-slate-100 text-slate-700 border-slate-200";
+        }
+
+        function getStatusHexColor(status) {
+            const st = (status || "").toLowerCase();
+            if (["nouveau", "a publier", "publié", "accepté"].includes(st)) return '#D64545'; // Rouge
+            if (["confirmé"].includes(st)) return '#D97706'; // Jaune / Or
+            if (["à facturer", "en attente de paiement"].includes(st)) return '#2563EB'; // Bleu
+            if (["mission effectuée"].includes(st)) return '#059669'; // Vert
+            return '#64748B';
+        }
 
         function syncLocation(prefix, sourceField) {
             const npaInput = document.getElementById(`${prefix}-npa`);
@@ -508,17 +623,14 @@
 
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-        function toggleMobileMenu() {
-            document.getElementById('sidebar').classList.toggle('-translate-x-full');
-        }
+        function toggleMobileMenu() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
 
         async function loadSupabaseOverview() {
             const startDate = document.getElementById('filter-start-date').value;
             const endDate = document.getElementById('filter-end-date').value;
             const cityFilter = document.getElementById('filter-city').value;
 
-            let mQuery = window.supabaseClient.from('missions').select('*, client:client_id(id, city, full_name), student:student_id(id, full_name)');
+            let mQuery = window.supabaseClient.from('missions').select('*, client:client_id(*), student:student_id(*)');
             if (startDate) mQuery = mQuery.gte('mission_date', startDate);
             if (endDate) mQuery = mQuery.lte('mission_date', endDate);
 
@@ -529,15 +641,16 @@
 
             const { data: clients } = await window.supabaseClient.from('profiles').select('*').eq('role', 'client');
             const { data: students } = await window.supabaseClient.from('profiles').select('*').eq('role', 'student');
+            const { data: events } = await window.supabaseClient.from('events').select('*');
+
             globalClientsData = clients || [];
             globalStudentsData = students || [];
+            globalEventsData = events || [];
 
             let filteredMissions = globalMissionsData;
             if (cityFilter !== "Toutes") {
                 filteredMissions = filteredMissions.filter(m => m.client && m.client.city === cityFilter);
             }
-
-            const { data: events } = await window.supabaseClient.from('events').select('*');
 
             let caMissions = 0, beneMissions = 0, completedCount = 0, attentionCount = 0;
             
@@ -557,7 +670,7 @@
             });
 
             let caEvents = 0, beneEvents = 0;
-            (events || []).forEach(ev => {
+            globalEventsData.forEach(ev => {
                 const rev = Number(ev.revenue_chf) || 0;
                 const exp = Number(ev.expenses_chf) || 0;
                 caEvents += rev;
@@ -607,23 +720,24 @@
             }
 
             openMissions.forEach(m => {
+                const colorClass = getStatusColorClass(m.matching_status);
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition cursor-pointer" onclick="openEditMissionModal('${m.id}')">
                         <td class="py-4 px-6 font-bold text-lkdm-text">${m.mission_code || 'N/A'}<br><span class="text-xs text-slate-400">${m.mission_date || ''}</span></td>
                         <td class="py-4 px-6 text-sm text-lkdm-text">${m.exact_description || ''}</td>
                         <td class="py-4 px-6 text-sm">${m.client ? m.client.full_name : 'Inconnu'}</td>
-                        <td class="py-4 px-6"><span class="bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full text-xs font-bold">${m.matching_status || 'Nouveau'}</span></td>
+                        <td class="py-4 px-6"><span class="${colorClass} px-2.5 py-1 rounded-full text-xs font-bold border">${m.matching_status || 'Nouveau'}</span></td>
                         <td class="py-4 px-6 text-right"><i class="fa-solid fa-chevron-right text-lkdm-secondary"></i></td>
                     </tr>
                 `;
             });
         }
 
+        // --- GESTION ÉDITION MISSION ---
         async function openEditMissionModal(id) {
             const m = globalMissionsData.find(x => x.id == id);
             if (!m) return;
 
-            // Remplir les listes déroulantes de la modale d'édition
             const cliSelect = document.getElementById('edit-mis-client');
             cliSelect.innerHTML = '<option value="">-- Sélectionner un client --</option>';
             globalClientsData.forEach(c => cliSelect.innerHTML += `<option value="${c.id}" ${m.client_id === c.id ? 'selected' : ''}>${c.full_name}</option>`);
@@ -683,21 +797,133 @@
 
             const { error } = await window.supabaseClient.from('missions').update(payload).eq('id', id);
             if (error) alert("Erreur mise à jour : " + error.message);
-            else {
-                closeModal('modal-edit-mission');
-                loadSupabaseOverview();
-            }
+            else { closeModal('modal-edit-mission'); loadSupabaseOverview(); }
         }
 
-        function initAdminMap() {
+        // --- GESTION FICHE ÉTUDIANT & CLIENT INTERACTIVE ---
+        function openEditStudentModal(id) {
+            const s = globalStudentsData.find(x => x.id == id);
+            if (!s) return;
+
+            document.getElementById('edit-stu-id').value = s.id;
+            document.getElementById('edit-stu-firstname').value = s.first_name || '';
+            document.getElementById('edit-stu-lastname').value = s.last_name || '';
+            document.getElementById('edit-stu-phone').value = s.phone || '';
+            document.getElementById('edit-stu-email').value = s.email || '';
+            document.getElementById('edit-stu-address').value = s.address || '';
+            document.getElementById('edit-stu-npa').value = s.npa || '';
+            document.getElementById('edit-stu-city').value = s.city || '';
+            document.getElementById('edit-stu-iban').value = s.iban || '';
+            document.getElementById('edit-stu-avs').value = s.avs_number || '';
+
+            // Missions de l'étudiant
+            const stuMissions = globalMissionsData.filter(m => m.student_id === s.id);
+            let totalHours = 0;
+            let totalPayout = 0;
+            const missionsHtml = stuMissions.length ? stuMissions.map(m => {
+                totalHours += Number(m.real_hours) || 0;
+                totalPayout += (Number(m.real_hours) || 0) * 25; // Exemple calcul versement étudiant
+                return `<div onclick="openEditMissionModal('${m.id}'); closeModal('modal-edit-student');" class="cursor-pointer bg-white p-2 rounded border hover:border-lkdm-accent flex justify-between"><span><strong>${m.mission_code}</strong> - ${m.exact_description}</span><span class="text-lkdm-secondary">${m.matching_status}</span></div>`;
+            }).join('') : '<p class="text-slate-400">Aucune mission assignée.</p>';
+
+            document.getElementById('stu-stat-hours').innerText = `${totalHours}h`;
+            document.getElementById('stu-stat-payout').innerText = `CHF ${totalPayout.toFixed(2)}`;
+            document.getElementById('stu-missions-list').innerHTML = missionsHtml;
+
+            // Événements de l'étudiant
+            const stuEvents = globalEventsData.filter(e => e.student_uuids && e.student_uuids.includes(s.id));
+            const eventsHtml = stuEvents.length ? stuEvents.map(e => `<div class="bg-white p-2 rounded border"><strong>${e.event_code}</strong> - ${e.concept}</div>`).join('') : '<p class="text-slate-400">Aucun événement.</p>';
+            document.getElementById('stu-events-list').innerHTML = eventsHtml;
+
+            openModal('modal-edit-student');
+        }
+
+        async function submitEditStudent(event) {
+            event.preventDefault();
+            const id = document.getElementById('edit-stu-id').value;
+            const payload = {
+                first_name: document.getElementById('edit-stu-firstname').value,
+                last_name: document.getElementById('edit-stu-lastname').value,
+                full_name: `${document.getElementById('edit-stu-firstname').value} ${document.getElementById('edit-stu-lastname').value}`,
+                phone: document.getElementById('edit-stu-phone').value,
+                email: document.getElementById('edit-stu-email').value,
+                address: document.getElementById('edit-stu-address').value,
+                npa: document.getElementById('edit-stu-npa').value,
+                city: document.getElementById('edit-stu-city').value,
+                iban: document.getElementById('edit-stu-iban').value,
+                avs_number: document.getElementById('edit-stu-avs').value
+            };
+            const { error } = await window.supabaseClient.from('profiles').update(payload).eq('id', id);
+            if (error) alert("Erreur : " + error.message);
+            else { closeModal('modal-edit-student'); loadSupabaseOverview(); }
+        }
+
+        function openEditClientModal(id) {
+            const c = globalClientsData.find(x => x.id == id);
+            if (!c) return;
+
+            document.getElementById('edit-cli-id').value = c.id;
+            document.getElementById('edit-cli-firstname').value = c.first_name || '';
+            document.getElementById('edit-cli-lastname').value = c.last_name || '';
+            document.getElementById('edit-cli-phone').value = c.phone || '';
+            document.getElementById('edit-cli-email').value = c.email || '';
+            document.getElementById('edit-cli-address').value = c.address || '';
+            document.getElementById('edit-cli-npa').value = c.npa || '';
+            document.getElementById('edit-cli-city').value = c.city || '';
+            document.getElementById('edit-cli-lang').value = c.language || 'Français';
+
+            // Missions commandées par le client
+            const cliMissions = globalMissionsData.filter(m => m.client_id === c.id);
+            let totalHours = 0;
+            let totalPaid = 0;
+            const missionsHtml = cliMissions.length ? cliMissions.map(m => {
+                totalHours += Number(m.real_hours) || 0;
+                totalPaid += Number(m.total_amount) || 0;
+                return `<div onclick="openEditMissionModal('${m.id}'); closeModal('modal-edit-client');" class="cursor-pointer bg-white p-2 rounded border hover:border-lkdm-accent flex justify-between"><span><strong>${m.mission_code}</strong> - ${m.exact_description}</span><span class="text-lkdm-secondary">CHF ${m.total_amount || 0}</span></div>`;
+            }).join('') : '<p class="text-slate-400">Aucune mission commandée.</p>';
+
+            document.getElementById('cli-stat-count').innerText = cliMissions.length;
+            document.getElementById('cli-stat-hours').innerText = `${totalHours}h`;
+            document.getElementById('cli-stat-amount').innerText = `CHF ${totalPaid.toFixed(2)}`;
+            document.getElementById('cli-missions-list').innerHTML = missionsHtml;
+
+            // Événements du client
+            const cliEvents = globalEventsData.filter(e => e.participant_uuids && e.participant_uuids.includes(c.id));
+            const eventsHtml = cliEvents.length ? cliEvents.map(e => `<div class="bg-white p-2 rounded border"><strong>${e.event_code}</strong> - ${e.concept}</div>`).join('') : '<p class="text-slate-400">Aucun événement.</p>';
+            document.getElementById('cli-events-list').innerHTML = eventsHtml;
+
+            openModal('modal-edit-client');
+        }
+
+        async function submitEditClient(event) {
+            event.preventDefault();
+            const id = document.getElementById('edit-cli-id').value;
+            const payload = {
+                first_name: document.getElementById('edit-cli-firstname').value,
+                last_name: document.getElementById('edit-cli-lastname').value,
+                full_name: `${document.getElementById('edit-cli-firstname').value} ${document.getElementById('edit-cli-lastname').value}`,
+                phone: document.getElementById('edit-cli-phone').value,
+                email: document.getElementById('edit-cli-email').value,
+                address: document.getElementById('edit-cli-address').value,
+                npa: document.getElementById('edit-cli-npa').value,
+                city: document.getElementById('edit-cli-city').value,
+                language: document.getElementById('edit-cli-lang').value
+            };
+            const { error } = await window.supabaseClient.from('profiles').update(payload).eq('id', id);
+            if (error) alert("Erreur : " + error.message);
+            else { closeModal('modal-edit-client'); loadSupabaseOverview(); }
+        }
+
+        // --- GÉOLOCALISATION EXACTE & CARTE LEAFLET ---
+        async function initAdminMap() {
             if (adminMap) { adminMap.invalidateSize(); return; }
-            adminMap = L.map('admin-map').setView([46.2331, 7.3606], 10);
+            adminMap = L.map('admin-map').setView([46.2331, 7.3606], 11);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(adminMap);
             adminMarkers = L.layerGroup().addTo(adminMap);
             renderAdminMapCalendar();
         }
 
-        function renderAdminMapCalendar() {
+        async function renderAdminMapCalendar() {
             if(adminMarkers) adminMarkers.clearLayers();
             const grid = document.getElementById('admin-calendar-grid');
             grid.innerHTML = '';
@@ -708,15 +934,28 @@
                 const missionsToday = globalMissionsData.filter(m => m.mission_date && m.mission_date.endsWith(`-08-${dayStr}`));
                 let dayHtml = `<div class="bg-lkdm-bg border border-slate-200 rounded-xl p-1 flex flex-col h-16 md:h-20 overflow-hidden"><span class="text-[10px] font-bold text-slate-400 mb-1">${day}</span>`;
                 
-                missionsToday.forEach(m => {
-                    let color = m.matching_status === 'mission effectuée' ? '#2E7D32' : '#D64545';
-                    if (adminMap && m.client && m.client.city && cityCoords[m.client.city]) {
-                        const coords = cityCoords[m.client.city];
-                        const icon = L.divIcon({ className: 'custom-pin', html: `<div style="background-color: ${color}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white;"></div>`, iconSize: [14, 14], iconAnchor: [7, 7] });
-                        L.marker(coords, { icon }).addTo(adminMarkers).on('click', () => openEditMissionModal(m.id));
+                for (const m of missionsToday) {
+                    const hexColor = getStatusHexColor(m.matching_status);
+                    
+                    // Géocodage exact via l'adresse du client liée
+                    if (m.client && m.client.address && m.client.city) {
+                        const fullAddress = `${m.client.address}, ${m.client.npa || ''} ${m.client.city}, Switzerland`;
+                        try {
+                            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}`);
+                            const data = await response.json();
+                            if (data && data.length > 0) {
+                                const lat = parseFloat(data[0].lat);
+                                const lon = parseFloat(data[0].lon);
+                                const icon = L.divIcon({ className: 'custom-pin', html: `<div style="background-color: ${hexColor}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`, iconSize: [14, 14], iconAnchor: [7, 7] });
+                                L.marker([lat, lon], { icon }).addTo(adminMarkers).on('click', () => openEditMissionModal(m.id));
+                            }
+                        } catch (e) {
+                            console.error("Erreur géocodage adresse exacte", e);
+                        }
                     }
-                    dayHtml += `<div onclick="openEditMissionModal('${m.id}')" class="cursor-pointer bg-red-100 text-lkdm-accent text-[9px] font-bold px-1 py-0.5 rounded mb-0.5 truncate">${m.mission_code}</div>`;
-                });
+
+                    dayHtml += `<div onclick="openEditMissionModal('${m.id}')" class="cursor-pointer text-[9px] font-bold px-1 py-0.5 rounded mb-0.5 truncate border" style="background-color: ${hexColor}20; color: ${hexColor}; border-color: ${hexColor}40;">${m.mission_code}</div>`;
+                }
                 dayHtml += `</div>`;
                 grid.innerHTML += dayHtml;
             }
@@ -727,10 +966,11 @@
             tbody.innerHTML = '';
             clients.forEach(c => {
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition">
+                    <tr class="hover:bg-slate-50 transition cursor-pointer" onclick="openEditClientModal('${c.id}')">
                         <td class="py-4 px-6 font-bold text-lkdm-text">${c.full_name || ''}</td>
                         <td class="py-4 px-6 text-sm text-slate-500">${c.city || ''}</td>
                         <td class="py-4 px-6 text-sm text-slate-500">${c.email || ''} • ${c.phone || ''}</td>
+                        <td class="py-4 px-6 text-right"><i class="fa-solid fa-chevron-right text-lkdm-secondary"></i></td>
                     </tr>
                 `;
             });
@@ -741,7 +981,7 @@
             grid.innerHTML = '';
             globalStudentsData.forEach(s => {
                 grid.innerHTML += `
-                    <div class="bg-white p-6 rounded-3xl border shadow-sm">
+                    <div class="bg-white p-6 rounded-3xl border shadow-sm cursor-pointer hover:border-lkdm-accent transition" onclick="openEditStudentModal('${s.id}')">
                         <h3 class="font-bold text-lkdm-text">${s.full_name}</h3>
                         <p class="text-xs text-lkdm-secondary mt-1">${s.city || ''} • ${s.phone || ''}</p>
                     </div>
