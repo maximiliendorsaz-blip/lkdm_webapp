@@ -8,6 +8,17 @@ window.LKDM_CONFIG = {
         "admin"
     ],
 
+    // Types de documents gérés par la plateforme
+    documentTypes: [
+        "Contrat",
+        "Règlement",
+        "Fiche de salaire",
+        "Facture",
+        "Quittance",
+        "Rapport de mission",
+        "Autre"
+    ],
+
     // Langues gérées par la plateforme
     languages: [
         "Français",
