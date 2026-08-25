@@ -1,6 +1,6 @@
 // config.js - Centralisation de toutes les références de l'écosystème Le Koup de Main (LKDM)
 
-const window.LKDM_CONFIG = {
+window.LKDM_CONFIG = {
     // Rôles utilisateurs
     roles: [
         "client",
@@ -127,10 +127,9 @@ const window.LKDM_CONFIG = {
         "3924": "Raron", "Raron": "3924",
         "3984": "Fiesch", "Fiesch": "3984",
         "3980": "Mörel", "Mörel": "3980"
-    }
-};
+    },
 
-// Fonction globale pour alimenter les listes de saisie libre (datalist) des prospects
+    // Fonction globale pour alimenter les listes de saisie libre (datalist) des prospects
     initProspectSourceInput: function(inputId = 'cli-src', datalistId = 'sources-suggestions') {
         const input = document.getElementById(inputId);
         if (input && !document.getElementById(datalistId)) {
