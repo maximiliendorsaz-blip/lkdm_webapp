@@ -71,12 +71,6 @@ window.LKDM_CONFIG = {
         "Autre"
     ],
     prospectSources: [
-        "Instagram",
-        "Facebook",
-        "LinkedIn",
-        "Pro Senectute",
-        "Recommandation famille",
-        "Recherche Google",
         "Autre"
     ],
 
@@ -129,7 +123,7 @@ window.LKDM_CONFIG = {
         "3980": "Mörel", "Mörel": "3980"
     },
 
-    // Fonction globale pour alimenter les listes de saisie libre (datalist) des prospects
+    // Méthode de l'objet pour les sources de prospects
     initProspectSourceInput: function(inputId = 'cli-src', datalistId = 'sources-suggestions') {
         const input = document.getElementById(inputId);
         if (input && !document.getElementById(datalistId)) {
