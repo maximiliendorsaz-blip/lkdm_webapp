@@ -215,15 +215,44 @@
                         </table>
                     </div>
                 </div>
-
             </div>
         </main>
+    </div>
+
+    <!-- Modale Détails Mission Client -->
+    <div id="customer-mission-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-300 relative p-6 space-y-4">
+            <button onclick="closeCustomerMissionModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
+            <h3 class="text-xl font-bold text-lkdm-text" id="modal-mis-title">Détails de la mission</h3>
+            
+            <div class="space-y-3 text-sm bg-slate-50 p-4 rounded-2xl border">
+                <p><strong>Code mission :</strong> <span id="modal-mis-code" class="font-semibold text-lkdm-accent"></span></p>
+                <p><strong>Date & Horaire :</strong> <span id="modal-mis-date"></span></p>
+                <p><strong>Description :</strong> <span id="modal-mis-desc"></span></p>
+                <p><strong>Intervenant assigné :</strong> <span id="modal-mis-student" class="font-semibold text-emerald-700"></span></p>
+                <p><strong>Montant :</strong> <span id="modal-mis-amount" class="font-bold text-lkdm-text"></span></p>
+                <p><strong>Statut de paiement :</strong> <span id="modal-mis-paystatus"></span></p>
+            </div>
+
+            <!-- Documents liés à la mission -->
+            <div class="space-y-2">
+                <h4 class="font-bold text-xs uppercase text-lkdm-secondary">Documents & Quittances associés</h4>
+                <div id="modal-mis-docs" class="space-y-1 max-h-32 overflow-y-auto text-xs">
+                    <p class="text-slate-400">Aucun document lié pour le moment.</p>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button type="button" onclick="closeCustomerMissionModal()" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium text-slate-700 hover:bg-slate-200">Fermer</button>
+            </div>
+        </div>
     </div>
 
     <script>
         let currentClientId = null;
         let globalClientProfile = null;
         let clientMissions = [];
+        let globalCustomerDocuments = [];
 
         function toggleMobileMenu() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
 
@@ -237,7 +266,6 @@
         async function initClientSpace() {
             if (!window.supabaseClient) return;
 
-            // Récupère le premier client par défaut (ex: Mme Favre Marguerite ou autre configuré en BDD)
             const { data: clients, error } = await window.supabaseClient.from('profiles').select('*').eq('role', 'client').limit(1);
             if (error || !clients || clients.length === 0) return;
 
@@ -256,10 +284,14 @@
         async function loadClientData() {
             if (!currentClientId) return;
 
-            // Charge les missions liées à ce client avec les infos de l'étudiant assigné
             const { data: missions, error } = await window.supabaseClient
                 .from('missions')
                 .select('*, student:student_id(*)')
+                .eq('client_id', currentClientId);
+
+            const { data: docs } = await window.supabaseClient
+                .from('documents')
+                .select('*')
                 .eq('client_id', currentClientId);
 
             if (error) {
@@ -268,6 +300,8 @@
             }
 
             clientMissions = missions || [];
+            globalCustomerDocuments = docs || [];
+
             renderCustomerDashboard();
             renderCustomerMissions();
             renderCustomerBilling();
@@ -277,7 +311,6 @@
             const container = document.getElementById('customer-upcoming-list');
             container.innerHTML = '';
 
-            // Filtre les missions à venir (non terminées)
             const upcoming = clientMissions.filter(m => (m.matching_status || '').toLowerCase() !== 'mission effectuée');
 
             if (upcoming.length === 0) {
@@ -292,7 +325,7 @@
                     '<span class="text-xs font-bold px-2.5 py-1 rounded bg-amber-50 text-amber-700">Recherche en cours</span>';
 
                 container.innerHTML += `
-                    <div class="p-4 bg-slate-50 rounded-xl border flex justify-between items-center text-sm">
+                    <div onclick="openCustomerMissionModal(${m.id})" class="cursor-pointer p-4 bg-slate-50 hover:bg-slate-100 rounded-xl border flex justify-between items-center text-sm transition">
                         <div>
                             <p class="font-bold text-lkdm-text">${m.exact_description || m.mission_code}</p>
                             <p class="text-xs text-lkdm-secondary mt-0.5">${m.mission_date || 'Date à convenir'} • ${m.mission_periods || ''} • Intervenant : <strong class="text-lkdm-text">${studentName}</strong></p>
@@ -324,7 +357,7 @@
                 }
 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition">
+                    <tr class="hover:bg-slate-50 transition cursor-pointer" onclick="openCustomerMissionModal(${m.id})">
                         <td class="py-4 px-6 font-bold text-lkdm-text">${m.mission_date || 'À convenir'}<br><span class="text-xs text-lkdm-secondary font-normal">${m.mission_periods || ''}</span></td>
                         <td class="py-4 px-6 font-bold text-lkdm-text">${m.exact_description || m.mission_code}</td>
                         <td class="py-4 px-6 text-sm text-lkdm-secondary">${studentName}</td>
@@ -332,6 +365,42 @@
                     </tr>
                 `;
             });
+        }
+
+        function openCustomerMissionModal(missionId) {
+            const m = clientMissions.find(x => x.id === missionId);
+            if (!m) return;
+
+            document.getElementById('modal-mis-code').innerText = m.mission_code || 'N/A';
+            document.getElementById('modal-mis-date').innerText = `${m.mission_date || 'À convenir'} (${m.mission_periods || 'Horaire flexible'})`;
+            document.getElementById('modal-mis-desc').innerText = m.exact_description || 'Aucune description';
+            document.getElementById('modal-mis-student').innerText = m.student ? m.student.full_name : 'En cours d\'attribution';
+            document.getElementById('modal-mis-amount').innerText = `CHF ${(Number(m.total_amount) || 0).toFixed(2)}`;
+            document.getElementById('modal-mis-paystatus').innerText = m.payment_status || 'Facture non envoyée';
+
+            const missionDocs = globalCustomerDocuments.filter(d => d.mission_id === m.id);
+            const docsContainer = document.getElementById('modal-mis-docs');
+            
+            if (missionDocs.length > 0) {
+                docsContainer.innerHTML = missionDocs.map(d => `
+                    <div class="bg-white p-2 rounded border flex justify-between items-center">
+                        <span><strong>[${d.doc_type}]</strong> ${d.title}</span>
+                        <a href="${d.file_url}" target="_blank" class="text-lkdm-accent font-bold hover:underline">Voir le fichier</a>
+                    </div>
+                `).join('');
+            } else {
+                docsContainer.innerHTML = `<p class="text-slate-400">Aucun document ou quittance lié à cette mission.</p>`;
+            }
+
+            const modal = document.getElementById('customer-mission-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.remove('opacity-0'), 10);
+        }
+
+        function closeCustomerMissionModal() {
+            const modal = document.getElementById('customer-mission-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
         async function submitCustomerOrder(e) {
@@ -342,7 +411,6 @@
             btn.innerText = "Publication en cours...";
             btn.disabled = true;
 
-            // Générer Code Mission automatique
             const currentYear = new Date().getFullYear();
             const prefix = `M${currentYear}_`;
             const { count } = await window.supabaseClient.from('missions').select('*', { count: 'exact', head: true }).ilike('mission_code', `${prefix}%`);
@@ -359,7 +427,7 @@
                 mission_language: document.getElementById('ord-lang').value,
                 estimated_hours: estHours,
                 real_hours: estHours,
-                total_amount: estHours * 35, // Tarif standard
+                total_amount: estHours * 35,
                 lkdm_commission: estHours * 10,
                 matching_status: 'Nouveau',
                 payment_status: 'Facture non envoyée'
@@ -385,7 +453,6 @@
             const tbody = document.getElementById('customer-billing-tbody');
             tbody.innerHTML = '';
 
-            // Affiche les missions facturables ou payées du client
             if (clientMissions.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="4" class="py-4 px-6 text-center text-slate-400 text-xs">Aucune facture disponible.</td></tr>`;
                 return;
