@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Le Koup de Main</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Configuration Supabase -->
+    <script src="supabase-config.js"></script>
+</head>
+<body class="antialiased bg-lkdm-bg flex items-center justify-center min-h-screen selection:bg-lkdm-accent selection:text-white">
+
+    <div class="bg-white p-8 rounded-3xl border border-slate-200/80 shadow-xl w-full max-w-md space-y-6">
+        <div class="text-center space-y-2">
+            <h1 class="font-bold text-2xl text-lkdm-text tracking-tight">Le Koup de Main</h1>
+            <p class="text-xs text-lkdm-secondary uppercase tracking-wider font-semibold">Portail de Connexion</p>
+        </div>
+
+        <!-- Message d'erreur -->
+        <div id="login-error" class="hidden bg-red-50 text-lkdm-accent p-3 rounded-xl text-xs font-medium border border-red-200"></div>
+
+        <form onsubmit="handleLogin(event)" class="space-y-4 text-sm">
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">Adresse Email</label>
+                <input type="email" id="login-email" required placeholder="nom@exemple.ch" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-lkdm-accent">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">Mot de passe</label>
+                <input type="password" id="login-password" required placeholder="••••••••" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-lkdm-accent">
+            </div>
+            <div class="pt-2">
+                <button type="submit" id="btn-login" class="w-full bg-lkdm-accent text-white py-3.5 rounded-[50px] font-medium text-xs hover:bg-[#b53838] transition shadow-sm">
+                    Se connecter
+                </button>
+            </div>
+        </form>
+
+        <div class="text-center pt-2">
+            <a href="index.html" class="text-xs text-lkdm-secondary hover:text-lkdm-accent transition">← Retour à l'accueil</a>
+        </div>
+    </div>
+
+    <script>
+        async function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            const errorBox = document.getElementById('login-error');
+            const btn = document.getElementById('btn-login');
+
+            errorBox.classList.add('hidden');
+            btn.innerText = "Connexion en cours...";
+            btn.disabled = true;
+
+            // 1. Authentification auprès de Supabase Auth
+            const { data, error } = await window.supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                errorBox.innerText = "Erreur de connexion : " + error.message;
+                errorBox.classList.remove('hidden');
+                btn.innerText = "Se connecter";
+                btn.disabled = false;
+                return;
+            }
+
+            // 2. Récupérer le rôle de l'utilisateur dans la table "profiles" pour le rediriger correctement
+            const user = data.user;
+            const { data: profile } = await window.supabaseClient
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single();
+
+            // 3. Redirection selon le rôle (Admin, Étudiant ou Client)
+            if (profile) {
+                if (profile.role === 'admin') {
+                    window.location.href = 'dashboard_admin.html';
+                } else if (profile.role === 'student') {
+                    window.location.href = 'dashboard_student.html';
+                } else if (profile.role === 'client') {
+                    window.location.href = 'dashboard_client.html';
+                } else {
+                    window.location.href = 'index.html';
+                }
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+    </script>
+</body>
+</html>
