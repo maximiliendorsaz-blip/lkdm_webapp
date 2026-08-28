@@ -815,6 +815,52 @@
         </div>
     </div>
 
+    <!-- MODAL : ÉDITION DOCUMENT -->
+    <div id="modal-edit-doc" class="hidden fixed inset-0 z-[250] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-xl p-6 my-8 relative">
+            <button onclick="closeModal('modal-edit-doc')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
+            <h3 class="text-xl font-bold text-lkdm-text mb-4">Modifier les propriétés du document</h3>
+            <form onsubmit="submitEditDocument(event)" class="space-y-4 text-sm">
+                <input type="hidden" id="edit-doc-id">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Titre du document *</label>
+                    <input type="text" id="edit-doc-title" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Type de document *</label>
+                        <select id="edit-doc-type-select" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Lier à un Client / Étudiant</label>
+                        <select id="edit-doc-profile-link" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                            <option value="">-- Aucun lien profil --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Lier à une Mission</label>
+                        <select id="edit-doc-mission-link" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                            <option value="">-- Aucune mission liée --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Fichier actuel</label>
+                        <a id="edit-doc-file-link" href="#" target="_blank" class="text-xs text-lkdm-accent font-bold hover:underline block pt-2"><i class="fa-solid fa-eye mr-1"></i> Voir le fichier stocké</a>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center pt-4 border-t">
+                    <button type="button" onclick="deleteDocument()" class="px-4 py-2 bg-red-50 text-lkdm-accent rounded-full text-xs font-bold hover:bg-red-100"><i class="fa-solid fa-trash mr-1"></i> Supprimer le doc</button>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="closeModal('modal-edit-doc')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Annuler</button>
+                        <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Mettre à jour</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- SCRIPTS JAVASCRIPT PRINCIPAUX -->
     <script>
         let globalMissionsData = [];
@@ -1881,6 +1927,90 @@
             populateDynamicDropdowns(); // Alimentation automatique depuis config.js
             loadSupabaseOverview();      // Chargement des données Supabase
         });
+
+        function openEditDocModal(docId) {
+            const d = globalDocumentsData.find(x => x.id == docId);
+            if (!d) return;
+
+            document.getElementById('edit-doc-id').value = d.id;
+            document.getElementById('edit-doc-title').value = d.title || '';
+            
+            // Remplir le select des types de documents
+            const typeSel = document.getElementById('edit-doc-type-select');
+            typeSel.innerHTML = '';
+            if (window.LKDM_CONFIG && window.LKDM_CONFIG.documentTypes) {
+                window.LKDM_CONFIG.documentTypes.forEach(dt => {
+                    typeSel.innerHTML += `<option value="${dt}" ${d.doc_type === dt ? 'selected' : ''}>${dt}</option>`;
+                });
+            } else {
+                typeSel.innerHTML = `<option value="${d.doc_type}" selected>${d.doc_type}</option>`;
+            }
+
+            // Remplir les profils (clients / étudiants)
+            const profileSel = document.getElementById('edit-doc-profile-link');
+            profileSel.innerHTML = '<option value="">-- Aucun lien profil --</option>';
+            [...globalClientsData, ...globalStudentsData].forEach(p => {
+                const isSelected = (d.client_id === p.id || d.student_id === p.id) ? 'selected' : '';
+                const roleLabel = p.role === 'client' ? 'Client' : 'Étudiant';
+                profileSel.innerHTML += `<option value="${p.id}" ${isSelected}>${p.full_name} (${roleLabel})</option>`;
+            });
+
+            // Remplir les missions
+            const missionSel = document.getElementById('edit-doc-mission-link');
+            missionSel.innerHTML = '<option value="">-- Aucune mission liée --</option>';
+            globalMissionsData.forEach(m => {
+                const isSelected = d.mission_id === m.id ? 'selected' : '';
+                missionSel.innerHTML += `<option value="${m.id}" ${isSelected}>${m.mission_code} - ${m.exact_description || ''}</option>`;
+            });
+
+            document.getElementById('edit-doc-file-link').href = d.file_url || '#';
+
+            openModal('modal-edit-doc');
+        }
+
+        async function submitEditDocument(event) {
+            event.preventDefault();
+            const id = document.getElementById('edit-doc-id').value;
+            const profileId = document.getElementById('edit-doc-profile-link').value;
+            const missionId = document.getElementById('edit-doc-mission-link').value;
+
+            let student_id = null;
+            let client_id = null;
+            if (profileId) {
+                const isStudent = globalStudentsData.some(s => s.id == profileId);
+                if (isStudent) student_id = profileId;
+                else client_id = profileId;
+            }
+
+            const payload = {
+                title: document.getElementById('edit-doc-title').value.trim(),
+                doc_type: document.getElementById('edit-doc-type-select').value,
+                student_id: student_id,
+                client_id: client_id,
+                mission_id: missionId ? parseInt(missionId) : null
+            };
+
+            const { error } = await window.supabaseClient.from('documents').update(payload).eq('id', id);
+            if (error) {
+                alert("Erreur lors de la mise à jour : " + error.message);
+            } else {
+                closeModal('modal-edit-doc');
+                loadSupabaseOverview();
+            }
+        }
+
+        async function deleteDocument() {
+            if (!confirm("Êtes-vous sûr de vouloir supprimer ce document de la base de données ?")) return;
+            const id = document.getElementById('edit-doc-id').value;
+
+            const { error } = await window.supabaseClient.from('documents').delete().eq('id', id);
+            if (error) {
+                alert("Erreur lors de la suppression : " + error.message);
+            } else {
+                closeModal('modal-edit-doc');
+                loadSupabaseOverview();
+            }
+        }
     </script>
 </body>
 </html>
