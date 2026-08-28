@@ -938,7 +938,7 @@
                 LKDM_CONFIG.prospectSourceTypes.forEach(ts => sel.innerHTML += `<option value="${ts}">${ts}</option>`);
             });
 
-            const docTypeSelects = document.querySelectorAll('#doc-type-select');
+            const docTypeSelects = document.querySelectorAll('#doc-type-select, #edit-doc-type-select');
             docTypeSelects.forEach(sel => {
                 sel.innerHTML = '';
                 if (LKDM_CONFIG.documentTypes) {
@@ -1158,25 +1158,26 @@
             globalDocumentsData.forEach(d => {
                 let linkedProfile = 'Aucun';
                 if (d.client) {
-                    linkedProfile = `<span onclick="openEditClientModal('${d.client.id}')" class="text-lkdm-accent font-bold cursor-pointer hover:underline">${d.client.full_name} (Client)</span>`;
+                    linkedProfile = `<span onclick="event.stopPropagation(); openEditClientModal('${d.client.id}')" class="text-lkdm-accent font-bold cursor-pointer hover:underline">${d.client.full_name} (Client)</span>`;
                 } else if (d.student) {
-                    linkedProfile = `<span onclick="openEditStudentModal('${d.student.id}')" class="text-lkdm-accent font-bold cursor-pointer hover:underline">${d.student.full_name} (Étudiant)</span>`;
+                    linkedProfile = `<span onclick="event.stopPropagation(); openEditStudentModal('${d.student.id}')" class="text-lkdm-accent font-bold cursor-pointer hover:underline">${d.student.full_name} (Étudiant)</span>`;
                 }
                 
                 let linkedMission = 'Aucune';
                 if (d.mission) {
-                    linkedMission = `<span onclick="openEditMissionModal('${d.mission.id}')" class="text-lkdm-accent font-bold cursor-pointer hover:underline">${d.mission.mission_code}</span>`;
+                    linkedMission = `<span onclick="event.stopPropagation(); openEditMissionModal('${d.mission.id}')" class="text-lkdm-accent font-bold cursor-pointer hover:underline">${d.mission.mission_code}</span>`;
                 }
 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition">
+                    <tr class="hover:bg-slate-50 transition cursor-pointer" onclick="openEditDocModal('${d.id}')">
                         <td class="p-3 font-bold text-lkdm-text">${d.title}</td>
                         <td class="p-3"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px] font-bold border">${d.doc_type}</span></td>
                         <td class="p-3">${linkedProfile}</td>
                         <td class="p-3 font-semibold text-lkdm-accent">${linkedMission}</td>
-                        <td class="p-3 text-right">
-                            <a href="${d.file_url}" target="_blank" class="bg-lkdm-accent text-white px-3 py-1 rounded text-[10px] font-bold inline-flex items-center gap-1 shadow-sm hover:bg-[#b53838]">
-                                <i class="fa-solid fa-eye"></i> Voir le fichier
+                        <td class="p-3 text-right space-x-2">
+                            <button onclick="event.stopPropagation(); openEditDocModal('${d.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded text-[10px] font-bold"><i class="fa-solid fa-pen"></i> Modifier</button>
+                            <a href="${d.file_url}" target="_blank" onclick="event.stopPropagation();" class="bg-lkdm-accent text-white px-2.5 py-1 rounded text-[10px] font-bold inline-flex items-center gap-1 shadow-sm hover:bg-[#b53838]">
+                                <i class="fa-solid fa-eye"></i> Voir
                             </a>
                         </td>
                     </tr>
@@ -1417,12 +1418,11 @@
             closeModal('modal-export-csv');
         }
 
-    // Fonction pour formatter n'importe quelle date Supabase vers l'input HTML
+        // Fonction pour formatter n'importe quelle date Supabase vers l'input HTML
         function formatToDatetimeLocal(isoStr) {
             if (!isoStr) return '';
             
             try {
-                // Si la BDD renvoie exceptionnellement juste une heure (ex: "14:30:00")
                 if (typeof isoStr === 'string' && /^\d{2}:\d{2}(:\d{2})?$/.test(isoStr)) {
                     const today = new Date().toISOString().split('T')[0];
                     isoStr = `${today}T${isoStr}Z`;
@@ -1431,7 +1431,6 @@
                 const d = new Date(isoStr);
                 if (isNaN(d.getTime())) return '';
                 
-                // Extraction manuelle pour construire le format strict YYYY-MM-DDTHH:mm
                 const pad = (n) => n.toString().padStart(2, '0');
                 const yyyy = d.getFullYear();
                 const mm = pad(d.getMonth() + 1);
@@ -1453,7 +1452,6 @@
             const btn = document.getElementById('btn-toggle-time');
 
             if (startInput.disabled) { 
-                // Déverrouillage
                 startInput.disabled = false;
                 endInput.disabled = false;
                 estHoursInput.disabled = false;
@@ -1466,7 +1464,6 @@
                 btn.classList.replace('bg-slate-200', 'bg-amber-200');
                 btn.classList.replace('text-slate-600', 'text-amber-800');
             } else { 
-                // Verrouillage
                 startInput.disabled = true;
                 endInput.disabled = true;
                 estHoursInput.disabled = true;
@@ -1494,20 +1491,17 @@
                 return;
             }
 
-            // On convertit strictement en minutes pleines pour éviter les bugs de millisecondes
             const diffMinutes = Math.floor(diffMs / 60000); 
             let realH = 0;
             
             if (diffMinutes <= 60) {
-                realH = 1.0; // 1h minimum garantie jusqu'à 60 minutes incluses
+                realH = 1.0; 
             } else {
-                // Au-delà de 60 minutes : Arrondi supérieur par tranche de 30 minutes
                 realH = Math.ceil((diffMinutes / 60) * 2) / 2; 
             }
             
             document.getElementById('edit-mis-real').value = realH;
             
-            // Met à jour automatiquement les finances au tarif standard
             document.getElementById('edit-mis-total').value = (realH * 35).toFixed(2);
             document.getElementById('edit-mis-comm').value = (realH * 10).toFixed(2);
         }
@@ -1533,22 +1527,24 @@
             document.getElementById('edit-mis-date').value = m.mission_date || '';
             document.getElementById('edit-mis-desc').value = m.exact_description || '';
 
-            // Formatage sécurisé des heures exactes pour les inputs datetime-local
             document.getElementById('edit-mis-start').value = formatToDatetimeLocal(m.start_time);
             document.getElementById('edit-mis-end').value = formatToDatetimeLocal(m.end_time);
 
-            // Remplissage des champs de temps
             document.getElementById('edit-mis-est-hours').value = m.estimated_hours || '';
-            document.getElementById('edit-mis-real').value = m.real_hours || '';
+            
+            if (m.start_time && m.end_time) {
+                autoCalcRealHours();
+            } else {
+                document.getElementById('edit-mis-real').value = m.real_hours || '';
+            }
 
-            // Remise à zéro du bouton de verrouillage par sécurité à chaque ouverture
             document.getElementById('edit-mis-start').disabled = true;
             document.getElementById('edit-mis-end').disabled = true;
-            document.getElementById('edit-mis-est-hours').disabled = true; // Verrouille le temps estimé
+            document.getElementById('edit-mis-est-hours').disabled = true;
             
             document.getElementById('edit-mis-start').className = "w-full bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-xs transition-colors";
             document.getElementById('edit-mis-end').className = "w-full bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-xs transition-colors";
-            document.getElementById('edit-mis-est-hours').className = "w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs transition-colors"; // Met en gris le temps estimé
+            document.getElementById('edit-mis-est-hours').className = "w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs transition-colors";
             
             const btnTime = document.getElementById('btn-toggle-time');
             if(btnTime) {
@@ -1556,13 +1552,11 @@
                 btnTime.className = 'text-[10px] bg-slate-200 text-slate-600 px-2 py-1 rounded font-bold hover:bg-slate-300 transition flex items-center';
             }
             
-            // Finances
             document.getElementById('edit-mis-payment').value = m.payment_type || 'Facture';
             document.getElementById('edit-mis-pay-status').value = m.payment_status || 'Facture non envoyée';
             document.getElementById('edit-mis-total').value = m.total_amount || '';
             document.getElementById('edit-mis-comm').value = m.lkdm_commission || '';
 
-            // Feedbacks
             document.getElementById('edit-mis-scsat').value = m.senior_csat || '';
             document.getElementById('edit-mis-snps').value = m.senior_nps || '';
             document.getElementById('edit-mis-stcsat').value = m.student_csat || '';
@@ -1570,13 +1564,12 @@
             document.getElementById('edit-mis-dar').value = m.dar_summary || '';
             document.getElementById('edit-mis-feedback').value = m.feedback || '';
 
-            // Documents
             const missionDocs = globalDocumentsData.filter(d => d.mission_id == m.id);
             const docsContainer = document.getElementById('mission-docs-list');
             docsContainer.innerHTML = missionDocs.length ? missionDocs.map(d => `
-                <div class="bg-white p-2 rounded border flex justify-between items-center">
+                <div onclick="openEditDocModal('${d.id}')" class="bg-white p-2 rounded border flex justify-between items-center cursor-pointer hover:border-lkdm-accent">
                     <span><strong>[${d.doc_type}]</strong> ${d.title}</span>
-                    <a href="${d.file_url}" target="_blank" class="text-lkdm-accent font-bold hover:underline">Voir</a>
+                    <span class="text-lkdm-accent font-bold hover:underline">Modifier / Voir</span>
                 </div>
             `).join('') : '<p class="text-slate-400">Aucun document lié.</p>';
 
@@ -1587,7 +1580,6 @@
             event.preventDefault();
             const id = document.getElementById('edit-mis-id').value;
 
-            // Re-convertir le champ local en format ISO Supabase
             let startTimeISO = null;
             if (document.getElementById('edit-mis-start').value) {
                 startTimeISO = new Date(document.getElementById('edit-mis-start').value).toISOString();
@@ -1662,9 +1654,9 @@
             const studentDocs = globalDocumentsData.filter(d => d.student_id == s.id);
             const docsContainer = document.getElementById('stu-documents-list');
             docsContainer.innerHTML = studentDocs.length ? studentDocs.map(d => `
-                <div class="bg-white p-2 rounded border flex justify-between items-center">
+                <div onclick="openEditDocModal('${d.id}')" class="bg-white p-2 rounded border flex justify-between items-center cursor-pointer hover:border-lkdm-accent">
                     <span><strong>[${d.doc_type}]</strong> ${d.title}</span>
-                    <a href="${d.file_url}" target="_blank" class="text-lkdm-accent font-bold hover:underline">Voir</a>
+                    <span class="text-lkdm-accent font-bold hover:underline">Modifier</span>
                 </div>
             `).join('') : '<p class="text-slate-400">Aucun document lié.</p>';
 
@@ -1720,9 +1712,9 @@
             const clientDocs = globalDocumentsData.filter(d => d.client_id == c.id);
             const docsContainer = document.getElementById('cli-documents-list');
             docsContainer.innerHTML = clientDocs.length ? clientDocs.map(d => `
-                <div class="bg-white p-2 rounded border flex justify-between items-center">
+                <div onclick="openEditDocModal('${d.id}')" class="bg-white p-2 rounded border flex justify-between items-center cursor-pointer hover:border-lkdm-accent">
                     <span><strong>[${d.doc_type}]</strong> ${d.title}</span>
-                    <a href="${d.file_url}" target="_blank" class="text-lkdm-accent font-bold hover:underline">Voir</a>
+                    <span class="text-lkdm-accent font-bold hover:underline">Modifier</span>
                 </div>
             `).join('') : '<p class="text-slate-400">Aucun document lié.</p>';
 
