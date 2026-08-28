@@ -143,7 +143,7 @@
                         <table class="w-full text-left text-sm whitespace-nowrap">
                             <thead class="bg-slate-50 text-xs font-semibold text-lkdm-secondary uppercase border-b border-slate-100">
                                 <tr>
-                                    <th class="py-4 px-6">Date & Heure</th>
+                                    <th class="py-4 px-6">Période / Date</th>
                                     <th class="py-4 px-6">Prestation</th>
                                     <th class="py-4 px-6">Intervenant (Étudiant)</th>
                                     <th class="py-4 px-6 text-right">Statut</th>
@@ -162,26 +162,20 @@
                         
                         <form onsubmit="submitCustomerOrder(event)" class="space-y-4">
                             <div>
-                                <label class="block text-xs font-bold text-lkdm-text mb-1.5">Type de prestation / Tâche</label>
+                                <label class="block text-xs font-bold text-lkdm-text mb-1.5">Type de prestation / Tâche *</label>
                                 <input type="text" id="ord-title" required placeholder="Ex: Aide ménage & courses" class="w-full bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-lkdm-accent">
                             </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-lkdm-text mb-1.5">Date souhaitée</label>
-                                    <input type="date" id="ord-date" required class="w-full bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-lkdm-accent">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-lkdm-text mb-1.5">Heure / Période</label>
-                                    <input type="text" id="ord-periods" required placeholder="Ex: 14:00 - 16:00" class="w-full bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-lkdm-accent">
-                                </div>
+                            <div>
+                                <label class="block text-xs font-bold text-lkdm-text mb-1.5">Quand souhaitez-vous que la mission soit effectuée ? *</label>
+                                <input type="text" id="ord-periods" required placeholder="Ex: Dès que possible, Mardi prochain, Matin..." class="w-full bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-lkdm-accent">
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs font-bold text-lkdm-text mb-1.5">Durée estimée (heures)</label>
+                                    <label class="block text-xs font-bold text-lkdm-text mb-1.5">Durée estimée (heures) *</label>
                                     <input type="number" id="ord-duration" step="0.5" required placeholder="2.0" class="w-full bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-lkdm-accent">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-lkdm-text mb-1.5">Langue souhaitée</label>
+                                    <label class="block text-xs font-bold text-lkdm-text mb-1.5">Langue souhaitée *</label>
                                     <select id="ord-lang" class="w-full bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-lkdm-accent">
                                         <option value="Français">Français</option>
                                         <option value="Allemand">Allemand</option>
@@ -206,7 +200,7 @@
                             <thead class="bg-slate-50 text-xs font-semibold text-lkdm-secondary uppercase border-b border-slate-100">
                                 <tr>
                                     <th class="py-4 px-6">N° Mission / Facture</th>
-                                    <th class="py-4 px-6">Date</th>
+                                    <th class="py-4 px-6">Période</th>
                                     <th class="py-4 px-6">Montant Total</th>
                                     <th class="py-4 px-6 text-right">Statut Paiement</th>
                                 </tr>
@@ -227,7 +221,7 @@
             
             <div class="space-y-3 text-sm bg-slate-50 p-4 rounded-2xl border">
                 <p><strong>Code mission :</strong> <span id="modal-mis-code" class="font-semibold text-lkdm-accent"></span></p>
-                <p><strong>Date & Horaire :</strong> <span id="modal-mis-date"></span></p>
+                <p><strong>Période souhaitée :</strong> <span id="modal-mis-date"></span></p>
                 <p><strong>Description :</strong> <span id="modal-mis-desc"></span></p>
                 <p><strong>Intervenant assigné :</strong> <span id="modal-mis-student" class="font-semibold text-emerald-700"></span></p>
                 <p><strong>Téléphone intervenant :</strong> <span id="modal-mis-student-phone" class="font-semibold text-lkdm-accent"></span></p>
@@ -329,7 +323,7 @@
                     <div onclick="openCustomerMissionModal(${m.id})" class="cursor-pointer p-4 bg-slate-50 hover:bg-slate-100 rounded-xl border flex justify-between items-center text-sm transition">
                         <div>
                             <p class="font-bold text-lkdm-text">${m.exact_description || m.mission_code}</p>
-                            <p class="text-xs text-lkdm-secondary mt-0.5">${m.mission_date || 'Date à convenir'} • ${m.mission_periods || ''} • Intervenant : <strong class="text-lkdm-text">${studentName}</strong></p>
+                            <p class="text-xs text-lkdm-secondary mt-0.5">Période : <strong class="text-lkdm-text">${m.mission_periods || 'À convenir'}</strong> • Intervenant : <strong class="text-lkdm-text">${studentName}</strong></p>
                         </div>
                         ${statusBadge}
                     </div>
@@ -359,7 +353,7 @@
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition cursor-pointer" onclick="openCustomerMissionModal(${m.id})">
-                        <td class="py-4 px-6 font-bold text-lkdm-text">${m.mission_date || 'À convenir'}<br><span class="text-xs text-lkdm-secondary font-normal">${m.mission_periods || ''}</span></td>
+                        <td class="py-4 px-6 font-bold text-lkdm-text">${m.mission_periods || 'À convenir'}</td>
                         <td class="py-4 px-6 font-bold text-lkdm-text">${m.exact_description || m.mission_code}</td>
                         <td class="py-4 px-6 text-sm text-lkdm-secondary">${studentName}</td>
                         <td class="py-4 px-6 text-right">${badge}</td>
@@ -373,11 +367,10 @@
             if (!m) return;
 
             document.getElementById('modal-mis-code').innerText = m.mission_code || 'N/A';
-            document.getElementById('modal-mis-date').innerText = `${m.mission_date || 'À convenir'} (${m.mission_periods || 'Horaire flexible'})`;
+            document.getElementById('modal-mis-date').innerText = m.mission_periods || 'À convenir';
             document.getElementById('modal-mis-desc').innerText = m.exact_description || 'Aucune description';
             document.getElementById('modal-mis-student').innerText = m.student ? m.student.full_name : 'En cours d\'attribution';
 
-            // Affichage du numéro de téléphone de l'intervenant
             const phoneEl = document.getElementById('modal-mis-student-phone');
             if (m.student && m.student.phone) {
                 phoneEl.innerHTML = `<a href="tel:${m.student.phone}" class="hover:underline text-lkdm-accent font-bold"><i class="fa-solid fa-phone mr-1"></i>${m.student.phone}</a>`;
@@ -432,8 +425,7 @@
                 mission_code: finalCode,
                 client_id: currentClientId,
                 exact_description: document.getElementById('ord-title').value,
-                mission_date: document.getElementById('ord-date').value,
-                mission_periods: document.getElementById('ord-periods').value,
+                mission_periods: document.getElementById('ord-periods').value, // Enregistrement de la période souhaitée
                 mission_language: document.getElementById('ord-lang').value,
                 estimated_hours: estHours,
                 real_hours: estHours,
@@ -482,7 +474,7 @@
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition cursor-pointer" onclick="openCustomerMissionModal(${m.id})">
                         <td class="py-4 px-6 font-bold text-lkdm-accent">${m.mission_code}</td>
-                        <td class="py-4 px-6 text-lkdm-secondary">${m.mission_date || '-'}</td>
+                        <td class="py-4 px-6 text-lkdm-secondary">${m.mission_periods || '-'}</td>
                         <td class="py-4 px-6 font-bold text-lkdm-text">CHF ${amount.toFixed(2)}</td>
                         <td class="py-4 px-6 text-right">${statusBadge}</td>
                     </tr>
