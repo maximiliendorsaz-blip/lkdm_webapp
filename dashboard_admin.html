@@ -1371,12 +1371,28 @@
             closeModal('modal-export-csv');
         }
 
-        // Fonction utile pour formatter le format brut de Supabase (UTC) vers le champ HTML datetime-local
+    // Fonction pour formatter n'importe quelle date Supabase vers l'input HTML
         function formatToDatetimeLocal(isoStr) {
             if (!isoStr) return '';
-            const d = new Date(isoStr);
-            d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-            return d.toISOString().slice(0, 16);
+            try {
+                // Si la BDD renvoie exceptionnellement juste une heure (ex: "14:30:00")
+                if (/^\d{2}:\d{2}(:\d{2})?$/.test(isoStr)) {
+                    const today = new Date().toISOString().split('T')[0];
+                    isoStr = `${today}T${isoStr}Z`;
+                }
+
+                const d = new Date(isoStr);
+                if (isNaN(d.getTime())) return '';
+                
+                // Ajustement au fuseau horaire local (Suisse)
+                d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                
+                // Coupe la chaîne pour obtenir pile YYYY-MM-DDTHH:MM (ce qu'attend le HTML)
+                return d.toISOString().slice(0, 16);
+            } catch(e) {
+                console.error("Erreur de formatage de date:", e);
+                return '';
+            }
         }
 
         function toggleTimeEdit() {
@@ -1454,7 +1470,7 @@
             document.getElementById('edit-mis-date').value = m.mission_date || '';
             document.getElementById('edit-mis-desc').value = m.exact_description || '';
 
-            // Formatage des heures exactes TIMESTAMPTZ pour les inputs datetime-local
+            // Formatage sécurisé des heures exactes pour les inputs datetime-local
             document.getElementById('edit-mis-start').value = formatToDatetimeLocal(m.start_time);
             document.getElementById('edit-mis-end').value = formatToDatetimeLocal(m.end_time);
 
@@ -1495,7 +1511,7 @@
 
             openModal('modal-edit-mission');
         }
-
+        
         async function submitEditMission(event) {
             event.preventDefault();
             const id = document.getElementById('edit-mis-id').value;
