@@ -663,10 +663,15 @@
 
                 <!-- Bloc 2 : Temps & Chronomètres -->
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
-                    <h4 class="font-bold text-xs uppercase text-lkdm-secondary">Horaires & Temps</h4>
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-xs uppercase text-lkdm-secondary">Horaires & Temps</h4>
+                        <button type="button" onclick="toggleTimeEdit()" id="btn-toggle-time" class="text-[10px] bg-slate-200 text-slate-600 px-2 py-1 rounded font-bold hover:bg-slate-300 transition flex items-center">
+                            <i class="fa-solid fa-lock mr-1"></i> Déverrouiller
+                        </button>
+                    </div>
                     <div class="grid grid-cols-4 gap-3">
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Heure de début (exacte)</label><input type="time" id="edit-mis-start" step="1" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Heure de fin (exacte)</label><input type="time" id="edit-mis-end" step="1" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Début (exact)</label><input type="datetime-local" id="edit-mis-start" onchange="autoCalcRealHours()" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-xs"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Fin (exacte)</label><input type="datetime-local" id="edit-mis-end" onchange="autoCalcRealHours()" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-xs"></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">Temps estimé (h)</label><input type="number" step="0.25" id="edit-mis-est-hours" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                         <div><label class="block text-xs font-bold text-lkdm-accent mb-1">Temps réel (h)</label><input type="number" step="0.25" id="edit-mis-real" class="w-full bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-xs font-bold text-lkdm-accent"></div>
                     </div>
@@ -716,6 +721,7 @@
             </form>
         </div>
     </div>
+
     <!-- MODAL : FICHE ÉTUDIANT -->
     <div id="modal-edit-student" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
@@ -1067,7 +1073,6 @@
 
             let missionsToDisplay = [...globalMissionsData];
 
-            // 1. Tri dynamique (par statut ou par numéro)
             missionsToDisplay.sort((a, b) => {
                 if (sortOrder === 'status') {
                     const pA = statusPriority[(a.matching_status || "").toLowerCase()] || 99;
@@ -1079,14 +1084,12 @@
                 return numA - numB;
             });
 
-            // 2. Filtrage par statut
             if (statusFilter === 'all-open') {
                 missionsToDisplay = missionsToDisplay.filter(m => (m.matching_status || "").toLowerCase() !== "mission effectuée");
             } else if (statusFilter !== 'all') {
                 missionsToDisplay = missionsToDisplay.filter(m => m.matching_status === statusFilter);
             }
         
-            // 3. Affichage
             missionsToDisplay.forEach(m => {
                 const colorClass = getStatusColorClass(m.matching_status);
                 tbody.innerHTML += `
@@ -1368,6 +1371,68 @@
             closeModal('modal-export-csv');
         }
 
+        // Fonction utile pour formatter le format brut de Supabase (UTC) vers le champ HTML datetime-local
+        function formatToDatetimeLocal(isoStr) {
+            if (!isoStr) return '';
+            const d = new Date(isoStr);
+            d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+            return d.toISOString().slice(0, 16);
+        }
+
+        function toggleTimeEdit() {
+            const startInput = document.getElementById('edit-mis-start');
+            const endInput = document.getElementById('edit-mis-end');
+            const btn = document.getElementById('btn-toggle-time');
+
+            if (startInput.disabled) {
+                startInput.disabled = false;
+                endInput.disabled = false;
+                startInput.classList.replace('bg-slate-100', 'bg-white');
+                endInput.classList.replace('bg-slate-100', 'bg-white');
+                btn.innerHTML = '<i class="fa-solid fa-lock-open mr-1"></i> Verrouiller';
+                btn.classList.replace('bg-slate-200', 'bg-amber-200');
+                btn.classList.replace('text-slate-600', 'text-amber-800');
+            } else {
+                startInput.disabled = true;
+                endInput.disabled = true;
+                startInput.classList.replace('bg-white', 'bg-slate-100');
+                endInput.classList.replace('bg-white', 'bg-slate-100');
+                btn.innerHTML = '<i class="fa-solid fa-lock mr-1"></i> Déverrouiller';
+                btn.classList.replace('bg-amber-200', 'bg-slate-200');
+                btn.classList.replace('text-amber-800', 'text-slate-600');
+            }
+        }
+
+        function autoCalcRealHours() {
+            const startStr = document.getElementById('edit-mis-start').value;
+            const endStr = document.getElementById('edit-mis-end').value;
+            
+            if (!startStr || !endStr) return;
+            
+            const start = new Date(startStr);
+            const end = new Date(endStr);
+            const diffMs = end - start;
+            
+            if (diffMs <= 0) {
+                document.getElementById('edit-mis-real').value = 0;
+                return;
+            }
+
+            const diffHours = diffMs / (1000 * 60 * 60);
+            let realH = 0;
+            
+            if (diffHours <= 1.0) {
+                realH = 1.0; // 1h minimum garantie
+            } else {
+                realH = Math.ceil(diffHours * 2) / 2; // Arrondi supérieur par tranche de 30 minutes
+            }
+            
+            document.getElementById('edit-mis-real').value = realH;
+            
+            document.getElementById('edit-mis-total').value = (realH * 35).toFixed(2);
+            document.getElementById('edit-mis-comm').value = (realH * 10).toFixed(2);
+        }
+
         // --- OUVERTURE & ÉDITION MISSION ---
         async function openEditMissionModal(id) {
             const m = globalMissionsData.find(x => x.id == id);
@@ -1385,12 +1450,39 @@
             document.getElementById('edit-mis-code').value = m.mission_code || '';
             document.getElementById('edit-mis-matching-status').value = m.matching_status || 'Nouveau';
             document.getElementById('edit-mis-lang').value = m.mission_language || 'Français';
-            document.getElementById('edit-mis-payment').value = m.payment_type || 'TWINT';
+            document.getElementById('edit-mis-periods').value = m.mission_periods || '';
             document.getElementById('edit-mis-date').value = m.mission_date || '';
             document.getElementById('edit-mis-desc').value = m.exact_description || '';
-            document.getElementById('edit-mis-start').value = m.start_time || '';
-            document.getElementById('edit-mis-end').value = m.end_time || '';
-            document.getElementById('edit-mis-real').value = m.real_hours || 2.0;
+
+            // Formatage des heures exactes TIMESTAMPTZ pour les inputs datetime-local
+            document.getElementById('edit-mis-start').value = formatToDatetimeLocal(m.start_time);
+            document.getElementById('edit-mis-end').value = formatToDatetimeLocal(m.end_time);
+
+            // Remise à zéro du bouton de verrouillage par sécurité à chaque ouverture
+            document.getElementById('edit-mis-start').disabled = true;
+            document.getElementById('edit-mis-end').disabled = true;
+            document.getElementById('edit-mis-start').className = "w-full bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-xs";
+            document.getElementById('edit-mis-end').className = "w-full bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-xs";
+            const btnTime = document.getElementById('btn-toggle-time');
+            if(btnTime) {
+                btnTime.innerHTML = '<i class="fa-solid fa-lock mr-1"></i> Déverrouiller';
+                btnTime.className = 'text-[10px] bg-slate-200 text-slate-600 px-2 py-1 rounded font-bold hover:bg-slate-300 transition flex items-center';
+            }
+            
+            document.getElementById('edit-mis-est-hours').value = m.estimated_hours || '';
+            document.getElementById('edit-mis-real').value = m.real_hours || '';
+            
+            document.getElementById('edit-mis-payment').value = m.payment_type || 'Facture';
+            document.getElementById('edit-mis-pay-status').value = m.payment_status || 'Facture non envoyée';
+            document.getElementById('edit-mis-total').value = m.total_amount || '';
+            document.getElementById('edit-mis-comm').value = m.lkdm_commission || '';
+
+            document.getElementById('edit-mis-scsat').value = m.senior_csat || '';
+            document.getElementById('edit-mis-snps').value = m.senior_nps || '';
+            document.getElementById('edit-mis-stcsat').value = m.student_csat || '';
+            document.getElementById('edit-mis-stnps').value = m.student_nps || '';
+            document.getElementById('edit-mis-dar').value = m.dar_summary || '';
+            document.getElementById('edit-mis-feedback').value = m.feedback || '';
 
             const missionDocs = globalDocumentsData.filter(d => d.mission_id == m.id);
             const docsContainer = document.getElementById('mission-docs-list');
@@ -1407,7 +1499,16 @@
         async function submitEditMission(event) {
             event.preventDefault();
             const id = document.getElementById('edit-mis-id').value;
-            const realHours = parseFloat(document.getElementById('edit-mis-real').value) || 2.0;
+
+            // Re-convertir le champ local en format ISO Supabase
+            let startTimeISO = null;
+            if (document.getElementById('edit-mis-start').value) {
+                startTimeISO = new Date(document.getElementById('edit-mis-start').value).toISOString();
+            }
+            let endTimeISO = null;
+            if (document.getElementById('edit-mis-end').value) {
+                endTimeISO = new Date(document.getElementById('edit-mis-end').value).toISOString();
+            }
 
             const payload = {
                 mission_code: document.getElementById('edit-mis-code').value,
@@ -1415,14 +1516,26 @@
                 student_id: document.getElementById('edit-mis-student').value || null,
                 matching_status: document.getElementById('edit-mis-matching-status').value,
                 mission_language: document.getElementById('edit-mis-lang').value,
-                payment_type: document.getElementById('edit-mis-payment').value,
+                mission_periods: document.getElementById('edit-mis-periods').value,
                 mission_date: document.getElementById('edit-mis-date').value || null,
                 exact_description: document.getElementById('edit-mis-desc').value,
-                start_time: document.getElementById('edit-mis-start').value || null,
-                end_time: document.getElementById('edit-mis-end').value || null,
-                real_hours: realHours,
-                lkdm_commission: realHours * 10,
-                total_amount: realHours * 35
+                
+                start_time: startTimeISO,
+                end_time: endTimeISO,
+                estimated_hours: parseFloat(document.getElementById('edit-mis-est-hours').value) || 0,
+                real_hours: parseFloat(document.getElementById('edit-mis-real').value) || 0,
+                
+                payment_type: document.getElementById('edit-mis-payment').value,
+                payment_status: document.getElementById('edit-mis-pay-status').value,
+                total_amount: parseFloat(document.getElementById('edit-mis-total').value) || 0,
+                lkdm_commission: parseFloat(document.getElementById('edit-mis-comm').value) || 0,
+
+                senior_csat: parseInt(document.getElementById('edit-mis-scsat').value) || null,
+                senior_nps: parseInt(document.getElementById('edit-mis-snps').value) || null,
+                student_csat: parseInt(document.getElementById('edit-mis-stcsat').value) || null,
+                student_nps: parseInt(document.getElementById('edit-mis-stnps').value) || null,
+                dar_summary: document.getElementById('edit-mis-dar').value,
+                feedback: document.getElementById('edit-mis-feedback').value
             };
 
             const { error } = await window.supabaseClient.from('missions').update(payload).eq('id', id);
