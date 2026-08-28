@@ -21,6 +21,18 @@
     <script src="config.js"></script>
     <style>
         #admin-map { z-index: 10 !important; }
+        /* Adaptation mobile pour toutes les modales et les tableaux */
+        html, body { max-width: 100%; overflow-x: hidden; }
+        @media (max-width: 768px) {
+            .modal-content, [id^="modal-"] > div {
+                width: 95% !important;
+                max-width: 95% !important;
+                margin: 1rem auto !important;
+                padding: 1rem !important;
+                max-height: 85vh !important;
+                overflow-y: auto !important;
+            }
+        }
     </style>
 </head>
 <body class="antialiased flex flex-col min-h-screen selection:bg-lkdm-accent selection:text-white">
@@ -1437,7 +1449,6 @@
             closeModal('modal-export-csv');
         }
 
-        // Fonction pour formatter n'importe quelle date Supabase vers l'input HTML (Heure locale)
         function formatToDatetimeLocal(isoStr) {
             if (!isoStr) return '';
             
@@ -1525,7 +1536,6 @@
             document.getElementById('edit-mis-comm').value = (realH * 10).toFixed(2);
         }
 
-        // --- OUVERTURE & ÉDITION MISSION ---
         async function openEditMissionModal(id) {
             const m = globalMissionsData.find(x => x.id == id);
             if (!m) return;
@@ -1646,7 +1656,6 @@
             else { closeModal('modal-edit-mission'); loadSupabaseOverview(); }
         }
 
-        // --- OUVERTURE & ÉDITION ÉTUDIANT ---
         function openEditStudentModal(id) {
             const s = globalStudentsData.find(x => x.id == id);
             if (!s) return;
@@ -1708,7 +1717,6 @@
             else { closeModal('modal-edit-student'); loadSupabaseOverview(); }
         }
 
-        // --- OUVERTURE & ÉDITION CLIENT ---
         function openEditClientModal(id) {
             const c = globalClientsData.find(x => x.id == id);
             if (!c) return;
@@ -1763,7 +1771,6 @@
             else { closeModal('modal-edit-client'); loadSupabaseOverview(); }
         }
 
-        // --- CARTE LEAFLET & GÉOCODAGE ---
         async function initAdminMap() {
             if (adminMap) { adminMap.invalidateSize(); return; }
             adminMap = L.map('admin-map').setView([46.2331, 7.3606], 11);
