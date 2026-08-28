@@ -254,7 +254,7 @@
         <div class="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300" id="mission-modal-content"></div>
     </div>
 
-    <!-- Modale Fin de Mission & Feedback -->
+<!-- Modale Fin de Mission & Feedback -->
     <div id="modal-feedback" class="hidden fixed inset-0 z-[400] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
             <h3 class="text-xl font-bold text-lkdm-text mb-4">Clôturer la mission</h3>
@@ -289,6 +289,48 @@
                     </div>
                 </div>
 
+                <!-- Section Frais de déplacement & Paiement -->
+                <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-200 space-y-4">
+                    <h4 class="font-bold text-emerald-900 border-b border-emerald-200 pb-2">Frais de déplacement & Paiement</h4>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Moyen de paiement choisi *</label>
+                            <select id="fb-payment-type" required class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                                <option value="TWINT">TWINT</option>
+                                <option value="Cash">Cash</option>
+                                <option value="Facture">Facture</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Type de transport</label>
+                            <select id="fb-transport-type" onchange="toggleTransportFields()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                                <option value="none">Aucun frais</option>
+                                <option value="km">Voiture (Kilomètres)</option>
+                                <option value="bus">Bus (Billet)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Champ KM -->
+                    <div id="container-km" class="hidden">
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Nombre de kilomètres (0.75 CHF / km)</label>
+                        <input type="number" id="fb-km-count" min="0" step="1" value="0" oninput="calculateTotalAmount()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                    </div>
+
+                    <!-- Champ Ticket de Bus & Quittance -->
+                    <div id="container-bus" class="hidden space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Prix du billet de bus (CHF)</label>
+                            <input type="number" id="fb-bus-price" min="0" step="0.05" value="0" oninput="calculateTotalAmount()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-lkdm-accent mb-1">Quittance / Ticket de bus (Obligatoire) *</label>
+                            <input type="file" id="fb-bus-receipt" accept="image/*,.pdf" class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white">
+                        </div>
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">Résumé D.A.R (Besoin, Action, Résultat) *</label>
                     <textarea id="fb-dar" required rows="4" placeholder="Pour chaque tâche effectuée, nommez la tâche, décrivez le besoin (D), l'action réalisée (A) et le résultat obtenu (R)..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs"></textarea>
@@ -304,9 +346,15 @@
                     <textarea id="fb-feedback" required rows="2" placeholder="Comment s'est passée la mission globalement ?" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs"></textarea>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-lkdm-accent mb-1">Heures réelles effectuées (Modifiable) *</label>
-                    <input type="number" id="fb-real-hours" step="0.25" required class="w-full bg-red-50 border border-red-200 text-lkdm-accent font-bold rounded-xl px-3 py-2 text-xs">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-lkdm-accent mb-1">Heures réelles (Modifiable) *</label>
+                        <input type="number" id="fb-real-hours" step="0.25" oninput="calculateTotalAmount()" required class="w-full bg-red-50 border border-red-200 text-lkdm-accent font-bold rounded-xl px-3 py-2 text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-emerald-700 mb-1">Montant Total à Payer (CHF)</label>
+                        <input type="text" id="fb-total-display" readonly class="w-full bg-emerald-50 border border-emerald-300 text-emerald-800 font-extrabold rounded-xl px-3 py-2 text-sm" value="CHF 0.00">
+                    </div>
                 </div>
 
                 <div class="flex justify-end gap-3 pt-4 border-t">
@@ -315,7 +363,6 @@
             </form>
         </div>
     </div>
-
     <!-- Modale Rebooking -->
     <div id="modal-rebooking" class="hidden fixed inset-0 z-[500] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 my-8 relative">
@@ -544,12 +591,11 @@
             await loadStudentData();
         }
 
-        function openFeedbackModal(id) {
+ function openFeedbackModal(id) {
             closeModal();
             const m = dbMissions.find(x => x.id === id);
             
-            // Calcul auto des heures avec la nouvelle règle stricte
-            let hours = 2.0; // Par défaut si pas de chrono
+            let hours = 2.0;
             if (m.start_time) {
                 const start = new Date(m.start_time);
                 const end = new Date();
@@ -568,7 +614,12 @@
             }
 
             document.getElementById('fb-mission-id').value = id;
-            document.getElementById('fb-real-hours').value = hours; // Le temps calculé avec les bonnes règles
+            document.getElementById('fb-real-hours').value = hours;
+            document.getElementById('fb-transport-type').value = 'none';
+            document.getElementById('container-km').classList.add('hidden');
+            document.getElementById('container-bus').classList.add('hidden');
+            document.getElementById('fb-km-count').value = 0;
+            document.getElementById('fb-bus-price').value = 0;
             document.getElementById('fb-dar').value = '';
             document.getElementById('fb-feedback').value = '';
             document.getElementById('fb-scsat').value = '';
@@ -576,8 +627,10 @@
             document.getElementById('fb-stcsat').value = '';
             document.getElementById('fb-stnps').value = '';
 
+            calculateTotalAmount();
             openModal('modal-feedback');
         }
+
         async function submitFeedback(event) {
             event.preventDefault();
             const btn = document.getElementById('btn-submit-fb');
@@ -587,8 +640,20 @@
             const id = document.getElementById('fb-mission-id').value;
             const m = dbMissions.find(x => x.id == id);
             const fileInput = document.getElementById('fb-photos');
+            const busReceiptInput = document.getElementById('fb-bus-receipt');
+            const transportType = document.getElementById('fb-transport-type').value;
+
+            // Vérification qu'une quittance de bus est bien fournie si option bus sélectionnée
+            if (transportType === 'bus' && (!busReceiptInput.files || busReceiptInput.files.length === 0)) {
+                alert("Veuillez joindre la quittance / le ticket de bus.");
+                btn.innerText = "Valider la fin de mission";
+                btn.disabled = false;
+                return;
+            }
+
             let photoUrls = [];
             
+            // Upload des photos de mission
             if (fileInput.files && fileInput.files.length > 0) {
                 for (let file of fileInput.files) {
                     const fileName = `fb_${Date.now()}_${file.name}`;
@@ -600,10 +665,29 @@
                 }
             }
 
+            // Upload de la quittance de bus si présente
+            let travelExpensesVal = 0;
+            if (transportType === 'km') {
+                const km = parseFloat(document.getElementById('fb-km-count').value) || 0;
+                travelExpensesVal = km * 0.75;
+            } else if (transportType === 'bus' && busReceiptInput.files.length > 0) {
+                const busFile = busReceiptInput.files[0];
+                const busFileName = `receipt_bus_${Date.now()}_${busFile.name}`;
+                const { error: busUploadErr } = await window.supabaseClient.storage.from('lkdm_docs').upload(busFileName, busFile);
+                if (!busUploadErr) {
+                    const { data: { publicUrl: busUrl } } = window.supabaseClient.storage.from('lkdm_docs').getPublicUrl(busFileName);
+                    photoUrls.push("Quittance Bus: " + busUrl);
+                }
+                travelExpensesVal = parseFloat(document.getElementById('fb-bus-price').value) || 0;
+            }
+
             let darText = document.getElementById('fb-dar').value;
             if (photoUrls.length > 0) {
-                darText += "\n\n--- PHOTOS ---\n" + photoUrls.join("\n");
+                darText += "\n\n--- PIÈCES JOINTES & PHOTOS ---\n" + photoUrls.join("\n");
             }
+
+            const realHours = parseFloat(document.getElementById('fb-real-hours').value) || 0;
+            const totalAmountVal = (realHours * 35) + travelExpensesVal;
 
             const payload = {
                 end_time: new Date().toISOString(),
@@ -613,7 +697,11 @@
                 student_nps: document.getElementById('fb-stnps').value,
                 dar_summary: darText,
                 feedback: document.getElementById('fb-feedback').value,
-                real_hours: document.getElementById('fb-real-hours').value,
+                real_hours: realHours,
+                payment_type: document.getElementById('fb-payment-type').value,
+                travel_expenses: travelExpensesVal,
+                total_amount: totalAmountVal,
+                lkdm_commission: realHours * 10,
                 matching_status: 'Mission effectuée'
             };
 
@@ -626,6 +714,9 @@
             closeModalCustom('modal-feedback');
             await loadStudentData();
 
+            alert("👁️ INFO LKDM : Avant de proposer un nouveau rendez-vous, observez bien l'environnement du client ! Y a-t-il d'autres besoins non exprimés (jardin à tailler, vitres sales, nettoyages) ?");
+            openRebookingModal(m.client_id);
+        }
             // Notification d'observation puis ouverture du Rebooking
             alert("👁️ INFO LKDM : Avant de proposer un nouveau rendez-vous, observez bien l'environnement du client ! Y a-t-il d'autres besoins non exprimés (jardin à tailler, vitres sales, nettoyages) ?");
             openRebookingModal(m.client_id);
@@ -797,6 +888,38 @@
         window.addEventListener('DOMContentLoaded', () => {
             initStudentSpace();
         });
+
+        function toggleTransportFields() {
+            const type = document.getElementById('fb-transport-type').value;
+            const kmContainer = document.getElementById('container-km');
+            const busContainer = document.getElementById('container-bus');
+            
+            kmContainer.classList.add('hidden');
+            busContainer.classList.add('hidden');
+            
+            if (type === 'km') kmContainer.classList.remove('hidden');
+            if (type === 'bus') busContainer.classList.remove('hidden');
+            
+            calculateTotalAmount();
+        }
+        function calculateTotalAmount() {
+            const hours = parseFloat(document.getElementById('fb-real-hours').value) || 0;
+            const transportType = document.getElementById('fb-transport-type').value;
+            
+            let laborCost = hours * 35; // 35 CHF / heure
+            let travelCost = 0;
+            
+            if (transportType === 'km') {
+                const km = parseFloat(document.getElementById('fb-km-count').value) || 0;
+                travelCost = km * 0.75; // 0.75 CHF par km
+            } else if (transportType === 'bus') {
+                travelCost = parseFloat(document.getElementById('fb-bus-price').value) || 0;
+            }
+            
+            const total = laborCost + travelCost;
+            document.getElementById('fb-total-display').value = `CHF ${total.toFixed(2)}`;
+        }
+        
     </script>
 </body>
 </html>
