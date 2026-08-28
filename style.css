@@ -58,3 +58,26 @@ body {
 .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+/* Empêche le contenu de dépasser de l'écran sur mobile */
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* S'assure que les modales prennent tout l'écran sur mobile sans être coupées */
+@media (max-width: 768px) {
+    .modal-content, [id^="modal-"] > div {
+        width: 95% !important;
+        max-width: 95% !important;
+        margin: 1rem auto !important;
+        padding: 1rem !important;
+        max-height: 85vh !important;
+        overflow-y: auto !important;
+    }
+}
+
+/* Rendre tous les tableaux scrollables horizontalement proprement sur mobile */
+.overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+}
