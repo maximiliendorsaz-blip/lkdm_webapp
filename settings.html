@@ -201,7 +201,7 @@
             document.getElementById('user-avatar-initials').innerText = profile.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
             
             document.getElementById('sidebar-role-label').innerText = currentUserRole === 'student' ? 'Espace Étudiant' : 'Espace Famille';
-            document.getElementById('back-to-dashboard-btn').setAttribute('href', currentUserRole === 'student' ? 'dashboard_student.html' : 'dashboard_client.html');
+            document.getElementById('back-to-dashboard-btn').setAttribute('href', currentUserRole === 'student' ? 'dashboard_student.html' : 'dashboard_customer.html');
 
             // Remplissage formulaire
             document.getElementById('set-firstname').value = profile.first_name || '';
