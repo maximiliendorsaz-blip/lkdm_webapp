@@ -871,6 +871,18 @@
         let adminMap = null;
         let adminMarkers = null;
 
+        // Vérifie si l'utilisateur est connecté, sinon le renvoie vers la page de login
+        async function checkAuth() {
+            if (!window.supabaseClient) return;
+            const { data: { session } } = await window.supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+            }
+        }
+        
+        // On lance la vérification dès que la page s'ouvre
+        checkAuth();
+        
         function getStatusColorClass(status) {
             const st = (status || "").toLowerCase();
             if (["nouveau", "a publier", "publié", "accepté"].includes(st)) return "bg-red-100 text-lkdm-accent border-red-200";
