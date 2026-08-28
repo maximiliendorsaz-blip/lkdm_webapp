@@ -502,6 +502,13 @@
             updateMapMarkers();
         }
 
+        function formatDisplayDateTime(isoStr) {
+            if (!isoStr) return 'Date à convenir';
+            const d = new Date(isoStr);
+            if (isNaN(d.getTime())) return isoStr;
+            return d.toLocaleDateString('fr-CH', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' à ' + d.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' });
+        }
+
         function openMissionDetails(id) {
             const m = dbMissions.find(x => x.id === id);
             if (!m) return;
@@ -533,7 +540,7 @@
                 <div class="p-6 border-b relative bg-slate-50">
                     <button onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 shadow-sm"><i class="fa-solid fa-times"></i></button>
                     <h3 class="text-xl font-bold text-lkdm-text">${m.exact_description || m.mission_code}</h3>
-                    <p class="text-xs text-lkdm-secondary mt-0.5"><i class="fa-regular fa-calendar mr-1"></i> ${m.mission_date || 'Date à convenir'} • ${m.mission_periods || 'Horaire flexible'}</p>
+                    <p class="text-xs text-lkdm-secondary mt-0.5"><i class="fa-regular fa-calendar mr-1"></i> ${formatDisplayDateTime(m.mission_date)} • ${m.mission_periods || 'Horaire flexible'}</p>
                 </div>
                 <div class="p-6 space-y-3 text-sm">
                     <p><strong>Nom du client :</strong> ${clientName}</p>
@@ -752,14 +759,17 @@
             const finalCode = `${prefix}${(count || 0) + 1}`;
             
             const estHours = parseFloat(document.getElementById('rb-duration').value) || 2.0;
+            const dateVal = document.getElementById('rb-date').value;
+            const timeVal = document.getElementById('rb-time').value;
+            const combinedDateTime = dateVal && timeVal ? `${dateVal}T${timeVal}:00` : null;
             
             const payload = {
                 mission_code: finalCode,
                 client_id: clientId,
                 student_id: currentStudentId,
                 exact_description: document.getElementById('rb-goal').value,
-                mission_date: document.getElementById('rb-date').value,
-                mission_periods: document.getElementById('rb-time').value,
+                mission_date: combinedDateTime ? new Date(combinedDateTime).toISOString() : null,
+                mission_periods: timeVal,
                 estimated_hours: estHours,
                 real_hours: estHours,
                 matching_status: 'Confirmé',
@@ -786,7 +796,7 @@
                 const payAmt = Number(m.total_amount) || 50.0;
                 container.innerHTML += `
                     <div onclick="openMissionDetails(${m.id})" class="cursor-pointer p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border flex justify-between items-center text-sm transition">
-                        <span class="font-bold text-lkdm-accent">${m.exact_description || m.mission_code} <span class="text-slate-500 font-normal">(${m.mission_date || 'Bientôt'})</span></span>
+                        <span class="font-bold text-lkdm-accent">${m.exact_description || m.mission_code} <span class="text-slate-500 font-normal">(${formatDisplayDateTime(m.mission_date)})</span></span>
                         <span class="text-emerald-600 font-bold">CHF ${payAmt.toFixed(2)} <i class="fa-solid fa-chevron-right ml-1 text-xs text-slate-400"></i></span>
                     </div>`;
             });
@@ -800,7 +810,7 @@
 
             for (let day = 1; day <= 31; day++) {
                 const dayStr = day < 10 ? '0'+day : ''+day;
-                const match = dbMissions.find(m => m.student_id === currentStudentId && m.mission_date && m.mission_date.endsWith(`-08-${dayStr}`));
+                const match = dbMissions.find(m => m.student_id === currentStudentId && m.mission_date && m.mission_date.includes(`-08-${dayStr}`));
                 grid.innerHTML += `
                     <div class="h-24 rounded-xl border ${match ? 'border-lkdm-accent bg-red-50/10' : 'bg-white'} p-2">
                         <span class="text-xs font-bold">${day}</span>
@@ -875,7 +885,6 @@
 
             myMissions.forEach(m => {
                 totalSalary += Number(m.total_amount) || 0;
-                // On prend en compte le senior_csat rempli par le bénéficiaire
                 if (m.senior_csat) {
                     totalRating += Number(m.senior_csat);
                     ratedMissionsCount++;
@@ -891,7 +900,6 @@
             document.getElementById('earnings-total').innerText = `CHF ${totalSalary.toFixed(2)}`;
             document.getElementById('badge-dispo').innerText = dbMissions.filter(m => !m.student_id && (m.matching_status || "").toLowerCase() === "nouveau").length;
             
-            // Mise à jour de la note globale basée sur le CSAT senior
             const ratingEl = document.getElementById('dash-student-rating');
             if (ratingEl) ratingEl.innerText = `${avgRating} / 5.0`;
         }
