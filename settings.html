@@ -207,26 +207,49 @@
                 return;
             }
 
-            // 1. Tente de récupérer par ID unique de session
-            let { data: profile, error } = await window.supabaseClient
-                .from('profiles')
-                .select('*')
-                .eq('id', user.id)
-                .single();
+            // Récupère le rôle attendu depuis l'URL (ex: settings.html?role=client ou settings.html?role=student)
+            const urlParams = new URLSearchParams(window.location.search);
+            const expectedRole = urlParams.get('role'); 
 
-            // 2. Si échec, tente de récupérer par l'e-mail de l'utilisateur
-            if (error || !profile) {
-                const { data: profileByEmail, error: errEmail } = await window.supabaseClient
+            let profile = null;
+
+            // 1. Si un rôle est précisé dans l'URL, on cherche spécifiquement par e-mail ET par rôle
+            if (expectedRole) {
+                const { data } = await window.supabaseClient
                     .from('profiles')
                     .select('*')
                     .eq('email', user.email)
-                    .single();
+                    .eq('role', expectedRole)
+                    .maybeSingle();
+                profile = data;
+            }
+
+            // 2. Sinon, on cherche d'abord par l'ID unique de l'utilisateur
+            if (!profile) {
+                const { data } = await window.supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .maybeSingle();
+                profile = data;
+            }
+
+            // 3. Dernier recours : on cherche simplement par e-mail
+            if (!profile) {
+                const { data } = await window.supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('email', user.email)
+                    .limit(1);
                 
-                if (errEmail || !profileByEmail) {
-                    alert("Impossible de retrouver votre profil en base de données.");
-                    return;
+                if (data && data.length > 0) {
+                    profile = data[0];
                 }
-                profile = profileByEmail;
+            }
+
+            if (!profile) {
+                alert("Impossible de retrouver votre profil en base de données.");
+                return;
             }
 
             currentProfileId = profile.id;
@@ -247,7 +270,7 @@
             document.getElementById('set-firstname').value = profile.first_name || '';
             document.getElementById('set-lastname').value = profile.last_name || '';
             document.getElementById('set-phone').value = profile.phone || '';
-            document.getElementById('set-email').value = profile.email || user.email || '';
+            document.getElementById('set-email').value = profile.email || '';
             document.getElementById('set-address').value = profile.address || '';
             document.getElementById('set-npa').value = profile.npa || '';
             document.getElementById('set-city').value = profile.city || '';
@@ -256,6 +279,8 @@
                 document.getElementById('student-specific-section').classList.remove('hidden');
                 document.getElementById('set-iban').value = profile.iban || '';
                 document.getElementById('set-avs').value = profile.avs_number || '';
+            } else {
+                document.getElementById('student-specific-section').classList.add('hidden');
             }
         }
 
