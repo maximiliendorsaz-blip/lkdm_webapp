@@ -548,18 +548,27 @@
             closeModal();
             const m = dbMissions.find(x => x.id === id);
             
-            // Calcul auto des heures
-            let hours = 2.0;
+            // Calcul auto des heures avec la nouvelle règle stricte
+            let hours = 2.0; // Par défaut si pas de chrono
             if (m.start_time) {
                 const start = new Date(m.start_time);
                 const end = new Date();
-                hours = (end - start) / (1000 * 60 * 60);
-                hours = Math.round(hours * 4) / 4; // Arrondi au quart d'heure
-                if (hours <= 0.1) hours = m.estimated_hours || 2.0;
+                const diffMs = end - start;
+                
+                if (diffMs > 0) {
+                    const diffMinutes = Math.floor(diffMs / 60000);
+                    if (diffMinutes <= 60) {
+                        hours = 1.0;
+                    } else {
+                        hours = Math.ceil((diffMinutes / 60) * 2) / 2;
+                    }
+                }
+            } else if (m.estimated_hours) {
+                hours = m.estimated_hours;
             }
 
             document.getElementById('fb-mission-id').value = id;
-            document.getElementById('fb-real-hours').value = hours;
+            document.getElementById('fb-real-hours').value = hours; // Le temps calculé avec les bonnes règles
             document.getElementById('fb-dar').value = '';
             document.getElementById('fb-feedback').value = '';
             document.getElementById('fb-scsat').value = '';
@@ -569,7 +578,6 @@
 
             openModal('modal-feedback');
         }
-
         async function submitFeedback(event) {
             event.preventDefault();
             const btn = document.getElementById('btn-submit-fb');
