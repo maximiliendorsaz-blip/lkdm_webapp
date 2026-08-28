@@ -220,25 +220,17 @@
                 return;
             }
 
-            // Cherche par ID en priorité, ou par email si l'ID ne matche pas directement
-            let { data: profile, error } = await window.supabaseClient
+            // Chercher directement le profil par l'e-mail de l'utilisateur connecté
+            const { data: profile, error } = await window.supabaseClient
                 .from('profiles')
                 .select('*')
-                .eq('id', user.id)
+                .eq('email', user.email)
                 .single();
 
             if (error || !profile) {
-                const { data: profileByEmail, error: errEmail } = await window.supabaseClient
-                    .from('profiles')
-                    .select('*')
-                    .eq('email', user.email)
-                    .single();
-                
-                if (errEmail || !profileByEmail) {
-                    alert("Impossible de retrouver votre profil en base de données.");
-                    return;
-                }
-                profile = profileByEmail;
+                console.error("Profil introuvable pour l'email :", user.email);
+                alert("Erreur : Impossible de lier votre compte à un profil en base de données.");
+                return;
             }
 
             currentProfileId = profile.id;
@@ -256,6 +248,7 @@
                 else dashBtn.setAttribute('href', 'dashboard_customer.html');
             }
 
+            // Remplissage des champs (assurez-vous que les données existent bien en DB)
             document.getElementById('set-firstname').value = profile.first_name || '';
             document.getElementById('set-lastname').value = profile.last_name || '';
             document.getElementById('set-phone').value = profile.phone || '';
