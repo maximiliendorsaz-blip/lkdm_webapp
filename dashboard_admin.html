@@ -1374,9 +1374,10 @@
     // Fonction pour formatter n'importe quelle date Supabase vers l'input HTML
         function formatToDatetimeLocal(isoStr) {
             if (!isoStr) return '';
+            
             try {
                 // Si la BDD renvoie exceptionnellement juste une heure (ex: "14:30:00")
-                if (/^\d{2}:\d{2}(:\d{2})?$/.test(isoStr)) {
+                if (typeof isoStr === 'string' && /^\d{2}:\d{2}(:\d{2})?$/.test(isoStr)) {
                     const today = new Date().toISOString().split('T')[0];
                     isoStr = `${today}T${isoStr}Z`;
                 }
@@ -1384,11 +1385,15 @@
                 const d = new Date(isoStr);
                 if (isNaN(d.getTime())) return '';
                 
-                // Ajustement au fuseau horaire local (Suisse)
-                d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                // Extraction manuelle pour construire le format strict YYYY-MM-DDTHH:mm
+                const pad = (n) => n.toString().padStart(2, '0');
+                const yyyy = d.getFullYear();
+                const mm = pad(d.getMonth() + 1);
+                const dd = pad(d.getDate());
+                const hh = pad(d.getHours());
+                const mins = pad(d.getMinutes());
                 
-                // Coupe la chaîne pour obtenir pile YYYY-MM-DDTHH:MM (ce qu'attend le HTML)
-                return d.toISOString().slice(0, 16);
+                return `${yyyy}-${mm}-${dd}T${hh}:${mins}`;
             } catch(e) {
                 console.error("Erreur de formatage de date:", e);
                 return '';
