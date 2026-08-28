@@ -20,7 +20,7 @@
     <!-- Configuration Centralisée LKDM -->
     <script src="config.js"></script>
     <style>
-        /* S'assure que la carte Leaflet reste bien sous les modales sans passer au premier plan de manière parasite */
+        /* S'assure que la carte Leaflet reste bien sous les modales */
         #map { z-index: 10 !important; }
         .leaflet-pane { z-index: 10 !important; }
         .leaflet-top, .leaflet-bottom { z-index: 11 !important; }
@@ -42,13 +42,11 @@
         <!-- Sidebar Navigation -->
         <aside id="sidebar" class="bg-white border-r border-slate-200/80 w-72 space-y-6 py-8 px-5 absolute inset-y-0 left-0 transform -translate-x-full lg:relative lg:translate-x-0 transition duration-300 ease-in-out z-40 flex flex-col justify-between shadow-xl lg:shadow-none">
             <div class="space-y-8">
-                <!-- Logo LKDM -->
                 <div class="px-2">
                     <h1 class="font-bold text-xl text-lkdm-text tracking-tight">Le Koup de Main</h1>
                     <p class="text-xs text-lkdm-secondary font-medium tracking-wider uppercase mt-1">Espace Étudiant</p>
                 </div>
 
-                <!-- User Profile Mini Card -->
                 <div class="bg-lkdm-bg p-4 rounded-2xl border border-slate-200/60 flex items-center gap-3">
                     <div id="student-avatar-initials" class="w-11 h-11 rounded-full bg-lkdm-secondary text-white flex items-center justify-center font-bold text-lg shadow-sm">
                         MD
@@ -61,7 +59,6 @@
                     </div>
                 </div>
 
-                <!-- Nav Links -->
                 <nav class="space-y-1">
                     <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition bg-lkdm-accent text-white shadow-sm">
                         <i class="fa-solid fa-house w-5 text-center"></i> Tableau de bord
@@ -82,7 +79,6 @@
                 </nav>
             </div>
 
-            <!-- Footer / Quick Support -->
             <div class="pt-6 border-t border-slate-100">
                 <div class="bg-lkdm-bg p-4 rounded-2xl border border-slate-200/80 mb-4">
                     <p class="font-bold text-lkdm-text text-xs tracking-wide uppercase mb-1">Support LKDM Sierre</p>
@@ -119,7 +115,6 @@
                         <span class="text-xs font-medium text-lkdm-secondary bg-white px-3 py-1.5 rounded-full border border-slate-200">Année Civile 2026</span>
                     </div>
 
-                    <!-- Main Dashboard Banner -->
                     <div class="bg-white rounded-3xl p-6 lg:p-8 border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
                         <div class="max-w-xl space-y-3 relative z-10">
                             <h3 class="text-xl font-bold text-lkdm-text leading-snug">Prêt à rendre le quotidien plus léger ?</h3>
@@ -140,7 +135,6 @@
                         </div>
                     </div>
 
-                    <!-- KPI Statistics Grid -->
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                             <div>
@@ -165,7 +159,6 @@
                         </div>
                     </div>
 
-                    <!-- Upcoming Schedule Box -->
                     <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
                         <div class="flex justify-between items-center">
                             <h3 class="font-bold text-lkdm-text text-base">Vos prochains engagements validés</h3>
@@ -187,8 +180,7 @@
                         <div>
                             <select id="filter-status" onchange="renderMissions()" class="bg-white border border-slate-200 text-lkdm-text text-xs font-medium rounded-xl px-4 py-2.5 focus:outline-none focus:border-lkdm-accent shadow-sm">
                                 <option value="available" selected>Missions disponibles</option>
-                                <option value="accepted">Mes missions acceptées</option>
-                                <option value="all">Toutes les missions</option>
+                                <option value="accepted">Mes missions engagées / en cours</option>
                             </select>
                         </div>
                     </div>
@@ -235,13 +227,9 @@
                             <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-emerald-600 font-medium"><i class="fa-solid fa-circle-check"></i> Déclarations fiscales à jour</div>
                         </div>
                     </div>
-
-                    <!-- Section Certificats de salaire -->
                     <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                         <h3 class="font-bold text-lkdm-text text-base"><i class="fa-solid fa-file-invoice-dollar mr-2 text-emerald-600"></i> Mes Certificats de Salaire</h3>
-                        <div id="salary-certificates-list" class="space-y-2 text-xs">
-                            <p class="text-slate-400">Aucun certificat de salaire disponible pour le moment.</p>
-                        </div>
+                        <div id="salary-certificates-list" class="space-y-2 text-xs"></div>
                     </div>
                 </div>
 
@@ -253,9 +241,7 @@
                             <h2 class="text-2xl font-bold text-lkdm-text mt-0.5">Mes Documents & Attestations</h2>
                             <p class="text-xs text-slate-500 mt-1">Retrouvez ci-dessous l'ensemble de vos documents officiels triés par catégorie.</p>
                         </div>
-                        <div id="student-documents-container" class="space-y-6">
-                            <p class="text-xs text-slate-400">Chargement de vos documents...</p>
-                        </div>
+                        <div id="student-documents-container" class="space-y-6"></div>
                     </div>
                 </div>
 
@@ -268,6 +254,94 @@
         <div class="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300" id="mission-modal-content"></div>
     </div>
 
+    <!-- Modale Fin de Mission & Feedback -->
+    <div id="modal-feedback" class="hidden fixed inset-0 z-[400] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-bold text-lkdm-text mb-4">Clôturer la mission</h3>
+            <form onsubmit="submitFeedback(event)" class="space-y-5 text-sm">
+                <input type="hidden" id="fb-mission-id">
+                
+                <div class="bg-slate-50 p-4 rounded-xl border space-y-4">
+                    <h4 class="font-bold text-lkdm-text border-b pb-2">Retours du Bénéficiaire (Client)</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">CSAT (1 à 5) *</label>
+                            <input type="number" id="fb-scsat" min="1" max="5" required placeholder="Ex: 5" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">NPS (1 à 10) *</label>
+                            <input type="number" id="fb-snps" min="1" max="10" required placeholder="Ex: 10" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-xl border space-y-4">
+                    <h4 class="font-bold text-lkdm-text border-b pb-2">Vos retours (Étudiant)</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">CSAT (1 à 5) *</label>
+                            <input type="number" id="fb-stcsat" min="1" max="5" required placeholder="Ex: 5" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">NPS (1 à 10) *</label>
+                            <input type="number" id="fb-stnps" min="1" max="10" required placeholder="Ex: 10" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Résumé D.A.R (Besoin, Action, Résultat) *</label>
+                    <textarea id="fb-dar" required rows="4" placeholder="Pour chaque tâche effectuée, nommez la tâche, décrivez le besoin (D), l'action réalisée (A) et le résultat obtenu (R)..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Photos de la mission</label>
+                    <input type="file" id="fb-photos" multiple accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Feedback global (Positifs, négatifs, améliorations) *</label>
+                    <textarea id="fb-feedback" required rows="2" placeholder="Comment s'est passée la mission globalement ?" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-lkdm-accent mb-1">Heures réelles effectuées (Modifiable) *</label>
+                    <input type="number" id="fb-real-hours" step="0.25" required class="w-full bg-red-50 border border-red-200 text-lkdm-accent font-bold rounded-xl px-3 py-2 text-xs">
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t">
+                    <button type="submit" id="btn-submit-fb" class="px-6 py-3 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm hover:bg-[#b53838]">Valider la fin de mission</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modale Rebooking -->
+    <div id="modal-rebooking" class="hidden fixed inset-0 z-[500] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 my-8 relative">
+            <h3 class="text-xl font-bold text-lkdm-text mb-4 text-center">Fidélisation Client</h3>
+            <p class="text-sm text-center text-slate-600 mb-6">Le client souhaite-t-il déjà replanifier une nouvelle mission avec Le Koup de Main ?</p>
+            
+            <div class="flex justify-center gap-4 mb-6" id="rb-question-btns">
+                <button onclick="toggleRebookForm(false)" class="px-6 py-2.5 bg-slate-200 text-slate-700 rounded-full text-sm font-bold hover:bg-slate-300">Non, pas pour le moment</button>
+                <button onclick="toggleRebookForm(true)" class="px-6 py-2.5 bg-emerald-600 text-white rounded-full text-sm font-bold shadow-sm hover:bg-emerald-700">Oui, rebooker</button>
+            </div>
+
+            <form id="rb-form-container" class="hidden space-y-4 text-sm border-t pt-4" onsubmit="submitRebooking(event)">
+                <input type="hidden" id="rb-client-id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Date souhaitée</label><input type="date" id="rb-date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Heure</label><input type="time" id="rb-time" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                </div>
+                <div><label class="block text-xs font-bold text-slate-600 mb-1">Durée supposée (h)</label><input type="number" step="0.5" id="rb-duration" value="2.0" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                <div><label class="block text-xs font-bold text-slate-600 mb-1">But de la mission (Description)</label><textarea id="rb-goal" required rows="2" placeholder="Ex: Nettoyage des vitres..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs"></textarea></div>
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="px-6 py-2.5 bg-emerald-600 text-white rounded-full text-xs font-medium shadow-sm">Créer la nouvelle mission</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         let currentStudentId = null; 
         let globalStudentProfile = null;
@@ -277,7 +351,7 @@
         let markersGroup = null;
 
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModalModalCustom(id) { document.getElementById(id).classList.add('hidden'); }
+        function closeModalCustom(id) { document.getElementById(id).classList.add('hidden'); }
         function toggleMobileMenu() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
 
         function showToast(msg) {
@@ -291,10 +365,7 @@
             if (!window.supabaseClient) return;
 
             const { data: students, error } = await window.supabaseClient.from('profiles').select('*').eq('role', 'student').limit(1);
-            if (error || !students || students.length === 0) {
-                console.error("Aucun profil étudiant trouvé dans Supabase.");
-                return;
-            }
+            if (error || !students || students.length === 0) return;
 
             globalStudentProfile = students[0];
             currentStudentId = globalStudentProfile.id;
@@ -360,7 +431,7 @@
                             });
                             L.marker([lat, lon], { icon: customIcon }).addTo(markersGroup).on('click', () => openMissionDetails(m.id));
                         }
-                    } catch (e) { console.error("Erreur géocodage", e); }
+                    } catch (e) { }
                 }
             }
         }
@@ -372,6 +443,7 @@
 
             let filtered = dbMissions.filter(m => {
                 const isMine = m.student_id === currentStudentId;
+                // Filtre dispo = seulement statut "Nouveau" ET pas assignée
                 const isAvailable = (!m.student_id && (m.matching_status || "").toLowerCase() === "nouveau");
                 if (statusFilter === 'available') return isAvailable;
                 if (statusFilter === 'accepted') return isMine;
@@ -403,7 +475,7 @@
             updateMapMarkers();
         }
 
-        function openMissionDetails(id, readOnly = false) {
+        function openMissionDetails(id) {
             const m = dbMissions.find(x => x.id === id);
             if (!m) return;
             const modal = document.getElementById('mission-modal');
@@ -413,21 +485,35 @@
             const clientAddress = m.client ? `${m.client.address}, ${m.client.npa || ''} ${m.client.city}` : 'Valais';
             const payAmt = Number(m.total_amount) || 50.0;
             const isMine = m.student_id === currentStudentId;
+            const isAvailable = (!m.student_id && (m.matching_status || "").toLowerCase() === "nouveau");
+
+            let actionButton = '';
+            if (isAvailable) {
+                actionButton = `<button onclick="acceptMission(${m.id})" class="w-full mt-4 bg-lkdm-accent text-white py-3 rounded-[50px] font-bold transition shadow-sm hover:bg-[#b53838]">Accepter cette mission</button>`;
+            } else if (isMine) {
+                if (!m.start_time && !m.end_time) {
+                    actionButton = `<button onclick="startMission(${m.id})" class="w-full mt-4 bg-lkdm-accent text-white py-3 rounded-[50px] font-bold transition shadow-sm hover:bg-[#b53838]">Débuter la mission</button>`;
+                } else if (m.start_time && !m.end_time) {
+                    actionButton = `<button onclick="openFeedbackModal(${m.id})" class="w-full mt-4 bg-amber-500 text-white py-3 rounded-[50px] font-bold transition shadow-sm hover:bg-amber-600">Finir la mission</button>`;
+                } else if (m.end_time) {
+                    actionButton = `<p class="text-emerald-600 font-bold text-center pt-4"><i class="fa-solid fa-check-double"></i> Mission terminée et documentée</p>`;
+                }
+            } else {
+                actionButton = '<p class="text-amber-600 font-bold text-center pt-4">Déjà assignée à un autre étudiant</p>';
+            }
 
             content.innerHTML = `
                 <div class="p-6 border-b relative bg-slate-50">
                     <button onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 shadow-sm"><i class="fa-solid fa-times"></i></button>
                     <h3 class="text-xl font-bold text-lkdm-text">${m.exact_description || m.mission_code}</h3>
-                    <p class="text-xs text-lkdm-secondary mt-0.5"><i class="fa-regular fa-calendar mr-1"></i> ${m.mission_date || 'Date à convenir'}</p>
+                    <p class="text-xs text-lkdm-secondary mt-0.5"><i class="fa-regular fa-calendar mr-1"></i> ${m.mission_date || 'Date à convenir'} • ${m.mission_periods || 'Horaire flexible'}</p>
                 </div>
                 <div class="p-6 space-y-3 text-sm">
                     <p><strong>Nom du client :</strong> ${clientName}</p>
                     <p><strong>Lieu :</strong> ${clientAddress}</p>
                     <p><strong>Téléphone :</strong> ${clientPhone ? `<a href="tel:${clientPhone}" class="text-lkdm-accent font-bold hover:underline">${clientPhone}</a>` : 'Non renseigné'}</p>
                     <p><strong>Rémunération prévue :</strong> <span class="font-bold text-emerald-600">CHF ${payAmt.toFixed(2)}</span></p>
-                    
-                    ${!readOnly && !isMine && (!m.student_id && (m.matching_status || "").toLowerCase() === "nouveau") ? `<button onclick="acceptMission(${m.id})" class="w-full mt-2 bg-lkdm-accent text-white py-3 rounded-[50px] font-medium transition shadow-sm hover:bg-[#b53838]">Accepter cette mission</button>` : ''}
-                    ${isMine ? '<p class="text-emerald-600 font-bold text-center pt-2"><i class="fa-solid fa-check"></i> Mission acceptée par vous</p>' : ''}
+                    ${actionButton}
                 </div>
             `;
             modal.classList.remove('hidden');
@@ -443,19 +529,150 @@
         async function acceptMission(id) {
             if (!currentStudentId) return;
             const { error } = await window.supabaseClient.from('missions').update({ student_id: currentStudentId, matching_status: 'Confirmé' }).eq('id', id);
-            if (error) {
-                alert("Erreur lors de l'acceptation : " + error.message);
-                return;
-            }
-            showToast("Mission acceptée avec succès !");
+            if (error) { alert(error.message); return; }
+            showToast("Mission acceptée !");
             closeModal();
             await loadStudentData();
+        }
+
+        async function startMission(id) {
+            const now = new Date().toISOString();
+            const { error } = await window.supabaseClient.from('missions').update({ start_time: now, matching_status: 'En attente de paiement' }).eq('id', id);
+            if (error) { alert(error.message); return; }
+            showToast("Chronomètre démarré ! Bonne mission.");
+            closeModal();
+            await loadStudentData();
+        }
+
+        function openFeedbackModal(id) {
+            closeModal();
+            const m = dbMissions.find(x => x.id === id);
+            
+            // Calcul auto des heures
+            let hours = 2.0;
+            if (m.start_time) {
+                const start = new Date(m.start_time);
+                const end = new Date();
+                hours = (end - start) / (1000 * 60 * 60);
+                hours = Math.round(hours * 4) / 4; // Arrondi au quart d'heure
+                if (hours <= 0.1) hours = m.estimated_hours || 2.0;
+            }
+
+            document.getElementById('fb-mission-id').value = id;
+            document.getElementById('fb-real-hours').value = hours;
+            document.getElementById('fb-dar').value = '';
+            document.getElementById('fb-feedback').value = '';
+            document.getElementById('fb-scsat').value = '';
+            document.getElementById('fb-snps').value = '';
+            document.getElementById('fb-stcsat').value = '';
+            document.getElementById('fb-stnps').value = '';
+
+            openModal('modal-feedback');
+        }
+
+        async function submitFeedback(event) {
+            event.preventDefault();
+            const btn = document.getElementById('btn-submit-fb');
+            btn.innerText = "Envoi et upload en cours...";
+            btn.disabled = true;
+
+            const id = document.getElementById('fb-mission-id').value;
+            const m = dbMissions.find(x => x.id == id);
+            const fileInput = document.getElementById('fb-photos');
+            let photoUrls = [];
+            
+            if (fileInput.files && fileInput.files.length > 0) {
+                for (let file of fileInput.files) {
+                    const fileName = `fb_${Date.now()}_${file.name}`;
+                    const { error: uploadErr } = await window.supabaseClient.storage.from('lkdm_docs').upload(fileName, file);
+                    if (!uploadErr) {
+                        const { data: { publicUrl } } = window.supabaseClient.storage.from('lkdm_docs').getPublicUrl(fileName);
+                        photoUrls.push(publicUrl);
+                    }
+                }
+            }
+
+            let darText = document.getElementById('fb-dar').value;
+            if (photoUrls.length > 0) {
+                darText += "\n\n--- PHOTOS ---\n" + photoUrls.join("\n");
+            }
+
+            const payload = {
+                end_time: new Date().toISOString(),
+                senior_csat: document.getElementById('fb-scsat').value,
+                senior_nps: document.getElementById('fb-snps').value,
+                student_csat: document.getElementById('fb-stcsat').value,
+                student_nps: document.getElementById('fb-stnps').value,
+                dar_summary: darText,
+                feedback: document.getElementById('fb-feedback').value,
+                real_hours: document.getElementById('fb-real-hours').value,
+                matching_status: 'Mission effectuée'
+            };
+
+            const { error } = await window.supabaseClient.from('missions').update(payload).eq('id', id);
+            btn.innerText = "Valider la fin de mission";
+            btn.disabled = false;
+
+            if (error) { alert("Erreur: " + error.message); return; }
+
+            closeModalCustom('modal-feedback');
+            await loadStudentData();
+
+            // Notification d'observation puis ouverture du Rebooking
+            alert("👁️ INFO LKDM : Avant de proposer un nouveau rendez-vous, observez bien l'environnement du client ! Y a-t-il d'autres besoins non exprimés (jardin à tailler, vitres sales, nettoyages) ?");
+            openRebookingModal(m.client_id);
+        }
+
+        function openRebookingModal(clientId) {
+            document.getElementById('rb-client-id').value = clientId;
+            document.getElementById('rb-form-container').classList.add('hidden');
+            openModal('modal-rebooking');
+        }
+
+        function toggleRebookForm(show) {
+            if (show) {
+                document.getElementById('rb-form-container').classList.remove('hidden');
+            } else {
+                closeModalCustom('modal-rebooking');
+                showToast("Fin de mission validée. Excellent travail !");
+            }
+        }
+
+        async function submitRebooking(event) {
+            event.preventDefault();
+            const clientId = document.getElementById('rb-client-id').value;
+            
+            // Générer Code Mission
+            const currentYear = new Date().getFullYear();
+            const prefix = `M${currentYear}_`;
+            const { count } = await window.supabaseClient.from('missions').select('*', { count: 'exact', head: true }).ilike('mission_code', `${prefix}%`);
+            const finalCode = `${prefix}${(count || 0) + 1}`;
+            
+            const estHours = parseFloat(document.getElementById('rb-duration').value) || 2.0;
+            
+            const payload = {
+                mission_code: finalCode,
+                client_id: clientId,
+                exact_description: document.getElementById('rb-goal').value,
+                mission_date: document.getElementById('rb-date').value,
+                mission_periods: document.getElementById('rb-time').value,
+                estimated_hours: estHours,
+                real_hours: estHours,
+                matching_status: 'Nouveau',
+                payment_status: 'Facture non envoyée'
+            };
+            
+            await window.supabaseClient.from('missions').insert([payload]);
+            closeModalCustom('modal-rebooking');
+            showToast("Le rebooking a bien été enregistré. Merci !");
+            loadStudentData();
         }
 
         function renderUpcoming() {
             const container = document.getElementById('dash-upcoming-list');
             container.innerHTML = '';
-            const myMissions = dbMissions.filter(m => m.student_id === currentStudentId);
+            // Affiche les missions acceptées (Confirmé) ou En cours (start_time sans end_time)
+            const myMissions = dbMissions.filter(m => m.student_id === currentStudentId && (!m.end_time || m.matching_status === 'En cours'));
 
             if (myMissions.length === 0) {
                 container.innerHTML = `<p class="text-xs text-slate-400">Aucun engagement validé pour le moment.</p>`;
@@ -465,8 +682,8 @@
             myMissions.forEach(m => {
                 const payAmt = Number(m.total_amount) || 50.0;
                 container.innerHTML += `
-                    <div onclick="openMissionDetails(${m.id}, true)" class="cursor-pointer p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border flex justify-between items-center text-sm transition">
-                        <span class="font-bold">${m.exact_description || m.mission_code} (${m.mission_date || 'Bientôt'})</span>
+                    <div onclick="openMissionDetails(${m.id})" class="cursor-pointer p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border flex justify-between items-center text-sm transition">
+                        <span class="font-bold text-lkdm-accent">${m.exact_description || m.mission_code} <span class="text-slate-500 font-normal">(${m.mission_date || 'Bientôt'})</span></span>
                         <span class="text-emerald-600 font-bold">CHF ${payAmt.toFixed(2)} <i class="fa-solid fa-chevron-right ml-1 text-xs text-slate-400"></i></span>
                     </div>`;
             });
@@ -484,7 +701,7 @@
                 grid.innerHTML += `
                     <div class="h-24 rounded-xl border ${match ? 'border-lkdm-accent bg-red-50/10' : 'bg-white'} p-2">
                         <span class="text-xs font-bold">${day}</span>
-                        ${match ? `<div onclick="openMissionDetails(${match.id}, true)" class="cursor-pointer bg-lkdm-accent text-white text-[9px] p-1 rounded mt-1 truncate hover:underline">${match.exact_description || match.mission_code}</div>` : ''}
+                        ${match ? `<div onclick="openMissionDetails(${match.id})" class="cursor-pointer bg-lkdm-accent text-white text-[9px] p-1 rounded mt-1 truncate hover:underline">${match.exact_description || match.mission_code}</div>` : ''}
                     </div>`;
             }
         }
@@ -547,11 +764,13 @@
 
         function updateDashboardKPIs() {
             const myMissions = dbMissions.filter(m => m.student_id === currentStudentId);
+            const myCompletedMissions = myMissions.filter(m => m.end_time || m.matching_status === 'Mission effectuée');
+            
             let totalSalary = 0;
             myMissions.forEach(m => totalSalary += Number(m.total_amount) || 0);
 
-            document.getElementById('dash-kpi-count').innerText = myMissions.length;
-            document.getElementById('dash-confirmed-count').innerText = `${myMissions.length} mission${myMissions.length > 1 ? 's' : ''} confirmée${myMissions.length > 1 ? 's' : ''}`;
+            document.getElementById('dash-kpi-count').innerText = myCompletedMissions.length;
+            document.getElementById('dash-confirmed-count').innerText = `${myMissions.length - myCompletedMissions.length} mission(s) confirmée(s)`;
             document.getElementById('dash-kpi-salary').innerText = `CHF ${totalSalary.toFixed(2)}`;
             document.getElementById('earnings-next').innerText = `CHF ${totalSalary.toFixed(2)}`;
             document.getElementById('earnings-total').innerText = `CHF ${totalSalary.toFixed(2)}`;
