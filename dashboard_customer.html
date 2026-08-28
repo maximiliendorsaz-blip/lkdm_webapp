@@ -249,6 +249,18 @@
         let clientMissions = [];
         let globalCustomerDocuments = [];
 
+        // Vérifie si l'utilisateur est connecté, sinon le renvoie vers la page de login
+        async function checkAuth() {
+            if (!window.supabaseClient) return;
+            const { data: { session } } = await window.supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+            }
+        }
+        
+        // On lance la vérification dès que la page s'ouvre
+        checkAuth();
+        
         function toggleMobileMenu() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
 
         function showToast(title, msg) {
