@@ -175,23 +175,25 @@
         async function initSettingsPage() {
             if (!window.supabaseClient) return;
 
-            // Détecte automatiquement s'il y a un profil stocké ou prend le premier étudiant/client par défaut selon la provenance
-            // Pour l'exemple, on essaie de récupérer un étudiant, sinon un client
-            let { data: students } = await window.supabaseClient.from('profiles').select('*').eq('role', 'student').limit(1);
-            let profile = null;
+            // Récupère le rôle demandé dans l'URL (ex: settings.html?role=client)
+            const urlParams = new URLSearchParams(window.location.search);
+            const roleParam = urlParams.get('role') || 'student'; 
 
-            if (students && students.length > 0) {
-                profile = students[0];
-                currentUserRole = 'student';
-            } else {
-                let { data: clients } = await window.supabaseClient.from('profiles').select('*').eq('role', 'client').limit(1);
-                if (clients && clients.length > 0) {
-                    profile = clients[0];
-                    currentUserRole = 'client';
-                }
+            currentUserRole = roleParam;
+
+            // Charge le premier profil correspondant en base de données
+            const { data: profiles, error } = await window.supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('role', currentUserRole)
+                .limit(1);
+
+            if (error || !profiles || profiles.length === 0) {
+                console.error("Aucun profil trouvé pour le rôle :", currentUserRole);
+                return;
             }
 
-            if (!profile) return;
+            const profile = profiles[0];
             currentProfileId = profile.id;
 
             // Remplissage interface
@@ -210,6 +212,7 @@
             document.getElementById('set-npa').value = profile.npa || '';
             document.getElementById('set-city').value = profile.city || '';
 
+            // Affiche l'IBAN et l'AVS uniquement si c'est un étudiant
             if (currentUserRole === 'student') {
                 document.getElementById('student-specific-section').classList.remove('hidden');
                 document.getElementById('set-iban').value = profile.iban || '';
