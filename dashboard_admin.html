@@ -1425,14 +1425,14 @@
             closeModal('modal-export-csv');
         }
 
-        // Fonction pour formatter n'importe quelle date Supabase vers l'input HTML
+        // Fonction pour formatter n'importe quelle date Supabase vers l'input HTML (Heure locale)
         function formatToDatetimeLocal(isoStr) {
             if (!isoStr) return '';
             
             try {
                 if (typeof isoStr === 'string' && /^\d{2}:\d{2}(:\d{2})?$/.test(isoStr)) {
                     const today = new Date().toISOString().split('T')[0];
-                    isoStr = `${today}T${isoStr}Z`;
+                    isoStr = `${today}T${isoStr}`;
                 }
 
                 const d = new Date(isoStr);
