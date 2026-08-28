@@ -880,11 +880,25 @@
             const myCompletedMissions = myMissions.filter(m => m.end_time || m.matching_status === 'Mission effectuée');
             
             let totalSalary = 0;
+            let currentMonthSalary = 0;
             let totalRating = 0;
             let ratedMissionsCount = 0;
 
+            const now = new Date();
+            const currentMonthName = now.toLocaleString('fr-CH', { month: 'long', year: 'numeric' });
+            const formattedMonthTitle = `Cumul de ${currentMonthName.charAt(0).toUpperCase() + currentMonthName.slice(1)}`;
+
             myMissions.forEach(m => {
-                totalSalary += Number(m.total_amount) || 0;
+                const amount = Number(m.total_amount) || 0;
+                totalSalary += amount;
+
+                if (m.mission_date) {
+                    const missionDate = new Date(m.mission_date);
+                    if (missionDate.getMonth() === now.getMonth() && missionDate.getFullYear() === now.getFullYear()) {
+                        currentMonthSalary += amount;
+                    }
+                }
+
                 if (m.senior_csat) {
                     totalRating += Number(m.senior_csat);
                     ratedMissionsCount++;
@@ -897,7 +911,10 @@
             document.getElementById('dash-confirmed-count').innerText = `${myMissions.length - myCompletedMissions.length} mission(s) confirmée(s)`;
             document.getElementById('dash-kpi-salary').innerText = `CHF ${totalSalary.toFixed(2)}`;
             document.getElementById('earnings-next').innerText = `CHF ${totalSalary.toFixed(2)}`;
-            document.getElementById('earnings-total').innerText = `CHF ${totalSalary.toFixed(2)}`;
+            
+            document.getElementById('earnings-total').innerText = `CHF ${currentMonthSalary.toFixed(2)}`;
+            document.getElementById('earnings-month-title').innerText = formattedMonthTitle;
+
             document.getElementById('badge-dispo').innerText = dbMissions.filter(m => !m.student_id && (m.matching_status || "").toLowerCase() === "nouveau").length;
             
             const ratingEl = document.getElementById('dash-student-rating');
