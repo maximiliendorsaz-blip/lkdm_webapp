@@ -89,7 +89,7 @@
     </div>
 
 </body>
-<style>
+<script>
     // Vérifie si l'utilisateur est connecté, sinon le renvoie vers la page de login
         async function checkAuth() {
             if (!window.supabaseClient) return;
@@ -101,5 +101,5 @@
         
         // On lance la vérification dès que la page s'ouvre
         checkAuth();
-</style>
+</script>
 </html>
