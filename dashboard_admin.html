@@ -670,10 +670,10 @@
                         </button>
                     </div>
                     <div class="grid grid-cols-4 gap-3">
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Début (exact)</label><input type="datetime-local" id="edit-mis-start" onchange="autoCalcRealHours()" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-xs"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Fin (exacte)</label><input type="datetime-local" id="edit-mis-end" onchange="autoCalcRealHours()" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-xs"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Temps estimé (h)</label><input type="number" step="0.25" id="edit-mis-est-hours" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                        <div><label class="block text-xs font-bold text-lkdm-accent mb-1">Temps réel (h)</label><input type="number" step="0.25" id="edit-mis-real" class="w-full bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-xs font-bold text-lkdm-accent"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Début (exact)</label><input type="datetime-local" id="edit-mis-start" onchange="autoCalcRealHours()" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-xs transition-colors"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Fin (exacte)</label><input type="datetime-local" id="edit-mis-end" onchange="autoCalcRealHours()" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-xs transition-colors"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Temps estimé (h)</label><input type="number" step="0.25" id="edit-mis-est-hours" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs transition-colors"></div>
+                        <div><label class="block text-xs font-bold text-lkdm-accent mb-1">Temps réel (h) - Auto</label><input type="number" step="0.25" id="edit-mis-real" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-500 cursor-not-allowed"></div>
                     </div>
                 </div>
 
