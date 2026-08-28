@@ -9,9 +9,9 @@
     <link rel="stylesheet" href="style.css">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Supabase CDN -->
+    <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Configuration Supabase -->
+    <!-- Votre fichier de configuration Supabase existant -->
     <script src="supabase-config.js"></script>
 </head>
 <body class="antialiased bg-lkdm-bg flex items-center justify-center min-h-screen selection:bg-lkdm-accent selection:text-white">
@@ -19,10 +19,10 @@
     <div class="bg-white p-8 rounded-3xl border border-slate-200/80 shadow-xl w-full max-w-md space-y-6">
         <div class="text-center space-y-2">
             <h1 class="font-bold text-2xl text-lkdm-text tracking-tight">Le Koup de Main</h1>
-            <p class="text-xs text-lkdm-secondary uppercase tracking-wider font-semibold">Portail de Connexion</p>
+            <p class="text-xs text-lkdm-secondary uppercase tracking-wider font-semibold">Connexion à votre espace</p>
         </div>
 
-        <!-- Message d'erreur -->
+        <!-- Boîte d'erreur si l'identifiant/mdp est faux -->
         <div id="login-error" class="hidden bg-red-50 text-lkdm-accent p-3 rounded-xl text-xs font-medium border border-red-200"></div>
 
         <form onsubmit="handleLogin(event)" class="space-y-4 text-sm">
@@ -40,10 +40,6 @@
                 </button>
             </div>
         </form>
-
-        <div class="text-center pt-2">
-            <a href="index.html" class="text-xs text-lkdm-secondary hover:text-lkdm-accent transition">← Retour à l'accueil</a>
-        </div>
     </div>
 
     <script>
@@ -58,21 +54,21 @@
             btn.innerText = "Connexion en cours...";
             btn.disabled = true;
 
-            // 1. Authentification auprès de Supabase Auth
+            // 1. On tente de connecter l'utilisateur via ses identifiants
             const { data, error } = await window.supabaseClient.auth.signInWithPassword({
                 email: email,
                 password: password,
             });
 
             if (error) {
-                errorBox.innerText = "Erreur de connexion : " + error.message;
+                errorBox.innerText = "Identifiant ou mot de passe incorrect.";
                 errorBox.classList.remove('hidden');
                 btn.innerText = "Se connecter";
                 btn.disabled = false;
                 return;
             }
 
-            // 2. Récupérer le rôle de l'utilisateur dans la table "profiles" pour le rediriger correctement
+            // 2. Une fois connecté, on va chercher son rôle dans votre table "profiles" pour l'envoyer sur le bon dashboard
             const user = data.user;
             const { data: profile } = await window.supabaseClient
                 .from('profiles')
@@ -80,7 +76,6 @@
                 .eq('id', user.id)
                 .single();
 
-            // 3. Redirection selon le rôle (Admin, Étudiant ou Client)
             if (profile) {
                 if (profile.role === 'admin') {
                     window.location.href = 'dashboard_admin.html';
