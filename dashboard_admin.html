@@ -573,7 +573,7 @@
                         <label class="block text-xs font-bold text-slate-600 mb-1">Type de paiement *</label>
                         <select id="mis-payment" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></select>
                     </div>
-                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Date</label><input type="date" id="mis-date" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                    <div><label class="block text-xs font-bold text-slate-600 mb-1">Date et heure de début</label><input type="datetime-local" id="mis-date" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                 </div>
                 <div class="flex justify-end gap-3 pt-4 border-t">
                     <button type="button" onclick="closeModal('modal-create-mission')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Annuler</button>
@@ -657,7 +657,7 @@
                         </div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">Langue</label><select id="edit-mis-lang" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"></select></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">Périodes</label><input type="text" id="edit-mis-periods" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Date planifiée</label><input type="date" id="edit-mis-date" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Date et heure de début</label><input type="datetime-local" id="edit-mis-date" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                     </div>
                 </div>
 
@@ -1106,6 +1106,13 @@
             if(adminMap) renderAdminMapCalendar();
         }
 
+        function formatDisplayDateTime(isoStr) {
+            if (!isoStr) return 'À convenir';
+            const d = new Date(isoStr);
+            if (isNaN(d.getTime())) return isoStr;
+            return d.toLocaleDateString('fr-CH', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' à ' + d.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' });
+        }
+
         function renderOpenMissionsTable() {
             const tbody = document.getElementById('admin-missions-tbody');
             const statusFilter = document.getElementById('mission-status-filter').value;
@@ -1140,7 +1147,7 @@
                 const colorClass = getStatusColorClass(m.matching_status);
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition cursor-pointer" onclick="openEditMissionModal('${m.id}')">
-                        <td class="py-4 px-6 font-bold text-lkdm-text">${m.mission_code || 'N/A'}<br><span class="text-xs text-slate-400">${m.mission_date || ''}</span></td>
+                        <td class="py-4 px-6 font-bold text-lkdm-text">${m.mission_code || 'N/A'}<br><span class="text-xs text-slate-400">${formatDisplayDateTime(m.mission_date)}</span></td>
                         <td class="py-4 px-6 text-sm text-lkdm-text">${m.exact_description || ''}</td>
                         <td class="py-4 px-6 text-sm">${m.client ? m.client.full_name : 'Inconnu'}</td>
                         <td class="py-4 px-6"><span class="${colorClass} px-2.5 py-1 rounded-full text-xs font-bold border">${m.matching_status || 'Nouveau'}</span></td>
@@ -1524,7 +1531,7 @@
             document.getElementById('edit-mis-matching-status').value = m.matching_status || 'Nouveau';
             document.getElementById('edit-mis-lang').value = m.mission_language || 'Français';
             document.getElementById('edit-mis-periods').value = m.mission_periods || '';
-            document.getElementById('edit-mis-date').value = m.mission_date || '';
+            document.getElementById('edit-mis-date').value = formatToDatetimeLocal(m.mission_date);
             document.getElementById('edit-mis-desc').value = m.exact_description || '';
 
             document.getElementById('edit-mis-start').value = formatToDatetimeLocal(m.start_time);
@@ -1580,6 +1587,11 @@
             event.preventDefault();
             const id = document.getElementById('edit-mis-id').value;
 
+            let missionDateISO = null;
+            if (document.getElementById('edit-mis-date').value) {
+                missionDateISO = new Date(document.getElementById('edit-mis-date').value).toISOString();
+            }
+
             let startTimeISO = null;
             if (document.getElementById('edit-mis-start').value) {
                 startTimeISO = new Date(document.getElementById('edit-mis-start').value).toISOString();
@@ -1596,7 +1608,7 @@
                 matching_status: document.getElementById('edit-mis-matching-status').value,
                 mission_language: document.getElementById('edit-mis-lang').value,
                 mission_periods: document.getElementById('edit-mis-periods').value,
-                mission_date: document.getElementById('edit-mis-date').value || null,
+                mission_date: missionDateISO,
                 exact_description: document.getElementById('edit-mis-desc').value,
                 
                 start_time: startTimeISO,
@@ -1756,7 +1768,7 @@
 
             for (let day = 1; day <= 31; day++) {
                 const dayStr = day < 10 ? '0'+day : ''+day;
-                const missionsToday = globalMissionsData.filter(m => m.mission_date && m.mission_date.endsWith(`-08-${dayStr}`));
+                const missionsToday = globalMissionsData.filter(m => m.mission_date && m.mission_date.includes(`-08-${dayStr}`));
                 let dayHtml = `<div class="bg-lkdm-bg border border-slate-200 rounded-xl p-1 flex flex-col h-16 md:h-20 overflow-hidden"><span class="text-[10px] font-bold text-slate-400 mb-1">${day}</span>`;
                 
                 for (const m of missionsToday) {
@@ -1878,6 +1890,7 @@
             const finalCode = `${prefix}${nextNum}`;
 
             const estHours = parseFloat(document.getElementById('mis-est-hours').value) || 2.0;
+            const datetimeVal = document.getElementById('mis-date').value;
 
             const payload = {
                 mission_code: finalCode,
@@ -1889,7 +1902,7 @@
                 estimated_hours: estHours,
                 matching_status: document.getElementById('mis-matching-status').value,
                 payment_type: document.getElementById('mis-payment').value,
-                mission_date: document.getElementById('mis-date').value || null,
+                mission_date: datetimeVal ? new Date(datetimeVal).toISOString() : null,
                 real_hours: estHours,
                 lkdm_commission: estHours * 10,
                 total_amount: estHours * 35,
