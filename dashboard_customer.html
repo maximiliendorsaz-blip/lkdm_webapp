@@ -258,7 +258,6 @@
             }
         }
         
-        // On lance la vérification dès que la page s'ouvre
         checkAuth();
         
         function toggleMobileMenu() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
@@ -273,17 +272,33 @@
         async function initClientSpace() {
             if (!window.supabaseClient) return;
 
-            const { data: clients, error } = await window.supabaseClient.from('profiles').select('*').eq('role', 'client').limit(1);
-            if (error || !clients || clients.length === 0) return;
+            // Récupération de l'utilisateur connecté via Supabase Auth
+            const { data: { user }, error: authError } = await window.supabaseClient.auth.getUser();
+            if (authError || !user) {
+                window.location.href = 'login.html';
+                return;
+            }
 
-            globalClientProfile = clients[0];
-            currentClientId = globalClientProfile.id;
+            // Récupération du profil correspondant exactement à l'ID connecté
+            const { data: profile, error } = await window.supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single();
 
-            document.getElementById('client-name-display').innerText = globalClientProfile.full_name;
-            document.getElementById('welcome-title').innerText = `Bonjour ${globalClientProfile.first_name || 'Marguerite'} 👋`;
+            if (error || !profile) {
+                console.error("Profil client introuvable pour cet utilisateur");
+                return;
+            }
+
+            globalClientProfile = profile;
+            currentClientId = profile.id;
+
+            document.getElementById('client-name-display').innerText = profile.full_name;
+            document.getElementById('welcome-title').innerText = `Bonjour ${profile.first_name || 'Client'} 👋`;
             
-            const initials = globalClientProfile.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-            document.getElementById('client-avatar-initials').innerText = initials || 'MF';
+            const initials = profile.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('client-avatar-initials').innerText = initials || 'LK';
 
             await loadClientData();
         }
@@ -437,7 +452,7 @@
                 mission_code: finalCode,
                 client_id: currentClientId,
                 exact_description: document.getElementById('ord-title').value,
-                mission_periods: document.getElementById('ord-periods').value, // Enregistrement de la période souhaitée
+                mission_periods: document.getElementById('ord-periods').value,
                 mission_language: document.getElementById('ord-lang').value,
                 estimated_hours: estHours,
                 real_hours: estHours,
