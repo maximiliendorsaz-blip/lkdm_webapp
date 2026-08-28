@@ -1490,25 +1490,32 @@
             document.getElementById('edit-mis-start').value = formatToDatetimeLocal(m.start_time);
             document.getElementById('edit-mis-end').value = formatToDatetimeLocal(m.end_time);
 
+            // Remplissage des champs de temps
+            document.getElementById('edit-mis-est-hours').value = m.estimated_hours || '';
+            document.getElementById('edit-mis-real').value = m.real_hours || '';
+
             // Remise à zéro du bouton de verrouillage par sécurité à chaque ouverture
             document.getElementById('edit-mis-start').disabled = true;
             document.getElementById('edit-mis-end').disabled = true;
-            document.getElementById('edit-mis-start').className = "w-full bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-xs";
-            document.getElementById('edit-mis-end').className = "w-full bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-xs";
+            document.getElementById('edit-mis-est-hours').disabled = true; // Verrouille le temps estimé
+            
+            document.getElementById('edit-mis-start').className = "w-full bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-xs transition-colors";
+            document.getElementById('edit-mis-end').className = "w-full bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-xs transition-colors";
+            document.getElementById('edit-mis-est-hours').className = "w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs transition-colors"; // Met en gris le temps estimé
+            
             const btnTime = document.getElementById('btn-toggle-time');
             if(btnTime) {
                 btnTime.innerHTML = '<i class="fa-solid fa-lock mr-1"></i> Déverrouiller';
                 btnTime.className = 'text-[10px] bg-slate-200 text-slate-600 px-2 py-1 rounded font-bold hover:bg-slate-300 transition flex items-center';
             }
             
-            document.getElementById('edit-mis-est-hours').value = m.estimated_hours || '';
-            document.getElementById('edit-mis-real').value = m.real_hours || '';
-            
+            // Finances
             document.getElementById('edit-mis-payment').value = m.payment_type || 'Facture';
             document.getElementById('edit-mis-pay-status').value = m.payment_status || 'Facture non envoyée';
             document.getElementById('edit-mis-total').value = m.total_amount || '';
             document.getElementById('edit-mis-comm').value = m.lkdm_commission || '';
 
+            // Feedbacks
             document.getElementById('edit-mis-scsat').value = m.senior_csat || '';
             document.getElementById('edit-mis-snps').value = m.senior_nps || '';
             document.getElementById('edit-mis-stcsat').value = m.student_csat || '';
@@ -1516,6 +1523,7 @@
             document.getElementById('edit-mis-dar').value = m.dar_summary || '';
             document.getElementById('edit-mis-feedback').value = m.feedback || '';
 
+            // Documents
             const missionDocs = globalDocumentsData.filter(d => d.mission_id == m.id);
             const docsContainer = document.getElementById('mission-docs-list');
             docsContainer.innerHTML = missionDocs.length ? missionDocs.map(d => `
