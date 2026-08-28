@@ -653,19 +653,20 @@
             const payload = {
                 mission_code: finalCode,
                 client_id: clientId,
+                student_id: currentStudentId, // <-- L'ÉTUDIANT EST AUTOMATIQUEMENT ASSIGNÉ
                 exact_description: document.getElementById('rb-goal').value,
                 mission_date: document.getElementById('rb-date').value,
                 mission_periods: document.getElementById('rb-time').value,
                 estimated_hours: estHours,
                 real_hours: estHours,
-                matching_status: 'Nouveau',
+                matching_status: 'Confirmé', // <-- STATUT MODIFIÉ POUR APPARAÎTRE DANS SON PLANNING
                 payment_status: 'Facture non envoyée'
             };
             
             await window.supabaseClient.from('missions').insert([payload]);
             closeModalCustom('modal-rebooking');
             showToast("Le rebooking a bien été enregistré. Merci !");
-            loadStudentData();
+            loadStudentData(); // Recharge les données pour afficher la nouvelle mission
         }
 
         function renderUpcoming() {
