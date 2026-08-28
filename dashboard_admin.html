@@ -1441,26 +1441,27 @@
             
             if (!startStr || !endStr) return;
             
-            const start = new Date(startStr);
-            const end = new Date(endStr);
-            const diffMs = end - start;
+            const diffMs = new Date(endStr) - new Date(startStr);
             
             if (diffMs <= 0) {
                 document.getElementById('edit-mis-real').value = 0;
                 return;
             }
 
-            const diffHours = diffMs / (1000 * 60 * 60);
+            // On convertit strictement en minutes pleines pour éviter les bugs de millisecondes
+            const diffMinutes = Math.floor(diffMs / 60000); 
             let realH = 0;
             
-            if (diffHours <= 1.0) {
-                realH = 1.0; // 1h minimum garantie
+            if (diffMinutes <= 60) {
+                realH = 1.0; // 1h minimum garantie jusqu'à 60 minutes incluses
             } else {
-                realH = Math.ceil(diffHours * 2) / 2; // Arrondi supérieur par tranche de 30 minutes
+                // Au-delà de 60 minutes : Arrondi supérieur par tranche de 30 minutes
+                realH = Math.ceil((diffMinutes / 60) * 2) / 2; 
             }
             
             document.getElementById('edit-mis-real').value = realH;
             
+            // Met à jour automatiquement les finances au tarif standard
             document.getElementById('edit-mis-total').value = (realH * 35).toFixed(2);
             document.getElementById('edit-mis-comm').value = (realH * 10).toFixed(2);
         }
