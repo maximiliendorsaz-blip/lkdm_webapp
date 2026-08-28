@@ -378,7 +378,6 @@
         let map = null;
         let markersGroup = null;
 
-        // Vérifie si l'utilisateur est connecté, sinon le renvoie vers la page de login
         async function checkAuth() {
             if (!window.supabaseClient) return;
             const { data: { session } } = await window.supabaseClient.auth.getSession();
@@ -387,7 +386,6 @@
             }
         }
         
-        // On lance la vérification dès que la page s'ouvre
         checkAuth();
         
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
@@ -404,16 +402,32 @@
         async function initStudentSpace() {
             if (!window.supabaseClient) return;
 
-            const { data: students, error } = await window.supabaseClient.from('profiles').select('*').eq('role', 'student').limit(1);
-            if (error || !students || students.length === 0) return;
+            // 1. Récupérer l'utilisateur connecté via Supabase Auth
+            const { data: { user }, error: authError } = await window.supabaseClient.auth.getUser();
+            if (authError || !user) {
+                window.location.href = 'login.html';
+                return;
+            }
 
-            globalStudentProfile = students[0];
-            currentStudentId = globalStudentProfile.id;
+            // 2. Récupérer le profil correspondant exactement à l'ID connecté
+            const { data: profile, error } = await window.supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single();
 
-            document.getElementById('student-name-display').innerText = globalStudentProfile.full_name;
-            document.getElementById('welcome-title').innerText = `Ravi de vous revoir, ${globalStudentProfile.first_name || 'Étudiant'} 👋`;
+            if (error || !profile) {
+                console.error("Profil étudiant introuvable pour cet utilisateur");
+                return;
+            }
+
+            globalStudentProfile = profile;
+            currentStudentId = profile.id;
+
+            document.getElementById('student-name-display').innerText = profile.full_name;
+            document.getElementById('welcome-title').innerText = `Ravi de vous revoir, ${profile.first_name || 'Étudiant'} 👋`;
             
-            const initials = globalStudentProfile.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            const initials = profile.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
             document.getElementById('student-avatar-initials').innerText = initials || 'ET';
 
             await loadStudentData();
