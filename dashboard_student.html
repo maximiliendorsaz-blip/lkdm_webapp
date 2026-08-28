@@ -83,6 +83,9 @@
                 <a href="index.html" class="w-full flex items-center justify-center gap-2 text-xs font-medium text-lkdm-secondary hover:text-lkdm-accent transition py-2">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i> Retour au portail
                 </a>
+                <button onclick="handleLogout()" class="w-full flex items-center justify-center gap-2 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 transition py-3 rounded-xl border border-red-200">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Se déconnecter
+                </button>
             </div>
         </aside>
 
@@ -958,6 +961,20 @@
         window.addEventListener('DOMContentLoaded', () => {
             initStudentSpace();
         });
+        async function handleLogout() {
+    if (!window.supabaseClient) return;
+    
+    // Demande à Supabase de fermer la session active
+    const { error } = await window.supabaseClient.auth.signOut();
+    
+    if (error) {
+        console.error("Erreur lors de la déconnexion :", error.message);
+        return;
+    }
+
+    // Redirige l'utilisateur vers la page de login
+    window.location.href = 'login.html';
+}
     </script>
 </body>
 </html>
