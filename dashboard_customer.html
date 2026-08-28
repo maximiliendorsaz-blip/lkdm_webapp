@@ -14,6 +14,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Configuration Supabase -->
     <script src="supabase-config.js"></script>
+    <!-- Configuration Centralisée LKDM -->
+    <script src="config.js"></script>
 </head>
 <body class="antialiased flex flex-col min-h-screen selection:bg-lkdm-accent selection:text-white">
 
@@ -22,7 +24,7 @@
         <div class="flex items-center gap-2">
             <span class="font-bold text-lg tracking-tight">Le Koup de Main</span>
         </div>
-        <button id="mobileMenuBtn" class="text-lkdm-text hover:text-lkdm-accent focus:outline-none">
+        <button id="mobileMenuBtn" onclick="toggleMobileMenu()" class="text-lkdm-text hover:text-lkdm-accent focus:outline-none">
             <i class="fa-solid fa-bars text-2xl"></i>
         </button>
     </header>
@@ -39,11 +41,11 @@
 
                 <!-- User Profile Mini Card -->
                 <div class="bg-lkdm-bg p-4 rounded-2xl border border-slate-200/60 flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-full bg-lkdm-secondary text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                    <div id="client-avatar-initials" class="w-11 h-11 rounded-full bg-lkdm-secondary text-white flex items-center justify-center font-bold text-lg shadow-sm">
                         MF
                     </div>
                     <div class="overflow-hidden">
-                        <p class="text-sm font-semibold text-lkdm-text truncate">Mme Favre Marguerite</p>
+                        <p id="client-name-display" class="text-sm font-semibold text-lkdm-text truncate">Chargement...</p>
                         <p class="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
                             <i class="fa-solid fa-circle-check"></i> Compte Actif
                         </p>
@@ -83,13 +85,13 @@
 
         <!-- Main Content Area -->
         <main class="flex-1 h-screen overflow-y-auto bg-lkdm-bg p-4 lg:p-8">
-            <div class="max-w-5xl mx-auto">
+            <div class="max-w-5xl mx-auto space-y-8">
                 
                 <!-- Notification Toast -->
                 <div id="toast" class="hidden fixed top-5 right-5 bg-lkdm-text text-white px-6 py-4 rounded-xl shadow-xl z-50 flex items-center gap-3 border-l-4 border-lkdm-accent transition transform duration-300">
                     <i class="fa-solid fa-circle-check text-lkdm-accent text-xl"></i>
                     <div>
-                        <h4 class="font-bold text-sm">Action validée !</h4>
+                        <h4 class="font-bold text-sm" id="toast-title">Action validée !</h4>
                         <p id="toast-msg" class="text-xs text-slate-300">Votre demande a bien été prise en compte.</p>
                     </div>
                 </div>
@@ -99,7 +101,7 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Espace Famille & Seniors</span>
-                            <h2 class="text-3xl font-bold text-lkdm-text mt-1">Bonjour Marguerite 👋</h2>
+                            <h2 id="welcome-title" class="text-3xl font-bold text-lkdm-text mt-1">Bonjour 👋</h2>
                         </div>
                         <button onclick="switchTab('order')" class="bg-lkdm-accent text-white px-6 py-3 rounded-[50px] text-sm font-medium shadow-sm hover:bg-[#b53838] transition flex items-center gap-2">
                             <i class="fa-solid fa-plus"></i> Commander un Koup de Main
@@ -125,7 +127,9 @@
                     <!-- Upcoming Interventions Box -->
                     <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
                         <h3 class="font-bold text-lkdm-text text-base">Prochaines interventions à votre domicile</h3>
-                        <div id="customer-upcoming-list" class="space-y-3"></div>
+                        <div id="customer-upcoming-list" class="space-y-3">
+                            <p class="text-xs text-slate-400">Aucune intervention planifiée pour le moment.</p>
+                        </div>
                     </div>
                 </div>
 
@@ -164,8 +168,8 @@
                                     <input type="date" id="ord-date" required class="w-full bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-lkdm-accent">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-lkdm-text mb-1.5">Heure</label>
-                                    <input type="time" id="ord-time" required class="w-full bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-lkdm-accent">
+                                    <label class="block text-xs font-bold text-lkdm-text mb-1.5">Heure / Période</label>
+                                    <input type="text" id="ord-periods" required placeholder="Ex: 14:00 - 16:00" class="w-full bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-lkdm-accent">
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
@@ -174,12 +178,16 @@
                                     <input type="number" id="ord-duration" step="0.5" required placeholder="2.0" class="w-full bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-lkdm-accent">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-lkdm-text mb-1.5">Ville / Localité</label>
-                                    <input type="text" id="ord-city" required placeholder="Sion" class="w-full bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-lkdm-accent">
+                                    <label class="block text-xs font-bold text-lkdm-text mb-1.5">Langue souhaitée</label>
+                                    <select id="ord-lang" class="w-full bg-lkdm-bg border border-slate-200 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-lkdm-accent">
+                                        <option value="Français">Français</option>
+                                        <option value="Allemand">Allemand</option>
+                                        <option value="Anglais">Anglais</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="pt-4">
-                                <button type="submit" class="w-full bg-lkdm-accent text-white py-3.5 rounded-[50px] font-medium text-sm hover:bg-[#b53838] transition shadow-sm">
+                                <button type="submit" id="btn-submit-order" class="w-full bg-lkdm-accent text-white py-3.5 rounded-[50px] font-medium text-sm hover:bg-[#b53838] transition shadow-sm">
                                     Valider et publier la demande
                                 </button>
                             </div>
@@ -194,10 +202,10 @@
                         <table class="w-full text-left text-sm whitespace-nowrap">
                             <thead class="bg-slate-50 text-xs font-semibold text-lkdm-secondary uppercase border-b border-slate-100">
                                 <tr>
-                                    <th class="py-4 px-6">N° Facture</th>
+                                    <th class="py-4 px-6">N° Mission / Facture</th>
                                     <th class="py-4 px-6">Date</th>
-                                    <th class="py-4 px-6">Montant Brut</th>
-                                    <th class="py-4 px-6 text-right">Statut</th>
+                                    <th class="py-4 px-6">Montant Total</th>
+                                    <th class="py-4 px-6 text-right">Statut Paiement</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 text-sm" id="customer-billing-tbody"></tbody>
@@ -210,28 +218,83 @@
     </div>
 
     <script>
-        // Données mockées client (Mme Favre Marguerite)
-        let customerMissions = [
-            { id: 101, date: "05/08/2026", time: "14:00", title: "Aide ménage & discussion", student: "Alexandre Dubois", status: "completed", val: 80.00 },
-            { id: 103, date: "15/08/2026", time: "13:30", title: "Tri administratif", student: "Alexandre Dubois", status: "assigned", val: 65.00 },
-            { id: 104, date: "24/08/2026", time: "09:00", title: "Accompagnement courses", student: "En attente d'attribution", status: "unassigned", val: 95.00 }
-        ];
+        let currentClientId = null;
+        let globalClientProfile = null;
+        let clientMissions = [];
 
-        let customerInvoices = [
-            { id: "F-2608-01", date: "01/08/2026", amount: 160.00, status: "pending" }
-        ];
+        function toggleMobileMenu() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
+
+        function showToast(title, msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 4000);
+        }
+
+        async function initClientSpace() {
+            if (!window.supabaseClient) return;
+
+            // Récupère le premier client par défaut (ex: Mme Favre Marguerite ou autre configuré en BDD)
+            const { data: clients, error } = await window.supabaseClient.from('profiles').select('*').eq('role', 'client').limit(1);
+            if (error || !clients || clients.length === 0) return;
+
+            globalClientProfile = clients[0];
+            currentClientId = globalClientProfile.id;
+
+            document.getElementById('client-name-display').innerText = globalClientProfile.full_name;
+            document.getElementById('welcome-title').innerText = `Bonjour ${globalClientProfile.first_name || 'Marguerite'} 👋`;
+            
+            const initials = globalClientProfile.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('client-avatar-initials').innerText = initials || 'MF';
+
+            await loadClientData();
+        }
+
+        async function loadClientData() {
+            if (!currentClientId) return;
+
+            // Charge les missions liées à ce client avec les infos de l'étudiant assigné
+            const { data: missions, error } = await window.supabaseClient
+                .from('missions')
+                .select('*, student:student_id(*)')
+                .eq('client_id', currentClientId);
+
+            if (error) {
+                console.error("Erreur chargement missions client:", error);
+                return;
+            }
+
+            clientMissions = missions || [];
+            renderCustomerDashboard();
+            renderCustomerMissions();
+            renderCustomerBilling();
+        }
 
         function renderCustomerDashboard() {
             const container = document.getElementById('customer-upcoming-list');
             container.innerHTML = '';
-            customerMissions.filter(m => m.status !== 'completed').forEach(m => {
+
+            // Filtre les missions à venir (non terminées)
+            const upcoming = clientMissions.filter(m => (m.matching_status || '').toLowerCase() !== 'mission effectuée');
+
+            if (upcoming.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400">Aucune intervention planifiée pour le moment.</p>`;
+                return;
+            }
+
+            upcoming.forEach(m => {
+                const studentName = m.student ? m.student.full_name : 'Recherche en cours...';
+                const statusBadge = m.student_id ? 
+                    '<span class="text-xs font-bold px-2.5 py-1 rounded bg-blue-50 text-blue-700">Planifiée</span>' : 
+                    '<span class="text-xs font-bold px-2.5 py-1 rounded bg-amber-50 text-amber-700">Recherche en cours</span>';
+
                 container.innerHTML += `
                     <div class="p-4 bg-slate-50 rounded-xl border flex justify-between items-center text-sm">
                         <div>
-                            <p class="font-bold text-lkdm-text">${m.title}</p>
-                            <p class="text-xs text-lkdm-secondary">${m.date} à ${m.time} • Intervenant : <strong class="text-lkdm-text">${m.student}</strong></p>
+                            <p class="font-bold text-lkdm-text">${m.exact_description || m.mission_code}</p>
+                            <p class="text-xs text-lkdm-secondary mt-0.5">${m.mission_date || 'Date à convenir'} • ${m.mission_periods || ''} • Intervenant : <strong class="text-lkdm-text">${studentName}</strong></p>
                         </div>
-                        <span class="text-xs font-bold px-2.5 py-1 rounded ${m.status==='assigned'?'bg-blue-50 text-blue-700':'bg-amber-50 text-amber-700'}">${m.status==='assigned'?'Planifiée':'Recherche en cours'}</span>
+                        ${statusBadge}
                     </div>
                 `;
             });
@@ -240,49 +303,108 @@
         function renderCustomerMissions() {
             const tbody = document.getElementById('customer-missions-tbody');
             tbody.innerHTML = '';
-            customerMissions.forEach(m => {
-                let badge = m.status === 'completed' ? '<span class="text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded font-bold text-xs">Terminée</span>' :
-                            m.status === 'assigned' ? '<span class="text-blue-600 bg-blue-50 px-2.5 py-1 rounded font-bold text-xs">Planifiée</span>' :
-                            '<span class="text-amber-600 bg-amber-50 px-2.5 py-1 rounded font-bold text-xs">En attente</span>';
+
+            if (clientMissions.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-4 px-6 text-center text-slate-400 text-xs">Aucune mission enregistrée.</td></tr>`;
+                return;
+            }
+
+            clientMissions.forEach(m => {
+                const studentName = m.student ? m.student.full_name : 'Non attribué';
+                const statusLower = (m.matching_status || '').toLowerCase();
+                
+                let badge = '<span class="text-amber-600 bg-amber-50 px-2.5 py-1 rounded font-bold text-xs">Nouveau</span>';
+                if (statusLower.includes('confirmé') || statusLower.includes('en cours')) {
+                    badge = '<span class="text-blue-600 bg-blue-50 px-2.5 py-1 rounded font-bold text-xs">Planifiée</span>';
+                } else if (statusLower.includes('effectuée')) {
+                    badge = '<span class="text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded font-bold text-xs">Terminée</span>';
+                }
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition">
-                        <td class="py-4 px-6 font-bold text-lkdm-text">${m.date}<br><span class="text-xs text-lkdm-secondary font-normal">${m.time}</span></td>
-                        <td class="py-4 px-6 font-bold text-lkdm-text">${m.title}</td>
-                        <td class="py-4 px-6 text-sm text-lkdm-secondary">${m.student}</td>
+                        <td class="py-4 px-6 font-bold text-lkdm-text">${m.mission_date || 'À convenir'}<br><span class="text-xs text-lkdm-secondary font-normal">${m.mission_periods || ''}</span></td>
+                        <td class="py-4 px-6 font-bold text-lkdm-text">${m.exact_description || m.mission_code}</td>
+                        <td class="py-4 px-6 text-sm text-lkdm-secondary">${studentName}</td>
                         <td class="py-4 px-6 text-right">${badge}</td>
                     </tr>
                 `;
             });
         }
 
-        function submitCustomerOrder(e) {
+        async function submitCustomerOrder(e) {
             e.preventDefault();
-            const title = document.getElementById('ord-title').value;
-            const date = document.getElementById('ord-date').value.split('-').reverse().join('/');
-            const time = document.getElementById('ord-time').value;
-            const city = document.getElementById('ord-city').value;
-            const duration = document.getElementById('ord-duration').value + 'h';
+            if (!currentClientId) return;
 
-            customerMissions.unshift({
-                id: Date.now(), date, time, title, student: "Recherche en cours", status: "unassigned", val: 75.00
-            });
+            const btn = document.getElementById('btn-submit-order');
+            btn.innerText = "Publication en cours...";
+            btn.disabled = true;
+
+            // Générer Code Mission automatique
+            const currentYear = new Date().getFullYear();
+            const prefix = `M${currentYear}_`;
+            const { count } = await window.supabaseClient.from('missions').select('*', { count: 'exact', head: true }).ilike('mission_code', `${prefix}%`);
+            const finalCode = `${prefix}${(count || 0) + 1}`;
+
+            const estHours = parseFloat(document.getElementById('ord-duration').value) || 2.0;
+
+            const payload = {
+                mission_code: finalCode,
+                client_id: currentClientId,
+                exact_description: document.getElementById('ord-title').value,
+                mission_date: document.getElementById('ord-date').value,
+                mission_periods: document.getElementById('ord-periods').value,
+                mission_language: document.getElementById('ord-lang').value,
+                estimated_hours: estHours,
+                real_hours: estHours,
+                total_amount: estHours * 35, // Tarif standard
+                lkdm_commission: estHours * 10,
+                matching_status: 'Nouveau',
+                payment_status: 'Facture non envoyée'
+            };
+
+            const { error } = await window.supabaseClient.from('missions').insert([payload]);
+            
+            btn.innerText = "Valider et publier la demande";
+            btn.disabled = false;
+
+            if (error) {
+                alert("Erreur lors de la commande : " + error.message);
+                return;
+            }
 
             showToast("Demande enregistrée", "Votre mission a été transmise à l'équipe LKDM.");
             switchTab('dashboard');
             e.target.reset();
+            loadClientData();
         }
 
         function renderCustomerBilling() {
             const tbody = document.getElementById('customer-billing-tbody');
             tbody.innerHTML = '';
-            customerInvoices.forEach(inv => {
+
+            // Affiche les missions facturables ou payées du client
+            if (clientMissions.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-4 px-6 text-center text-slate-400 text-xs">Aucune facture disponible.</td></tr>`;
+                return;
+            }
+
+            clientMissions.forEach(m => {
+                const amount = Number(m.total_amount) || 0;
+                const payStatus = m.payment_status || 'Facture non envoyée';
+
+                let statusBadge = `<span class="text-blue-600 bg-blue-50 px-2.5 py-1 rounded font-bold text-xs">Facture non envoyée</span>`;
+                if (payStatus.startsWith('Facture envoyée')) {
+                    statusBadge = `<span class="text-amber-600 bg-amber-50 px-2.5 py-1 rounded font-bold text-xs">En attente de paiement</span>`;
+                } else if (payStatus === 'Payé') {
+                    statusBadge = `<span class="text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded font-bold text-xs">Payé ✓</span>`;
+                }
+
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition">
-                        <td class="py-4 px-6 font-medium text-lkdm-text">${inv.id}</td>
-                        <td class="py-4 px-6 text-lkdm-secondary">${inv.date}</td>
-                        <td class="py-4 px-6 font-bold text-lkdm-text">CHF ${inv.amount.toFixed(2)}</td>
-                        <td class="py-4 px-6 text-right"><span class="text-amber-600 bg-amber-50 px-2.5 py-1 rounded font-bold text-xs">En attente de paiement</span></td>
+                        <td class="py-4 px-6 font-medium text-lkdm-text">${m.mission_code}</td>
+                        <td class="py-4 px-6 text-lkdm-secondary">${m.mission_date || '-'}</td>
+                        <td class="py-4 px-6 font-bold text-lkdm-text">CHF ${amount.toFixed(2)}</td>
+                        <td class="py-4 px-6 text-right">${statusBadge}</td>
                     </tr>
                 `;
             });
@@ -294,19 +416,14 @@
             document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('bg-lkdm-accent', 'text-white'); btn.classList.add('text-lkdm-text'); });
             document.getElementById(`nav-${tabId}`).classList.add('bg-lkdm-accent', 'text-white');
             document.getElementById(`nav-${tabId}`).classList.remove('text-lkdm-text');
+            
             if(tabId === 'dashboard') renderCustomerDashboard();
             if(tabId === 'missions') renderCustomerMissions();
             if(tabId === 'billing') renderCustomerBilling();
         }
 
-        function showToast(title, msg) {
-            const toast = document.getElementById('toast');
-            toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('hidden'), 4000);
-        }
-
         window.addEventListener('DOMContentLoaded', () => {
-            renderCustomerDashboard();
+            initClientSpace();
         });
     </script>
 </body>
