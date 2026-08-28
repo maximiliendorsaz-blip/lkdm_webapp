@@ -89,4 +89,17 @@
     </div>
 
 </body>
+<style>
+    // Vérifie si l'utilisateur est connecté, sinon le renvoie vers la page de login
+        async function checkAuth() {
+            if (!window.supabaseClient) return;
+            const { data: { session } } = await window.supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+            }
+        }
+        
+        // On lance la vérification dès que la page s'ouvre
+        checkAuth();
+</style>
 </html>
