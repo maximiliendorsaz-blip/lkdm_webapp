@@ -230,6 +230,7 @@
                 <p><strong>Date & Horaire :</strong> <span id="modal-mis-date"></span></p>
                 <p><strong>Description :</strong> <span id="modal-mis-desc"></span></p>
                 <p><strong>Intervenant assigné :</strong> <span id="modal-mis-student" class="font-semibold text-emerald-700"></span></p>
+                <p><strong>Téléphone intervenant :</strong> <span id="modal-mis-student-phone" class="font-semibold text-lkdm-accent"></span></p>
                 <p><strong>Montant :</strong> <span id="modal-mis-amount" class="font-bold text-lkdm-text"></span></p>
                 <p><strong>Statut de paiement :</strong> <span id="modal-mis-paystatus"></span></p>
             </div>
@@ -375,6 +376,15 @@
             document.getElementById('modal-mis-date').innerText = `${m.mission_date || 'À convenir'} (${m.mission_periods || 'Horaire flexible'})`;
             document.getElementById('modal-mis-desc').innerText = m.exact_description || 'Aucune description';
             document.getElementById('modal-mis-student').innerText = m.student ? m.student.full_name : 'En cours d\'attribution';
+
+            // Affichage du numéro de téléphone de l'intervenant
+            const phoneEl = document.getElementById('modal-mis-student-phone');
+            if (m.student && m.student.phone) {
+                phoneEl.innerHTML = `<a href="tel:${m.student.phone}" class="hover:underline text-lkdm-accent font-bold"><i class="fa-solid fa-phone mr-1"></i>${m.student.phone}</a>`;
+            } else {
+                phoneEl.innerText = m.student ? 'Non renseigné' : 'Non attribué';
+            }
+
             document.getElementById('modal-mis-amount').innerText = `CHF ${(Number(m.total_amount) || 0).toFixed(2)}`;
             document.getElementById('modal-mis-paystatus').innerText = m.payment_status || 'Facture non envoyée';
 
@@ -470,8 +480,8 @@
                 }
 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="py-4 px-6 font-medium text-lkdm-text">${m.mission_code}</td>
+                    <tr class="hover:bg-slate-50 transition cursor-pointer" onclick="openCustomerMissionModal(${m.id})">
+                        <td class="py-4 px-6 font-bold text-lkdm-accent">${m.mission_code}</td>
                         <td class="py-4 px-6 text-lkdm-secondary">${m.mission_date || '-'}</td>
                         <td class="py-4 px-6 font-bold text-lkdm-text">CHF ${amount.toFixed(2)}</td>
                         <td class="py-4 px-6 text-right">${statusBadge}</td>
