@@ -310,7 +310,13 @@
 
             showToast("Profil mis à jour", "Vos informations ont bien été enregistrées.");
             setTimeout(() => {
-                window.location.href = currentUserRole === 'admin' ? 'dashboard_admin.html' : (currentUserRole === 'student' ? 'dashboard_student.html' : 'dashboard_customer.html');
+                if (currentUserRole === 'admin') {
+                    window.location.href = 'dashboard_admin.html';
+                } else if (currentUserRole === 'student') {
+                    window.location.href = 'dashboard_student.html';
+                } else {
+                    window.location.href = 'dashboard_customer.html';
+                }
             }, 1200);
         }
 
