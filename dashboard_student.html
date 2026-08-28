@@ -378,6 +378,18 @@
         let map = null;
         let markersGroup = null;
 
+        // Vérifie si l'utilisateur est connecté, sinon le renvoie vers la page de login
+        async function checkAuth() {
+            if (!window.supabaseClient) return;
+            const { data: { session } } = await window.supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+            }
+        }
+        
+        // On lance la vérification dès que la page s'ouvre
+        checkAuth();
+        
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModalCustom(id) { document.getElementById(id).classList.add('hidden'); }
         function toggleMobileMenu() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
