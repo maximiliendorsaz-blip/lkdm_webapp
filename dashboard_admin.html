@@ -1403,21 +1403,32 @@
         function toggleTimeEdit() {
             const startInput = document.getElementById('edit-mis-start');
             const endInput = document.getElementById('edit-mis-end');
+            const estHoursInput = document.getElementById('edit-mis-est-hours');
             const btn = document.getElementById('btn-toggle-time');
 
-            if (startInput.disabled) {
+            if (startInput.disabled) { 
+                // Déverrouillage
                 startInput.disabled = false;
                 endInput.disabled = false;
+                estHoursInput.disabled = false;
+                
                 startInput.classList.replace('bg-slate-100', 'bg-white');
                 endInput.classList.replace('bg-slate-100', 'bg-white');
+                estHoursInput.classList.replace('bg-slate-100', 'bg-white');
+                
                 btn.innerHTML = '<i class="fa-solid fa-lock-open mr-1"></i> Verrouiller';
                 btn.classList.replace('bg-slate-200', 'bg-amber-200');
                 btn.classList.replace('text-slate-600', 'text-amber-800');
-            } else {
+            } else { 
+                // Verrouillage
                 startInput.disabled = true;
                 endInput.disabled = true;
+                estHoursInput.disabled = true;
+                
                 startInput.classList.replace('bg-white', 'bg-slate-100');
                 endInput.classList.replace('bg-white', 'bg-slate-100');
+                estHoursInput.classList.replace('bg-white', 'bg-slate-100');
+                
                 btn.innerHTML = '<i class="fa-solid fa-lock mr-1"></i> Déverrouiller';
                 btn.classList.replace('bg-amber-200', 'bg-slate-200');
                 btn.classList.replace('text-amber-800', 'text-slate-600');
