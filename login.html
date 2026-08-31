@@ -34,6 +34,11 @@
                 <label class="block text-xs font-bold text-slate-600 mb-1.5">Mot de passe</label>
                 <input type="password" id="login-password" required placeholder="••••••••" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-lkdm-accent">
             </div>
+            <div class="flex items-center justify-between text-xs mt-2 mb-4">
+                <a href="#" onclick="openForgotPasswordModal(event)" class="text-lkdm-secondary hover:text-lkdm-accent transition font-medium">
+                    Mot de passe oublié ?
+                </a>
+            </div>
             <div class="pt-2">
                 <button type="submit" id="btn-login" class="w-full bg-lkdm-accent text-white py-3.5 rounded-[50px] font-medium text-xs hover:bg-[#b53838] transition shadow-sm">
                     Se connecter
@@ -42,6 +47,28 @@
         </form>
     </div>
 
+    <!-- MODAL : MOT DE PASSE OUBLIÉ -->
+    <div id="modal-forgot-password" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 relative">
+            <button onclick="closeModal('modal-forgot-password')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200">
+                <i class="fa-solid fa-times"></i>
+            </button>
+            <h3 class="text-xl font-bold text-lkdm-text mb-2">Réinitialisation</h3>
+            <p class="text-xs text-slate-500 mb-5">Entrez votre adresse e-mail. Nous vous enverrons un lien pour réinitialiser votre mot de passe.</p>
+            
+            <form onsubmit="handleForgotPassword(event)" class="space-y-4 text-sm">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Votre email *</label>
+                    <input type="email" id="forgot-email" required placeholder="nom@exemple.ch" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeModal('modal-forgot-password')" class="px-4 py-2 bg-slate-100 rounded-full text-xs font-medium">Annuler</button>
+                    <button type="submit" id="btn-forgot-submit" class="px-5 py-2 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm hover:bg-[#b53838]">Envoyer le lien</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <script>
         async function handleLogin(event) {
             event.preventDefault();
@@ -90,6 +117,42 @@
                 window.location.href = 'index.html';
             }
         }
+        function openForgotPasswordModal(e) {
+    e.preventDefault();
+    document.getElementById('modal-forgot-password').classList.remove('hidden');
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+}
+
+async function handleForgotPassword(e) {
+    e.preventDefault();
+    const email = document.getElementById('forgot-email').value.trim();
+    const btn = document.getElementById('btn-forgot-submit');
+
+    if (!email) return;
+
+    btn.innerText = "Envoi en cours...";
+    btn.disabled = true;
+
+    // Appel à Supabase pour envoyer l'e-mail de récupération
+    const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/settings.html', // Redirige l'utilisateur vers ses réglages après clic sur le lien mail
+    });
+
+    btn.innerText = "Envoyer le lien";
+    btn.disabled = false;
+
+    if (error) {
+        alert("Erreur : " + error.message);
+        return;
+    }
+
+    alert("E-mail de réinitialisation envoyé ! Vérifiez votre boîte de réception.");
+    closeModal('modal-forgot-password');
+    document.getElementById('forgot-email').value = '';
+}
     </script>
 </body>
 </html>
