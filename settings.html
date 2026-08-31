@@ -164,15 +164,6 @@
         let currentProfileId = null;
         let currentUserRole = 'student';
 
-        async function checkAuth() {
-            if (!window.supabaseClient) return;
-            const { data: { session } } = await window.supabaseClient.auth.getSession();
-            if (!session) {
-                window.location.href = 'login.html';
-            }
-        }
-        checkAuth();
-
         async function handleLogout() {
             if (!window.supabaseClient) return;
             await window.supabaseClient.auth.signOut();
@@ -198,24 +189,18 @@
             }
         }
 
-async function initSettingsPage() {
+        async function initSettingsPage() {
             if (!window.supabaseClient) return;
+
+            // Intercepte et laisse le temps à Supabase de traiter le token de récupération de mot de passe s'il est présent dans l'URL
+            if (window.location.hash && window.location.hash.includes('access_token')) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
 
             // Récupérer la session active de manière sécurisée
             const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
             
-            // Si aucune session n'est active (par exemple si le lien de reset a expiré ou cassé), on renvoie au login
             if (sessionError || !session || !session.user) {
-                // On vérifie si un hash de token est présent, on laisse 1 seconde à Supabase pour l'absorber
-                if (window.location.hash.includes('access_token')) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    const { data: { session: retrySession } } = await window.supabaseClient.auth.getSession();
-                    if (retrySession && retrySession.user) {
-                        // Session récupérée avec succès après le hash
-                        loadProfileData(retrySession.user);
-                        return;
-                    }
-                }
                 window.location.href = 'login.html';
                 return;
             }
