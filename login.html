@@ -129,29 +129,20 @@ function closeModal(id) {
 async function handleForgotPassword(e) {
     e.preventDefault();
     const email = document.getElementById('forgot-email').value.trim();
-    const btn = document.getElementById('btn-forgot-submit');
-
     if (!email) return;
 
-    btn.innerText = "Envoi en cours...";
-    btn.disabled = true;
-
-    // Appel à Supabase pour envoyer l'e-mail de récupération
+    // Utilise une URL de redirection propre vers une page dédiée ou les réglages sans hash
     const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/settings.html', // Redirige l'utilisateur vers ses réglages après clic sur le lien mail
+        redirectTo: window.location.origin + '/settings.html',
     });
-
-    btn.innerText = "Envoyer le lien";
-    btn.disabled = false;
 
     if (error) {
         alert("Erreur : " + error.message);
         return;
     }
 
-    alert("E-mail de réinitialisation envoyé ! Vérifiez votre boîte de réception.");
+    alert("Un e-mail de réinitialisation a été envoyé à " + email + ". Veuillez vérifier votre boîte mail.");
     closeModal('modal-forgot-password');
-    document.getElementById('forgot-email').value = '';
 }
     </script>
 </body>
