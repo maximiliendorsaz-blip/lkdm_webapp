@@ -17,11 +17,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Configuration Supabase -->
     <script src="supabase-config.js"></script>
-    <!-- Configuration Centralisée LKDM (DOIT ÊTRE CHARGÉ AVANT LES SCRIPTS) -->
+    <!-- Configuration Centralisée LKDM -->
     <script src="config.js"></script>
     <style>
         #admin-map { z-index: 10 !important; }
-        /* Adaptation mobile pour toutes les modales et les tableaux */
         html, body { max-width: 100%; overflow-x: hidden; }
         @media (max-width: 768px) {
             .modal-content, [id^="modal-"] > div {
@@ -260,7 +259,7 @@
                         </div>
                         <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
                             <div class="flex items-center justify-between mb-4">
-                                <h3 class="font-bold text-lkdm-text text-lg">Août 2026</h3>
+                                <h3 class="font-bold text-lkdm-text text-lg">Septembre 2026</h3>
                             </div>
                             <div class="grid grid-cols-7 gap-2 text-center text-[10px] font-semibold text-lkdm-secondary mb-2 uppercase">
                                 <div>Lun</div><div>Mar</div><div>Mer</div><div>Jeu</div><div>Ven</div><div>Sam</div><div>Dim</div>
@@ -651,7 +650,6 @@
             <form onsubmit="submitEditMission(event)" class="space-y-5 text-sm">
                 <input type="hidden" id="edit-mis-id">
                 
-                <!-- Bloc 1 : Infos Générales -->
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
                     <h4 class="font-bold text-xs uppercase text-lkdm-secondary">Général & Intervenants</h4>
                     <div class="grid grid-cols-3 gap-4">
@@ -679,7 +677,6 @@
                     </div>
                 </div>
 
-                <!-- Bloc 2 : Temps & Chronomètres -->
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
                     <div class="flex justify-between items-center">
                         <h4 class="font-bold text-xs uppercase text-lkdm-secondary">Horaires & Temps</h4>
@@ -695,7 +692,6 @@
                     </div>
                 </div>
 
-                <!-- Bloc 3 : Finances -->
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
                     <h4 class="font-bold text-xs uppercase text-lkdm-secondary">Finances & Facturation</h4>
                     <div class="grid grid-cols-4 gap-3">
@@ -713,7 +709,6 @@
                     </div>
                 </div>
 
-                <!-- Bloc 4 : Évaluations & Retours (Nouvelles colonnes) -->
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
                     <h4 class="font-bold text-xs uppercase text-lkdm-secondary">Évaluations & Compte-rendu</h4>
                     <div class="grid grid-cols-4 gap-3">
@@ -726,7 +721,6 @@
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Feedback global</label><textarea id="edit-mis-feedback" rows="2" class="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs"></textarea></div>
                 </div>
 
-                <!-- Liste des documents liés à la mission -->
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
                     <h4 class="font-bold text-xs uppercase text-lkdm-secondary">Documents liés à cette mission</h4>
                     <div id="mission-docs-list" class="space-y-1 max-h-32 overflow-y-auto text-xs"></div>
@@ -776,7 +770,6 @@
                         <div id="stu-missions-list" class="space-y-1 max-h-32 overflow-y-auto text-xs"></div>
                     </div>
                 </div>
-                <!-- Liste des documents liés à l'étudiant -->
                 <div class="bg-slate-50 p-4 rounded-2xl space-y-2 border">
                     <h4 class="font-bold text-xs uppercase text-lkdm-secondary">Documents de l'étudiant</h4>
                     <div id="stu-documents-list" class="space-y-1 max-h-32 overflow-y-auto text-xs"></div>
@@ -820,7 +813,6 @@
                         <div id="cli-missions-list" class="space-y-1 max-h-32 overflow-y-auto text-xs"></div>
                     </div>
                 </div>
-                <!-- Liste des documents liés au client -->
                 <div class="bg-slate-50 p-4 rounded-2xl space-y-2 border">
                     <h4 class="font-bold text-xs uppercase text-lkdm-secondary">Documents du client</h4>
                     <div id="cli-documents-list" class="space-y-1 max-h-32 overflow-y-auto text-xs"></div>
@@ -880,66 +872,66 @@
     </div>
 
     <!-- MODAL : CRÉER UN NOUVEL UTILISATEUR -->
-<div id="modal-create-user" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
-    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 relative my-8">
-        <button onclick="closeModal('modal-create-user')" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition">
-            <i class="fa-solid fa-times"></i>
-        </button>
-        
-        <div class="mb-6">
-            <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Administration</span>
-            <h3 class="text-xl font-bold text-lkdm-text mt-0.5">Créer un nouvel utilisateur</h3>
-            <p class="text-xs text-slate-500 mt-1">Un e-mail d'invitation sera automatiquement envoyé pour définir son mot de passe.</p>
+    <div id="modal-create-user" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 relative my-8">
+            <button onclick="closeModal('modal-create-user')" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition">
+                <i class="fa-solid fa-times"></i>
+            </button>
+            
+            <div class="mb-6">
+                <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Administration</span>
+                <h3 class="text-xl font-bold text-lkdm-text mt-0.5">Créer un nouvel utilisateur</h3>
+                <p class="text-xs text-slate-500 mt-1">Un e-mail d'invitation sera automatiquement envoyé pour définir son mot de passe.</p>
+            </div>
+
+            <form onsubmit="handleCreateUser(event)" class="space-y-4 text-sm">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Prénom *</label>
+                        <input type="text" id="new-user-firstname" required placeholder="Jean" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-lkdm-accent">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Nom *</label>
+                        <input type="text" id="new-user-lastname" required placeholder="Dupont" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-lkdm-accent">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Adresse Email *</label>
+                    <input type="email" id="new-user-email" required placeholder="jean.dupont@exemple.ch" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-lkdm-accent">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Rôle / Type d'utilisateur *</label>
+                    <select id="new-user-role" onchange="toggleRoleFields()" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-lkdm-accent font-medium">
+                        <option value="client">Client</option>
+                        <option value="student">Étudiant</option>
+                        <option value="admin">Administrateur</option>
+                    </select>
+                </div>
+
+                <!-- Champs dynamiques selon le rôle -->
+                <div id="fields-client" class="space-y-4 pt-2 border-t border-slate-100">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Téléphone</label>
+                        <input type="tel" id="user-phone" placeholder="+41 79 000 00 00" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
+                    </div>
+                </div>
+
+                <div id="fields-student" class="space-y-4 pt-2 border-t border-slate-100 hidden">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Filière / Études</label>
+                        <input type="text" id="user-studies" placeholder="Informatique / Économie..." class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('modal-create-user')" class="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-full text-xs font-medium hover:bg-slate-200 transition">Annuler</button>
+                    <button type="submit" id="btn-create-submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm hover:bg-[#b53838] transition">Créer et envoyer l'invitation</button>
+                </div>
+            </form>
         </div>
-
-        <form onsubmit="handleCreateUser(event)" class="space-y-4 text-sm">
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Prénom *</label>
-                    <input type="text" id="new-user-firstname" required placeholder="Jean" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-lkdm-accent">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Nom *</label>
-                    <input type="text" id="new-user-lastname" required placeholder="Dupont" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-lkdm-accent">
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">Adresse Email *</label>
-                <input type="email" id="new-user-email" required placeholder="jean.dupont@exemple.ch" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-lkdm-accent">
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">Rôle / Type d'utilisateur *</label>
-                <select id="new-user-role" onchange="toggleRoleFields()" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-lkdm-accent font-medium">
-                    <option value="client">Client</option>
-                    <option value="student">Étudiant</option>
-                    <option value="admin">Administrateur</option>
-                </select>
-            </div>
-
-            <!-- Champs dynamiques selon le rôle (Ex: Téléphone pour client, École/Filière pour étudiant) -->
-            <div id="fields-client" class="space-y-4 pt-2 border-t border-slate-100">
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Téléphone</label>
-                    <input type="tel" id="user-phone" placeholder="+41 79 000 00 00" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
-                </div>
-            </div>
-
-            <div id="fields-student" class="space-y-4 pt-2 border-t border-slate-100 hidden">
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Filière / Études</label>
-                    <input type="text" id="user-studies" placeholder="Informatique / Économie..." class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
-                </div>
-            </div>
-
-            <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                <button type="button" onclick="closeModal('modal-create-user')" class="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-full text-xs font-medium hover:bg-slate-200 transition">Annuler</button>
-                <button type="submit" id="btn-create-submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm hover:bg-[#b53838] transition">Créer et envoyer l'invitation</button>
-            </div>
-        </form>
     </div>
-</div>
 
     <!-- SCRIPTS JAVASCRIPT PRINCIPAUX -->
     <script>
@@ -951,7 +943,6 @@
         let adminMap = null;
         let adminMarkers = null;
 
-        // Vérifie si l'utilisateur est connecté, sinon le renvoie vers la page de login
         async function checkAuth() {
             if (!window.supabaseClient) return;
             const { data: { session } } = await window.supabaseClient.auth.getSession();
@@ -960,7 +951,6 @@
             }
         }
         
-        // On lance la vérification dès que la page s'ouvre
         checkAuth();
         
         function getStatusColorClass(status) {
@@ -993,6 +983,21 @@
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         function toggleMobileMenu() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
+
+        function toggleRoleFields() {
+            const role = document.getElementById('new-user-role').value;
+            const clientFields = document.getElementById('fields-client');
+            const studentFields = document.getElementById('fields-student');
+
+            clientFields.classList.add('hidden');
+            studentFields.classList.add('hidden');
+
+            if (role === 'client') {
+                clientFields.classList.remove('hidden');
+            } else if (role === 'student') {
+                studentFields.classList.remove('hidden');
+            }
+        }
 
         function populateDynamicDropdowns() {
             if (!window.LKDM_CONFIG) return;
@@ -1519,26 +1524,16 @@
 
         function formatToDatetimeLocal(isoStr) {
             if (!isoStr) return '';
-            
             try {
                 if (typeof isoStr === 'string' && /^\d{2}:\d{2}(:\d{2})?$/.test(isoStr)) {
                     const today = new Date().toISOString().split('T')[0];
                     isoStr = `${today}T${isoStr}`;
                 }
-
                 const d = new Date(isoStr);
                 if (isNaN(d.getTime())) return '';
-                
                 const pad = (n) => n.toString().padStart(2, '0');
-                const yyyy = d.getFullYear();
-                const mm = pad(d.getMonth() + 1);
-                const dd = pad(d.getDate());
-                const hh = pad(d.getHours());
-                const mins = pad(d.getMinutes());
-                
-                return `${yyyy}-${mm}-${dd}T${hh}:${mins}`;
+                return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
             } catch(e) {
-                console.error("Erreur de formatage de date:", e);
                 return '';
             }
         }
@@ -1579,27 +1574,15 @@
         function autoCalcRealHours() {
             const startStr = document.getElementById('edit-mis-start').value;
             const endStr = document.getElementById('edit-mis-end').value;
-            
             if (!startStr || !endStr) return;
-            
             const diffMs = new Date(endStr) - new Date(startStr);
-            
             if (diffMs <= 0) {
                 document.getElementById('edit-mis-real').value = 0;
                 return;
             }
-
             const diffMinutes = Math.floor(diffMs / 60000); 
-            let realH = 0;
-            
-            if (diffMinutes <= 60) {
-                realH = 1.0; 
-            } else {
-                realH = Math.ceil((diffMinutes / 60) * 2) / 2; 
-            }
-            
+            let realH = diffMinutes <= 60 ? 1.0 : Math.ceil((diffMinutes / 60) * 2) / 2; 
             document.getElementById('edit-mis-real').value = realH;
-            
             document.getElementById('edit-mis-total').value = (realH * 35).toFixed(2);
             document.getElementById('edit-mis-comm').value = (realH * 10).toFixed(2);
         }
@@ -1626,28 +1609,14 @@
 
             document.getElementById('edit-mis-start').value = formatToDatetimeLocal(m.start_time);
             document.getElementById('edit-mis-end').value = formatToDatetimeLocal(m.end_time);
-
             document.getElementById('edit-mis-est-hours').value = m.estimated_hours || '';
             
-            if (m.start_time && m.end_time) {
-                autoCalcRealHours();
-            } else {
-                document.getElementById('edit-mis-real').value = m.real_hours || '';
-            }
+            if (m.start_time && m.end_time) autoCalcRealHours();
+            else document.getElementById('edit-mis-real').value = m.real_hours || '';
 
             document.getElementById('edit-mis-start').disabled = true;
             document.getElementById('edit-mis-end').disabled = true;
             document.getElementById('edit-mis-est-hours').disabled = true;
-            
-            document.getElementById('edit-mis-start').className = "w-full bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-xs transition-colors";
-            document.getElementById('edit-mis-end').className = "w-full bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-xs transition-colors";
-            document.getElementById('edit-mis-est-hours').className = "w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs transition-colors";
-            
-            const btnTime = document.getElementById('btn-toggle-time');
-            if(btnTime) {
-                btnTime.innerHTML = '<i class="fa-solid fa-lock mr-1"></i> Déverrouiller';
-                btnTime.className = 'text-[10px] bg-slate-200 text-slate-600 px-2 py-1 rounded font-bold hover:bg-slate-300 transition flex items-center';
-            }
             
             document.getElementById('edit-mis-payment').value = m.payment_type || 'Facture';
             document.getElementById('edit-mis-pay-status').value = m.payment_status || 'Facture non envoyée';
@@ -1662,8 +1631,7 @@
             document.getElementById('edit-mis-feedback').value = m.feedback || '';
 
             const missionDocs = globalDocumentsData.filter(d => d.mission_id == m.id);
-            const docsContainer = document.getElementById('mission-docs-list');
-            docsContainer.innerHTML = missionDocs.length ? missionDocs.map(d => `
+            document.getElementById('mission-docs-list').innerHTML = missionDocs.length ? missionDocs.map(d => `
                 <div onclick="openEditDocModal('${d.id}')" class="bg-white p-2 rounded border flex justify-between items-center cursor-pointer hover:border-lkdm-accent">
                     <span><strong>[${d.doc_type}]</strong> ${d.title}</span>
                     <span class="text-lkdm-accent font-bold hover:underline">Modifier / Voir</span>
@@ -1676,21 +1644,6 @@
         async function submitEditMission(event) {
             event.preventDefault();
             const id = document.getElementById('edit-mis-id').value;
-
-            let missionDateISO = null;
-            if (document.getElementById('edit-mis-date').value) {
-                missionDateISO = new Date(document.getElementById('edit-mis-date').value).toISOString();
-            }
-
-            let startTimeISO = null;
-            if (document.getElementById('edit-mis-start').value) {
-                startTimeISO = new Date(document.getElementById('edit-mis-start').value).toISOString();
-            }
-            let endTimeISO = null;
-            if (document.getElementById('edit-mis-end').value) {
-                endTimeISO = new Date(document.getElementById('edit-mis-end').value).toISOString();
-            }
-
             const payload = {
                 mission_code: document.getElementById('edit-mis-code').value,
                 client_id: document.getElementById('edit-mis-client').value,
@@ -1698,19 +1651,16 @@
                 matching_status: document.getElementById('edit-mis-matching-status').value,
                 mission_language: document.getElementById('edit-mis-lang').value,
                 mission_periods: document.getElementById('edit-mis-periods').value,
-                mission_date: missionDateISO,
+                mission_date: document.getElementById('edit-mis-date').value ? new Date(document.getElementById('edit-mis-date').value).toISOString() : null,
                 exact_description: document.getElementById('edit-mis-desc').value,
-                
-                start_time: startTimeISO,
-                end_time: endTimeISO,
+                start_time: document.getElementById('edit-mis-start').value ? new Date(document.getElementById('edit-mis-start').value).toISOString() : null,
+                end_time: document.getElementById('edit-mis-end').value ? new Date(document.getElementById('edit-mis-end').value).toISOString() : null,
                 estimated_hours: parseFloat(document.getElementById('edit-mis-est-hours').value) || 0,
                 real_hours: parseFloat(document.getElementById('edit-mis-real').value) || 0,
-                
                 payment_type: document.getElementById('edit-mis-payment').value,
                 payment_status: document.getElementById('edit-mis-pay-status').value,
                 total_amount: parseFloat(document.getElementById('edit-mis-total').value) || 0,
                 lkdm_commission: parseFloat(document.getElementById('edit-mis-comm').value) || 0,
-
                 senior_csat: parseInt(document.getElementById('edit-mis-scsat').value) || null,
                 senior_nps: parseInt(document.getElementById('edit-mis-snps').value) || null,
                 student_csat: parseInt(document.getElementById('edit-mis-stcsat').value) || null,
@@ -1718,7 +1668,6 @@
                 dar_summary: document.getElementById('edit-mis-dar').value,
                 feedback: document.getElementById('edit-mis-feedback').value
             };
-
             const { error } = await window.supabaseClient.from('missions').update(payload).eq('id', id);
             if (error) alert("Erreur : " + error.message);
             else { closeModal('modal-edit-mission'); loadSupabaseOverview(); }
@@ -1753,8 +1702,7 @@
             document.getElementById('stu-missions-list').innerHTML = missionsHtml;
 
             const studentDocs = globalDocumentsData.filter(d => d.student_id == s.id);
-            const docsContainer = document.getElementById('stu-documents-list');
-            docsContainer.innerHTML = studentDocs.length ? studentDocs.map(d => `
+            document.getElementById('stu-documents-list').innerHTML = studentDocs.length ? studentDocs.map(d => `
                 <div onclick="openEditDocModal('${d.id}')" class="bg-white p-2 rounded border flex justify-between items-center cursor-pointer hover:border-lkdm-accent">
                     <span><strong>[${d.doc_type}]</strong> ${d.title}</span>
                     <span class="text-lkdm-accent font-bold hover:underline">Modifier</span>
@@ -1810,8 +1758,7 @@
             document.getElementById('cli-missions-list').innerHTML = missionsHtml;
 
             const clientDocs = globalDocumentsData.filter(d => d.client_id == c.id);
-            const docsContainer = document.getElementById('cli-documents-list');
-            docsContainer.innerHTML = clientDocs.length ? clientDocs.map(d => `
+            document.getElementById('cli-documents-list').innerHTML = clientDocs.length ? clientDocs.map(d => `
                 <div onclick="openEditDocModal('${d.id}')" class="bg-white p-2 rounded border flex justify-between items-center cursor-pointer hover:border-lkdm-accent">
                     <span><strong>[${d.doc_type}]</strong> ${d.title}</span>
                     <span class="text-lkdm-accent font-bold hover:underline">Modifier</span>
@@ -1851,11 +1798,11 @@
             if(adminMarkers) adminMarkers.clearLayers();
             const grid = document.getElementById('admin-calendar-grid');
             grid.innerHTML = '';
-            for (let i = 0; i < 5; i++) grid.innerHTML += '<div class="bg-slate-100/50 rounded-xl"></div>';
+            for (let i = 0; i < 2; i++) grid.innerHTML += '<div class="bg-slate-100/50 rounded-xl"></div>';
 
-            for (let day = 1; day <= 31; day++) {
+            for (let day = 1; day <= 30; day++) {
                 const dayStr = day < 10 ? '0'+day : ''+day;
-                const missionsToday = globalMissionsData.filter(m => m.mission_date && m.mission_date.includes(`-08-${dayStr}`));
+                const missionsToday = globalMissionsData.filter(m => m.mission_date && m.mission_date.includes(`-09-${dayStr}`));
                 let dayHtml = `<div class="bg-lkdm-bg border border-slate-200 rounded-xl p-1 flex flex-col h-16 md:h-20 overflow-hidden"><span class="text-[10px] font-bold text-slate-400 mb-1">${day}</span>`;
                 
                 for (const m of missionsToday) {
@@ -2016,8 +1963,8 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            populateDynamicDropdowns(); // Alimentation automatique depuis config.js
-            loadSupabaseOverview();      // Chargement des données Supabase
+            populateDynamicDropdowns();
+            loadSupabaseOverview();
         });
 
         function openEditDocModal(docId) {
@@ -2027,7 +1974,6 @@
             document.getElementById('edit-doc-id').value = d.id;
             document.getElementById('edit-doc-title').value = d.title || '';
             
-            // Remplir le select des types de documents
             const typeSel = document.getElementById('edit-doc-type-select');
             typeSel.innerHTML = '';
             if (window.LKDM_CONFIG && window.LKDM_CONFIG.documentTypes) {
@@ -2038,7 +1984,6 @@
                 typeSel.innerHTML = `<option value="${d.doc_type}" selected>${d.doc_type}</option>`;
             }
 
-            // Remplir les profils (clients / étudiants)
             const profileSel = document.getElementById('edit-doc-profile-link');
             profileSel.innerHTML = '<option value="">-- Aucun lien profil --</option>';
             [...globalClientsData, ...globalStudentsData].forEach(p => {
@@ -2047,7 +1992,6 @@
                 profileSel.innerHTML += `<option value="${p.id}" ${isSelected}>${p.full_name} (${roleLabel})</option>`;
             });
 
-            // Remplir les missions
             const missionSel = document.getElementById('edit-doc-mission-link');
             missionSel.innerHTML = '<option value="">-- Aucune mission liée --</option>';
             globalMissionsData.forEach(m => {
@@ -2056,7 +2000,6 @@
             });
 
             document.getElementById('edit-doc-file-link').href = d.file_url || '#';
-
             openModal('modal-edit-doc');
         }
 
@@ -2103,124 +2046,92 @@
                 loadSupabaseOverview();
             }
         }
+
         async function handleLogout() {
-    if (!window.supabaseClient) return;
-    
-    // Demande à Supabase de fermer la session active
-    const { error } = await window.supabaseClient.auth.signOut();
-    
-    if (error) {
-        console.error("Erreur lors de la déconnexion :", error.message);
-        return;
-    }
-
-    // Redirige l'utilisateur vers la page de login
-    window.location.href = 'login.html';
-}
-
-        // Gestion de l'affichage dynamique des champs selon le rôle sélectionné
-function toggleRoleFields() {
-    const role = document.getElementById('new-user-role').value;
-    const clientFields = document.getElementById('fields-client');
-    const studentFields = document.getElementById('fields-student');
-
-    clientFields.classList.add('hidden');
-    studentFields.classList.add('hidden');
-
-    if (role === 'client') {
-        clientFields.classList.remove('hidden');
-    } else if (role === 'student') {
-        studentFields.classList.remove('hidden');
-    }
-}
-
-function openModal(id) {
-    document.getElementById(id).classList.remove('hidden');
-}
-
-function closeModal(id) {
-    document.getElementById(id).classList.add('hidden');
-}
-
-// Action de création de l'utilisateur
-async function handleCreateUser(event) {
-    event.preventDefault();
-    
-    const email = document.getElementById('new-user-email').value.trim();
-    const firstName = document.getElementById('new-user-firstname').value.trim();
-    const lastName = document.getElementById('new-user-lastname').value.trim();
-    const role = document.getElementById('new-user-role').value;
-    const phone = document.getElementById('user-phone').value.trim();
-    const studies = document.getElementById('user-studies').value.trim();
-    const btn = document.getElementById('btn-create-submit');
-
-    btn.innerText = "Création en cours...";
-    btn.disabled = true;
-
-    try {
-        // Génération d'un mot de passe temporaire aléatoire et sécurisé
-        const tempPassword = Math.random().toString(36.slice(-8)) + "A1!";
-
-        // 1. Inscription classique de l'utilisateur avec le client standard
-        const { data, error } = await window.supabaseClient.auth.signUp({
-            email: email,
-            password: tempPassword,
-            options: {
-                data: {
-                    first_name: firstName,
-                    last_name: lastName,
-                    role: role
-                }
+            if (!window.supabaseClient) return;
+            const { error } = await window.supabaseClient.auth.signOut();
+            if (error) {
+                console.error("Erreur lors de la déconnexion :", error.message);
+                return;
             }
-        });
-
-        if (error) {
-            alert("Erreur lors de la création : " + error.message);
-            btn.innerText = "Créer et envoyer l'invitation";
-            btn.disabled = false;
-            return;
+            window.location.href = 'login.html';
         }
 
-        // 2. Enregistrement/Mise à jour dans la table "profiles"
-        if (data && data.user) {
-            const userId = data.user.id;
+        async function handleCreateUser(event) {
+            event.preventDefault();
             
-            const profileData = {
-                id: userId,
-                email: email,
-                first_name: firstName,
-                last_name: lastName,
-                role: role,
-                phone: phone || null,
-                studies: studies || null
-            };
+            const email = document.getElementById('new-user-email').value.trim();
+            const firstName = document.getElementById('new-user-firstname').value.trim();
+            const lastName = document.getElementById('new-user-lastname').value.trim();
+            const role = document.getElementById('new-user-role').value;
+            const phone = document.getElementById('user-phone').value.trim();
+            const studies = document.getElementById('user-studies').value.trim();
+            const btn = document.getElementById('btn-create-submit');
 
-            await window.supabaseClient
-                .from('profiles')
-                .upsert(profileData);
+            btn.innerText = "Création en cours...";
+            btn.disabled = true;
+
+            try {
+                const tempPassword = Math.random().toString(36).slice(-8) + "A1!";
+
+                const { data, error } = await window.supabaseClient.auth.signUp({
+                    email: email,
+                    password: tempPassword,
+                    options: {
+                        data: {
+                            first_name: firstName,
+                            last_name: lastName,
+                            role: role
+                        }
+                    }
+                });
+
+                if (error) {
+                    alert("Erreur lors de la création : " + error.message);
+                    btn.innerText = "Créer et envoyer l'invitation";
+                    btn.disabled = false;
+                    return;
+                }
+
+                if (data && data.user) {
+                    const userId = data.user.id;
+                    const profileData = {
+                        id: userId,
+                        email: email,
+                        first_name: firstName,
+                        last_name: lastName,
+                        role: role,
+                        phone: phone || null,
+                        studies: studies || null,
+                        full_name: `${firstName} ${lastName}`,
+                        status: 'Actif'
+                    };
+
+                    await window.supabaseClient
+                        .from('profiles')
+                        .upsert(profileData);
+                }
+
+                const { error: resetError } = await window.supabaseClient.auth.resetPasswordForEmail(email);
+
+                if (resetError) {
+                    console.warn("Utilisateur créé, mais l'e-mail de réinitialisation n'a pas pu être envoyé :", resetError.message);
+                }
+
+                alert(`Utilisateur ${firstName} ${lastName} créé avec succès ! Un e-mail de réinitialisation lui a été envoyé.`);
+                closeModal('modal-create-user');
+                
+                event.target.reset();
+                btn.innerText = "Créer et envoyer l'invitation";
+                btn.disabled = false;
+                loadSupabaseOverview();
+
+            } catch (err) {
+                alert("Erreur technique : " + err.message);
+                btn.innerText = "Créer et envoyer l'invitation";
+                btn.disabled = false;
+            }
         }
-
-        // 3. Déclenchement automatique de l'e-mail de réinitialisation 
-        // pour que l'utilisateur choisisse son propre mot de passe via votre page
-        const { error: resetError } = await window.supabaseClient.auth.resetPasswordForEmail(email);
-
-        if (resetError) {
-            console.warn("Utilisateur créé, mais l'e-mail de réinitialisation n'a pas pu être envoyé :", resetError.message);
-        }
-
-        alert(`Utilisateur ${firstName} ${lastName} créé avec succès ! Un e-mail de réinitialisation lui a été envoyé.`);
-        closeModal('modal-create-user');
-        
-        event.target.reset();
-        btn.innerText = "Créer et envoyer l'invitation";
-        btn.disabled = false;
-
-    } catch (err) {
-        alert("Erreur technique : " + err.message);
-        btn.innerText = "Créer et envoyer l'invitation";
-        btn.disabled = false;
-    }
-}
     </script>
 </body>
 </html>
