@@ -2158,14 +2158,19 @@ async function handleCreateUser(event) {
     btn.disabled = true;
 
     try {
-        // 1. Utilisation de inviteUserByEmail : Crée le compte et envoie un e-mail magique/réinit automatique
-        // Le paramètre redirectTo renvoie l'utilisateur vers votre page reset_password.html pour qu'il choisisse son mdp
-        const { data, error } = await window.supabaseClient.auth.admin.inviteUserByEmail(email, {
-            redirectTo: window.location.origin + '/lkdm_webapp/reset_password.html',
-            data: {
-                first_name: firstName,
-                last_name: lastName,
-                role: role
+        // Génération d'un mot de passe temporaire aléatoire et sécurisé
+        const tempPassword = Math.random().toString(36.slice(-8)) + "A1!";
+
+        // 1. Inscription classique de l'utilisateur avec le client standard
+        const { data, error } = await window.supabaseClient.auth.signUp({
+            email: email,
+            password: tempPassword,
+            options: {
+                data: {
+                    first_name: firstName,
+                    last_name: lastName,
+                    role: role
+                }
             }
         });
 
@@ -2176,7 +2181,7 @@ async function handleCreateUser(event) {
             return;
         }
 
-        // 2. Si l'utilisateur est bien créé dans Auth, on enrichit/met à jour sa ligne dans la table "profiles"
+        // 2. Enregistrement/Mise à jour dans la table "profiles"
         if (data && data.user) {
             const userId = data.user.id;
             
@@ -2190,25 +2195,25 @@ async function handleCreateUser(event) {
                 studies: studies || null
             };
 
-            const { error: profileError } = await window.supabaseClient
+            await window.supabaseClient
                 .from('profiles')
                 .upsert(profileData);
-
-            if (profileError) {
-                console.warn("Utilisateur créé dans Auth, mais erreur de synchro profile :", profileError.message);
-            }
         }
 
-        alert(`Utilisateur ${firstName} ${lastName} créé avec succès ! Un e-mail d'invitation lui a été envoyé.`);
+        // 3. Déclenchement automatique de l'e-mail de réinitialisation 
+        // pour que l'utilisateur choisisse son propre mot de passe via votre page
+        const { error: resetError } = await window.supabaseClient.auth.resetPasswordForEmail(email);
+
+        if (resetError) {
+            console.warn("Utilisateur créé, mais l'e-mail de réinitialisation n'a pas pu être envoyé :", resetError.message);
+        }
+
+        alert(`Utilisateur ${firstName} ${lastName} créé avec succès ! Un e-mail de réinitialisation lui a été envoyé.`);
         closeModal('modal-create-user');
         
-        // Réinitialisation du formulaire
         event.target.reset();
         btn.innerText = "Créer et envoyer l'invitation";
         btn.disabled = false;
-
-        // Optionnel : Recharger la liste des utilisateurs de votre dashboard si vous en avez une
-        // loadUsersList(); 
 
     } catch (err) {
         alert("Erreur technique : " + err.message);
