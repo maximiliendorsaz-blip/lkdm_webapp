@@ -2073,30 +2073,31 @@
                     return;
                 }
 
-                // 2. Synchronisation dans la table "profiles" avec le champ "phone" et le "role"
-                const profileData = {
-                    email: email,
-                    first_name: firstName,
-                    last_name: lastName,
-                    role: role,
-                    phone: phone || null,
-                    full_name: `${firstName} ${lastName}`,
-                    status: 'Actif'
-                };
-
+                // 2. Synchronisation dans la table "profiles" en utilisant l'ID unique de l'utilisateur
                 if (data && data.user) {
-                    profileData.id = data.user.id;
-                }
+                    const userId = data.user.id;
+                    
+                    const profileData = {
+                        id: userId,
+                        email: email,
+                        first_name: firstName,
+                        last_name: lastName,
+                        role: role,
+                        phone: phone || null,
+                        full_name: `${firstName} ${lastName}`,
+                        status: 'Actif'
+                    };
 
-                const { error: profileError } = await window.supabaseClient
-                    .from('profiles')
-                    .upsert(profileData, { onConflict: 'email' });
+                    const { error: profileError } = await window.supabaseClient
+                        .from('profiles')
+                        .upsert(profileData); // Utilise l'ID unique par défaut
 
-                if (profileError) {
-                    alert("Attention : Compte Auth créé mais échec de l'insertion dans profiles : " + profileError.message);
-                    btn.innerText = "Créer et envoyer l'invitation";
-                    btn.disabled = false;
-                    return;
+                    if (profileError) {
+                        alert("Attention : Compte Auth créé mais échec de l'insertion dans profiles : " + profileError.message);
+                        btn.innerText = "Créer et envoyer l'invitation";
+                        btn.disabled = false;
+                        return;
+                    }
                 }
 
                 alert(`Utilisateur ${firstName} ${lastName} (${role}) créé avec succès ! L'e-mail d'invitation lui a été envoyé.`);
