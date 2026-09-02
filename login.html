@@ -117,10 +117,11 @@
                 window.location.href = 'index.html';
             }
         }
-        function openForgotPasswordModal(e) {
-    e.preventDefault();
-    document.getElementById('modal-forgot-password').classList.remove('hidden');
-}
+    function openForgotPasswordModal(e) {
+            e.preventDefault();
+            // Redirige directement vers la page de réinitialisation par code
+            window.location.href = 'reset_password.html';
+        }
 
 function closeModal(id) {
     document.getElementById(id).classList.add('hidden');
