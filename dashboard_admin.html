@@ -871,9 +871,9 @@
         </div>
     </div>
 
-    <!-- MODAL : CRÉER UN NOUVEL UTILISATEUR -->
+<!-- MODAL : CRÉER UN NOUVEL UTILISATEUR -->
     <div id="modal-create-user" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 relative my-8">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-8 relative my-8 max-h-[90vh] overflow-y-auto">
             <button onclick="closeModal('modal-create-user')" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition">
                 <i class="fa-solid fa-times"></i>
             </button>
@@ -881,39 +881,78 @@
             <div class="mb-6">
                 <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Administration</span>
                 <h3 class="text-xl font-bold text-lkdm-text mt-0.5">Créer un nouvel utilisateur</h3>
-                <p class="text-xs text-slate-500 mt-1">Un e-mail d'invitation sera automatiquement envoyé pour définir son mot de passe.</p>
+                <p class="text-xs text-slate-500 mt-1">Remplissez toutes les informations obligatoires pour valider le profil complet.</p>
             </div>
 
             <form onsubmit="handleCreateUser(event)" class="space-y-4 text-sm">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-600 mb-1">Prénom *</label>
-                        <input type="text" id="new-user-firstname" required placeholder="Jean" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-lkdm-accent">
+                        <input type="text" id="new-user-firstname" required placeholder="Jean" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-600 mb-1">Nom *</label>
-                        <input type="text" id="new-user-lastname" required placeholder="Dupont" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-lkdm-accent">
+                        <input type="text" id="new-user-lastname" required placeholder="Dupont" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Adresse Email *</label>
-                    <input type="email" id="new-user-email" required placeholder="jean.dupont@exemple.ch" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-lkdm-accent">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Adresse Email *</label>
+                        <input type="email" id="new-user-email" required placeholder="jean.dupont@exemple.ch" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Téléphone *</label>
+                        <input type="tel" id="new-user-phone" required placeholder="+41 79 000 00 00" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Rôle / Type d'utilisateur *</label>
-                    <select id="new-user-role" onchange="toggleRoleFields()" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-lkdm-accent font-medium">
-                        <option value="client">Client</option>
-                        <option value="student">Étudiant</option>
-                        <option value="admin">Administrateur</option>
-                    </select>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="col-span-2">
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Rue et numéro *</label>
+                        <input type="text" id="new-user-address" required placeholder="Rue du Rhône 10" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">NPA *</label>
+                        <input type="text" id="new-user-npa" required placeholder="1950" oninput="syncLocation('new-user', 'npa')" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
+                    </div>
                 </div>
 
-                <!-- Champ Téléphone -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Téléphone</label>
-                    <input type="tel" id="user-phone" placeholder="+41 79 000 00 00" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Localité (Ville) *</label>
+                        <input type="text" id="new-user-city" required placeholder="Sion" oninput="syncLocation('new-user', 'city')" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Date de naissance *</label>
+                        <input type="date" id="new-user-birth" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Sexe *</label>
+                        <select id="new-user-gender" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
+                            <option value="homme">Homme</option>
+                            <option value="femme">Femme</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Rôle / Type d'utilisateur *</label>
+                        <select id="new-user-role" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-medium">
+                            <option value="client">Client</option>
+                            <option value="student">Étudiant</option>
+                            <option value="admin">Administrateur</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Langue *</label>
+                        <select id="new-user-lang" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
+                            <option value="Français">Français</option>
+                            <option value="Allemand">Allemand</option>
+                            <option value="Anglais">Anglais</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
@@ -2043,8 +2082,14 @@
             const email = document.getElementById('new-user-email').value.trim();
             const firstName = document.getElementById('new-user-firstname').value.trim();
             const lastName = document.getElementById('new-user-lastname').value.trim();
+            const phone = document.getElementById('new-user-phone').value.trim();
+            const address = document.getElementById('new-user-address').value.trim();
+            const npa = document.getElementById('new-user-npa').value.trim();
+            const city = document.getElementById('new-user-city').value.trim();
+            const birthDate = document.getElementById('new-user-birth').value;
+            const gender = document.getElementById('new-user-gender').value;
             const role = document.getElementById('new-user-role').value;
-            const phone = document.getElementById('user-phone').value.trim();
+            const language = document.getElementById('new-user-lang').value;
             const btn = document.getElementById('btn-create-submit');
 
             btn.innerText = "Création en cours...";
@@ -2073,7 +2118,7 @@
                     return;
                 }
 
-                // 2. Synchronisation dans la table "profiles" en utilisant l'ID unique de l'utilisateur
+                // 2. Synchronisation complète dans la table "profiles" avec toutes les infos obligatoires
                 if (data && data.user) {
                     const userId = data.user.id;
                     
@@ -2082,15 +2127,21 @@
                         email: email,
                         first_name: firstName,
                         last_name: lastName,
-                        role: role,
-                        phone: phone || null,
                         full_name: `${firstName} ${lastName}`,
+                        phone: phone,
+                        address: address,
+                        npa: npa,
+                        city: city,
+                        birth_date: birthDate,
+                        gender: gender,
+                        role: role,
+                        language: language,
                         status: 'Actif'
                     };
 
                     const { error: profileError } = await window.supabaseClient
                         .from('profiles')
-                        .upsert(profileData); // Utilise l'ID unique par défaut
+                        .upsert(profileData);
 
                     if (profileError) {
                         alert("Attention : Compte Auth créé mais échec de l'insertion dans profiles : " + profileError.message);
