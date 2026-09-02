@@ -2057,78 +2057,84 @@
             window.location.href = 'login.html';
         }
 
-     async function handleCreateUser(event) {
-    event.preventDefault();
-    
-    const email = document.getElementById('new-user-email').value.trim();
-    const firstName = document.getElementById('new-user-firstname').value.trim();
-    const lastName = document.getElementById('new-user-lastname').value.trim();
-    const role = document.getElementById('new-user-role').value;
-    const phone = document.getElementById('user-phone').value.trim();
-    const studies = document.getElementById('user-studies').value.trim();
-    const btn = document.getElementById('btn-create-submit');
+        async function handleCreateUser(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('new-user-email').value.trim();
+            const firstName = document.getElementById('new-user-firstname').value.trim();
+            const lastName = document.getElementById('new-user-lastname').value.trim();
+            const role = document.getElementById('new-user-role').value;
+            const phone = document.getElementById('user-phone').value.trim();
+            const studies = document.getElementById('user-studies').value.trim();
+            const btn = document.getElementById('btn-create-submit');
 
-    btn.innerText = "Création en cours...";
-    btn.disabled = true;
+            btn.innerText = "Création en cours...";
+            btn.disabled = true;
 
-    try {
-        const tempPassword = Math.random().toString(36).slice(-8) + "A1!";
+            try {
+                const tempPassword = Math.random().toString(36).slice(-8) + "A1!";
 
-        // 1. Inscription : C'est cette action unique qui va déclencher l'envoi de VOTRE template HTML "Confirm signup"
-        const { data, error } = await window.supabaseClient.auth.signUp({
-            email: email,
-            password: tempPassword,
-            options: {
-                data: {
+                // 1. Inscription Auth
+                const { data, error } = await window.supabaseClient.auth.signUp({
+                    email: email,
+                    password: tempPassword,
+                    options: {
+                        data: {
+                            first_name: firstName,
+                            last_name: lastName,
+                            role: role
+                        }
+                    }
+                });
+
+                if (error) {
+                    alert("Erreur lors de la création : " + error.message);
+                    btn.innerText = "Créer et envoyer l'invitation";
+                    btn.disabled = false;
+                    return;
+                }
+
+                // 2. Synchronisation robuste et forcée dans la table "profiles"
+                const profileData = {
+                    email: email,
                     first_name: firstName,
                     last_name: lastName,
-                    role: role
+                    role: role,
+                    phone: phone || null,
+                    studies: studies || null,
+                    full_name: `${firstName} ${lastName}`,
+                    status: 'Actif'
+                };
+
+                if (data && data.user) {
+                    profileData.id = data.user.id;
                 }
+
+                const { error: profileError } = await window.supabaseClient
+                    .from('profiles')
+                    .upsert(profileData, { onConflict: 'email' });
+
+                if (profileError) {
+                    alert("Attention : Compte Auth créé mais échec de l'insertion dans profiles : " + profileError.message);
+                    btn.innerText = "Créer et envoyer l'invitation";
+                    btn.disabled = false;
+                    return;
+                }
+
+                alert(`Utilisateur ${firstName} ${lastName} créé avec succès ! L'e-mail d'invitation lui a été envoyé.`);
+                closeModal('modal-create-user');
+                
+                event.target.reset();
+                btn.innerText = "Créer et envoyer l'invitation";
+                btn.disabled = false;
+                loadSupabaseOverview();
+
+            } catch (err) {
+                alert("Erreur technique : " + err.message);
+                btn.innerText = "Créer et envoyer l'invitation";
+                btn.disabled = false;
             }
-        });
-
-        if (error) {
-            alert("Erreur lors de la création : " + error.message);
-            btn.innerText = "Créer et envoyer l'invitation";
-            btn.disabled = false;
-            return;
         }
-
-        // 2. Enregistrement dans la table "profiles"
-        if (data && data.user) {
-            const userId = data.user.id;
-            const profileData = {
-                id: userId,
-                email: email,
-                first_name: firstName,
-                last_name: lastName,
-                role: role,
-                phone: phone || null,
-                studies: studies || null,
-                full_name: `${firstName} ${lastName}`,
-                status: 'Actif'
-            };
-
-            await window.supabaseClient
-                .from('profiles')
-                .upsert(profileData);
-        }
-
-        // Plus de double appel redondant ici ! L'e-mail est géré nativement par Supabase via le signUp.
-        alert(`Utilisateur ${firstName} ${lastName} créé avec succès ! L'e-mail d'invitation lui a été envoyé.`);
-        closeModal('modal-create-user');
-        
-        event.target.reset();
-        btn.innerText = "Créer et envoyer l'invitation";
-        btn.disabled = false;
-        loadSupabaseOverview();
-
-    } catch (err) {
-        alert("Erreur technique : " + err.message);
-        btn.innerText = "Créer et envoyer l'invitation";
-        btn.disabled = false;
-    }
-}
     </script>
 </body>
 </html>
