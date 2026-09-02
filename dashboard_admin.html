@@ -910,19 +910,10 @@
                     </select>
                 </div>
 
-                <!-- Champs dynamiques selon le rôle -->
-                <div id="fields-client" class="space-y-4 pt-2 border-t border-slate-100">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Téléphone</label>
-                        <input type="tel" id="user-phone" placeholder="+41 79 000 00 00" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
-                    </div>
-                </div>
-
-                <div id="fields-student" class="space-y-4 pt-2 border-t border-slate-100 hidden">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Filière / Études</label>
-                        <input type="text" id="user-studies" placeholder="Informatique / Économie..." class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
-                    </div>
+                <!-- Champ Téléphone -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Téléphone</label>
+                    <input type="tel" id="user-phone" placeholder="+41 79 000 00 00" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
                 </div>
 
                 <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
@@ -985,18 +976,7 @@
         function toggleMobileMenu() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
 
         function toggleRoleFields() {
-            const role = document.getElementById('new-user-role').value;
-            const clientFields = document.getElementById('fields-client');
-            const studentFields = document.getElementById('fields-student');
-
-            clientFields.classList.add('hidden');
-            studentFields.classList.add('hidden');
-
-            if (role === 'client') {
-                clientFields.classList.remove('hidden');
-            } else if (role === 'student') {
-                studentFields.classList.remove('hidden');
-            }
+            // Optionnel si des champs spécifiques par rôle sont ajoutés plus tard
         }
 
         function populateDynamicDropdowns() {
@@ -2065,7 +2045,6 @@
             const lastName = document.getElementById('new-user-lastname').value.trim();
             const role = document.getElementById('new-user-role').value;
             const phone = document.getElementById('user-phone').value.trim();
-            const studies = document.getElementById('user-studies').value.trim();
             const btn = document.getElementById('btn-create-submit');
 
             btn.innerText = "Création en cours...";
@@ -2094,14 +2073,13 @@
                     return;
                 }
 
-                // 2. Synchronisation robuste et forcée dans la table "profiles"
+                // 2. Synchronisation dans la table "profiles" avec le champ "phone" et le "role"
                 const profileData = {
                     email: email,
                     first_name: firstName,
                     last_name: lastName,
                     role: role,
                     phone: phone || null,
-                    studies: studies || null,
                     full_name: `${firstName} ${lastName}`,
                     status: 'Actif'
                 };
@@ -2121,7 +2099,7 @@
                     return;
                 }
 
-                alert(`Utilisateur ${firstName} ${lastName} créé avec succès ! L'e-mail d'invitation lui a été envoyé.`);
+                alert(`Utilisateur ${firstName} ${lastName} (${role}) créé avec succès ! L'e-mail d'invitation lui a été envoyé.`);
                 closeModal('modal-create-user');
                 
                 event.target.reset();
