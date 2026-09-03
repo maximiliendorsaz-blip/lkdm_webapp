@@ -2584,6 +2584,29 @@
                 `;
             });
         }
+
+        function openEditEventModal(eventId) {
+            const ev = globalEventsData.find(e => String(e.id) === String(eventId));
+            if (!ev) {
+                console.error("Événement introuvable pour l'ID :", eventId);
+                return;
+            }
+
+            document.getElementById('edit-ev-id').value = ev.id;
+            document.getElementById('edit-ev-concept').value = ev.concept || '';
+            document.getElementById('edit-ev-date').value = ev.event_date || '';
+            document.getElementById('edit-ev-revenue').value = ev.revenue_chf || 0;
+            document.getElementById('edit-ev-expenses').value = ev.expenses_chf || 0;
+            document.getElementById('edit-ev-participants').value = ev.participants_count || 0;
+            document.getElementById('edit-ev-new-participants').value = ev.new_participants_count || 0;
+            document.getElementById('edit-ev-converted-clients').value = ev.converted_clients_count || 0;
+            document.getElementById('edit-ev-students').value = ev.students_count || 0;
+            document.getElementById('edit-ev-new-students').value = ev.new_students_count || 0;
+            document.getElementById('edit-ev-nps').value = ev.nps_percent || 0;
+            document.getElementById('edit-ev-csat').value = ev.csat_score || 0;
+
+            openModal('modal-edit-event');
+        }
     </script>
 </body>
 </html>
