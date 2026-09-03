@@ -296,7 +296,10 @@
             if (user && user.email !== newEmail) {
                 const { error: authError } = await window.supabaseClient.auth.updateUser({
                     email: newEmail
+                }, {
+                    emailRedirectTo: 'https://maximiliendorsaz-blip.github.io/lkdm_webapp/settings.html'
                 });
+
                 if (authError) {
                     alert("Erreur lors de la mise à jour de l'e-mail de connexion : " + authError.message);
                     btn.innerText = "Enregistrer le profil";
