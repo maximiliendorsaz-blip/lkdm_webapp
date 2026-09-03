@@ -36,7 +36,7 @@
         }
     </style>
 </head>
-<body class="antialiased flex flex-col min-h-screen selection:bg-lkdm-accent selection:text-white bg-lkdm-bg">
+<body class="antialiased flex flex-col min-h-screen selection:bg-lkdm-accent selection:text-white">
 
     <!-- Top Navigation Bar (Mobile Only) -->
     <header class="bg-white text-lkdm-text lg:hidden flex items-center justify-between p-4 sticky top-0 z-50 shadow-sm border-b border-slate-200">
@@ -98,9 +98,9 @@
                     <button onclick="switchTab('documents')" id="nav-documents" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
                         <i class="fa-solid fa-folder-open w-5 text-center"></i> Documents & Archives
                     </button>
-                    <!-- Onglet Intégré du Journal d'Activité -->
+                    <!-- AJOUT DU JOURNAL D'ACTIVITÉ DANS LA NAVIGATION -->
                     <button onclick="switchTab('logs')" id="nav-logs" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
-                        <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i> Journal d'activité (Logs)
+                        <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i> Journal d'activité
                     </button>
                 </nav>
             </div>
@@ -137,7 +137,7 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Super Admin Portal</span>
-                            <h2 class="text-3xl font-bold text-lkdm-text mt-1">Pilotage centralisé</h2>
+                            <h2 class="text-3xl font-bold text-lkdm-text mt-1">Pilotage central</h2>
                         </div>
                         <div class="flex flex-wrap gap-2">
                             <button onclick="openModal('modal-create-mission'); prepareMissionModalOptions();" class="bg-lkdm-accent text-white px-4 py-2.5 rounded-[50px] text-xs font-medium shadow-sm hover:bg-[#b53838] transition flex items-center gap-2">
@@ -405,8 +405,8 @@
                             <h2 class="text-2xl font-bold text-lkdm-text mt-0.5">Journal d'activité des Administrateurs</h2>
                             <p class="text-xs text-slate-500 mt-1">Historique complet de toutes les mutations enregistrées par les administrateurs.</p>
                         </div>
-                        <button onclick="loadActivityLogs()" class="bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-full text-xs font-bold text-lkdm-text shadow-sm transition">
-                            <i class="fa-solid fa-rotate mr-1"></i> Actualiser les logs
+                        <button onclick="loadActivityLogs()" class="bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2.5 rounded-full text-xs font-bold text-lkdm-text shadow-sm transition flex items-center gap-2">
+                            <i class="fa-solid fa-rotate"></i> Actualiser les logs
                         </button>
                     </div>
 
@@ -423,7 +423,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="logs-table-body" class="divide-y divide-slate-100 text-slate-700">
-                                    <tr><td colspan="5" class="p-6 text-center text-slate-400">Chargement des logs...</td></tr>
+                                    <tr><td colspan="5" class="p-6 text-center text-slate-400">Chargement de l'historique...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -434,12 +434,12 @@
         </main>
     </div>
 
-    <!-- TOUTES LES MODALES DE GESTION -->
+    <!-- TOUTES LES MODALES D'ADMINISTRATION -->
     <!-- MODAL : EXPORT CSV UNIVERSEL -->
     <div id="modal-export-csv" class="hidden fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 my-8 relative">
             <button onclick="closeModal('modal-export-csv')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
-            <h3 class="text-xl font-bold text-lkdm-text mb-2"><i class="fa-solid fa-file-csv mr-2 text-emerald-600"></i> Assistant Export CSV</h3>
+            <h3 class="text-xl font-bold text-lkdm-text mb-2"><i class="fa-solid fa-file-csv mr-2 text-emerald-600"></i> Assistant Export CSV (Complet)</h3>
             <div class="space-y-4 text-sm pt-2">
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">Que souhaitez-vous exporter ? *</label>
@@ -481,10 +481,6 @@
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Localité *</label><input type="text" id="stu-city" required oninput="syncLocation('stu', 'city')" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Date naissance *</label><input type="date" id="stu-birth" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"></div>
                     <div><label class="block text-xs font-bold text-slate-600 mb-1">Sexe *</label><select id="stu-gender" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5"><option value="homme">Homme</option><option value="femme">Femme</option></select></div>
-                </div>
-                <div class="grid grid-cols-2 gap-4 border-t pt-3">
-                    <div><label class="block text-xs font-bold text-amber-800 mb-1">IBAN</label><input type="text" id="stu-iban" class="w-full bg-amber-50/50 border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                    <div><label class="block text-xs font-bold text-amber-800 mb-1">Numéro AVS</label><input type="text" id="stu-avs" class="w-full bg-amber-50/50 border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                 </div>
                 <div class="flex justify-end gap-3 pt-4 border-t">
                     <button type="button" onclick="closeModal('modal-create-student')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Annuler</button>
@@ -631,7 +627,7 @@
     <!-- MODAL : FICHE ÉTUDIANT -->
     <div id="modal-edit-student" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
-            <button onclick="closeModal('modal-edit-student')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-times"></i></button>
+            <button onclick="closeModal('modal-edit-student')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
             <h3 class="text-xl font-bold text-lkdm-text mb-4">Fiche Étudiant</h3>
             <form onsubmit="submitEditStudent(event)" class="space-y-4 text-sm">
                 <input type="hidden" id="edit-stu-id">
@@ -669,7 +665,7 @@
     <!-- MODAL : CRÉER UTILISATEUR -->
     <div id="modal-create-user" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-8 relative my-8">
-            <button onclick="closeModal('modal-create-user')" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-times"></i></button>
+            <button onclick="closeModal('modal-create-user')" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
             <h3 class="text-xl font-bold text-lkdm-text mb-4">Créer un nouvel utilisateur</h3>
             <form onsubmit="handleCreateUser(event)" class="space-y-4 text-sm">
                 <div class="grid grid-cols-2 gap-4">
@@ -696,7 +692,7 @@
         </div>
     </div>
 
-    <!-- SCRIPTS JAVASCRIPT GLOBAUX -->
+    <!-- SCRIPTS GLOBAUX SUPER ADMIN -->
     <script>
         let globalMissionsData = [];
         let globalClientsData = [];
@@ -730,7 +726,6 @@
                 return;
             }
 
-            // Initialiser tout le contenu de l'admin et les logs
             populateDynamicDropdowns();
             loadSupabaseOverview();
             loadActivityLogs();
@@ -743,15 +738,6 @@
             if (["à facturer", "en attente de paiement"].includes(st)) return "bg-blue-100 text-blue-700 border-blue-200";
             if (["mission effectuée"].includes(st)) return "bg-emerald-100 text-emerald-700 border-emerald-200";
             return "bg-slate-100 text-slate-700 border-slate-200";
-        }
-
-        function getStatusHexColor(status) {
-            const st = (status || "").toLowerCase();
-            if (["nouveau", "a publier", "publié", "accepté"].includes(st)) return '#D64545';
-            if (["confirmé"].includes(st)) return '#D97706';
-            if (["à facturer", "en attente de paiement"].includes(st)) return '#2563EB';
-            if (["mission effectuée"].includes(st)) return '#059669';
-            return '#64748B';
         }
 
         function syncLocation(prefix, sourceField) {
@@ -911,6 +897,35 @@
             });
         }
 
+        function renderClientsTable(clients) {
+            const tbody = document.getElementById('clients-tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            clients.forEach(c => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition cursor-pointer" onclick="openEditClientModal('${c.id}')">
+                        <td class="py-4 px-6 font-bold text-lkdm-text">${c.full_name || ''}</td>
+                        <td class="py-4 px-6 text-sm text-slate-500">${c.city || ''}</td>
+                        <td class="py-4 px-6 text-sm text-slate-500">${c.email || ''} • ${c.phone || ''}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderStudentsGrid() {
+            const grid = document.getElementById('students-grid');
+            if(!grid) return;
+            grid.innerHTML = '';
+            globalStudentsData.forEach(s => {
+                grid.innerHTML += `
+                    <div class="bg-white p-6 rounded-3xl border shadow-sm cursor-pointer hover:border-lkdm-accent transition" onclick="openEditStudentModal('${s.id}')">
+                        <h3 class="font-bold text-lkdm-text">${s.full_name}</h3>
+                        <p class="text-xs text-lkdm-secondary mt-1">${s.city || ''} • ${s.phone || ''}</p>
+                    </div>
+                `;
+            });
+        }
+
         function renderDocumentsTable() {
             const tbody = document.getElementById('documents-table-tbody');
             if(!tbody) return;
@@ -996,7 +1011,6 @@
 
             document.getElementById('edit-mis-id').value = m.id;
             document.getElementById('edit-mis-code').value = m.mission_code || '';
-            document.getElementById('edit-mis-matching-status').value = m.matching_status || 'Nouveau';
             document.getElementById('edit-mis-desc').value = m.exact_description || '';
             document.getElementById('edit-mis-total').value = m.total_amount || '';
             document.getElementById('edit-mis-pay-status').value = m.payment_status || 'Facture non envoyée';
@@ -1083,8 +1097,7 @@
                 gender: document.getElementById('stu-gender').value,
                 iban: document.getElementById('stu-iban').value || null,
                 avs_number: document.getElementById('stu-avs').value || null,
-                role: 'student',
-                status: 'Actif'
+                role: 'student', status: 'Actif'
             };
             const { error } = await window.supabaseClient.from('profiles').insert([payload]);
             if (error) alert("Erreur : " + error.message);
@@ -1104,8 +1117,7 @@
                 city: document.getElementById('cli-city').value,
                 birth_date: document.getElementById('cli-birth').value,
                 gender: document.getElementById('cli-gender').value,
-                role: 'client',
-                status: 'Actif'
+                role: 'client', status: 'Actif'
             };
             const { error } = await window.supabaseClient.from('profiles').insert([payload]);
             if (error) alert("Erreur : " + error.message);
