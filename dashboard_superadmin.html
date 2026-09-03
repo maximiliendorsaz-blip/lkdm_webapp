@@ -2160,23 +2160,29 @@
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.getElementById(`tab-${tabId}`).classList.add('active');
-            document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('bg-lkdm-accent', 'text-white'); btn.classList.add('text-lkdm-secondary'); });
-            document.getElementById(`nav-${tabId}`).classList.add('bg-lkdm-accent', 'text-white');
-            document.getElementById(`nav-${tabId}`).classList.remove('text-lkdm-secondary');
-            
-            document.getElementById('sidebar').classList.add('-translate-x-full');
-
-            if(tabId === 'calendar-map') {
-                setTimeout(() => initAdminMap(), 150);
+            const targetTab = document.getElementById(`tab-${tabId}`);
+            if (targetTab) {
+                targetTab.classList.add('active');
+            } else {
+                console.error(`Tab introuvable : tab-${tabId}`);
             }
+        
+            document.querySelectorAll('.nav-btn').forEach(btn => { 
+                btn.classList.remove('bg-lkdm-accent', 'text-white'); 
+                btn.classList.add('text-lkdm-secondary'); 
+            });
+            const targetNav = document.getElementById(`nav-${tabId}`);
+            if (targetNav) {
+                targetNav.classList.add('bg-lkdm-accent', 'text-white');
+                targetNav.classList.remove('text-lkdm-secondary');
+            }
+            
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.add('-translate-x-full');
+        
+            if (tabId === 'calendar-map') setTimeout(() => initAdminMap(), 150);
+            if (tabId === 'logs') loadActivityLogs();
         }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            populateDynamicDropdowns();
-            loadSupabaseOverview();
-        });
-
         function openEditDocModal(docId) {
             const d = globalDocumentsData.find(x => x.id == docId);
             if (!d) return;
