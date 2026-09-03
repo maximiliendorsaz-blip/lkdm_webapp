@@ -2607,6 +2607,39 @@
 
             openModal('modal-edit-event');
         }
+        async function submitEditEvent(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-ev-id').value;
+            console.log("ID de l'événement à modifier :", id);
+
+            const payload = {
+                concept: document.getElementById('edit-ev-concept').value,
+                event_date: document.getElementById('edit-ev-date').value,
+                revenue_chf: Number(document.getElementById('edit-ev-revenue').value),
+                expenses_chf: Number(document.getElementById('edit-ev-expenses').value),
+                participants_count: Number(document.getElementById('edit-ev-participants').value),
+                new_participants_count: Number(document.getElementById('edit-ev-new-participants').value),
+                converted_clients_count: Number(document.getElementById('edit-ev-converted-clients').value),
+                students_count: Number(document.getElementById('edit-ev-students').value),
+                new_students_count: Number(document.getElementById('edit-ev-new-students').value),
+                nps_percent: Number(document.getElementById('edit-ev-nps').value),
+                csat_score: Number(document.getElementById('edit-ev-csat').value)
+            };
+
+            console.log("Payload envoyé à Supabase :", payload);
+
+            const { data, error } = await window.supabaseClient.from('events').update(payload).eq('id', id).select();
+            
+            if (error) {
+                console.error("Erreur Supabase Update :", error);
+                alert("Erreur lors de la mise à jour : " + error.message);
+                return;
+            }
+
+            console.log("Mise à jour réussie :", data);
+            closeModal('modal-edit-event');
+            loadSupabaseOverview();
+        }
     </script>
 </body>
 </html>
