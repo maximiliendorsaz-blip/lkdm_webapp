@@ -96,6 +96,10 @@
                     <button onclick="switchTab('documents')" id="nav-documents" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
                         <i class="fa-solid fa-folder-open w-5 text-center"></i> Documents & Archives
                     </button>
+                    <!-- Lien vers le Journal d'Activité -->
+                    <a href="admin_logs.html" class="w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
+                        <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i> Journal d'activité
+                    </a>
                 </nav>
             </div>
 
@@ -871,7 +875,7 @@
         </div>
     </div>
 
-<!-- MODAL : CRÉER UN NOUVEL UTILISATEUR -->
+    <!-- MODAL : CRÉER UN NOUVEL UTILISATEUR -->
     <div id="modal-create-user" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-8 relative my-8 max-h-[90vh] overflow-y-auto">
             <button onclick="closeModal('modal-create-user')" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition">
@@ -1014,10 +1018,6 @@
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         function toggleMobileMenu() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
 
-        function toggleRoleFields() {
-            // Optionnel si des champs spécifiques par rôle sont ajoutés plus tard
-        }
-
         function populateDynamicDropdowns() {
             if (!window.LKDM_CONFIG) return;
 
@@ -1126,6 +1126,8 @@
 
                 const { error: dbErr } = await window.supabaseClient.from('documents').insert([payload]);
                 if (dbErr) throw dbErr;
+
+                await logAdminAction('UPLOAD_DOCUMENT', title, `Ajout du document de type [${docType}]`);
 
                 alert("Document créé et uploadé avec succès !");
                 closeModal('modal-create-doc');
@@ -1412,12 +1414,14 @@
         async function sendBillingEmail(missionId, clientName) {
             const todayStr = new Date().toISOString().split('T')[0];
             await window.supabaseClient.from('missions').update({ payment_status: 'Facture envoyée', invoice_sent_date: todayStr }).eq('id', missionId);
+            await logAdminAction('SEND_BILLING', clientName, `Envoi des documents de facturation pour la mission #${missionId}`);
             alert(`[Email] Facture, quittance et rapport envoyés à ${clientName} !`);
             loadSupabaseOverview();
         }
 
         async function validatePayment(missionId) {
             await window.supabaseClient.from('missions').update({ payment_status: 'Payé' }).eq('id', missionId);
+            await logAdminAction('VALIDATE_PAYMENT', `Mission #${missionId}`, `Paiement validé avec succès`);
             alert(`[Paiement Validé] Facture marquée comme payée.`);
             loadSupabaseOverview();
         }
@@ -1688,8 +1692,13 @@
                 feedback: document.getElementById('edit-mis-feedback').value
             };
             const { error } = await window.supabaseClient.from('missions').update(payload).eq('id', id);
-            if (error) alert("Erreur : " + error.message);
-            else { closeModal('modal-edit-mission'); loadSupabaseOverview(); }
+            if (error) {
+                alert("Erreur : " + error.message);
+            } else {
+                await logAdminAction('UPDATE_MISSION', payload.mission_code, 'Mise à jour complète des détails de la mission');
+                closeModal('modal-edit-mission');
+                loadSupabaseOverview();
+            }
         }
 
         function openEditStudentModal(id) {
@@ -1748,8 +1757,13 @@
                 avs_number: document.getElementById('edit-stu-avs').value
             };
             const { error } = await window.supabaseClient.from('profiles').update(payload).eq('id', id);
-            if (error) alert("Erreur : " + error.message);
-            else { closeModal('modal-edit-student'); loadSupabaseOverview(); }
+            if (error) {
+                alert("Erreur : " + error.message);
+            } else {
+                await logAdminAction('UPDATE_STUDENT', payload.full_name, 'Mise à jour du profil étudiant');
+                closeModal('modal-edit-student');
+                loadSupabaseOverview();
+            }
         }
 
         function openEditClientModal(id) {
@@ -1801,8 +1815,13 @@
                 city: document.getElementById('edit-cli-city').value
             };
             const { error } = await window.supabaseClient.from('profiles').update(payload).eq('id', id);
-            if (error) alert("Erreur : " + error.message);
-            else { closeModal('modal-edit-client'); loadSupabaseOverview(); }
+            if (error) {
+                alert("Erreur : " + error.message);
+            } else {
+                await logAdminAction('UPDATE_CLIENT', payload.full_name, 'Mise à jour du profil client');
+                closeModal('modal-edit-client');
+                loadSupabaseOverview();
+            }
         }
 
         async function initAdminMap() {
@@ -1906,8 +1925,13 @@
                 status: 'Actif'
             };
             const { error } = await window.supabaseClient.from('profiles').insert([payload]);
-            if (error) alert("Erreur : " + error.message);
-            else { closeModal('modal-create-student'); loadSupabaseOverview(); }
+            if (error) {
+                alert("Erreur : " + error.message);
+            } else {
+                await logAdminAction('CREATE_STUDENT', payload.full_name, 'Création d’un profil étudiant');
+                closeModal('modal-create-student');
+                loadSupabaseOverview();
+            }
         }
 
         async function submitClientForm(event) {
@@ -1930,8 +1954,13 @@
                 status: 'Actif'
             };
             const { error } = await window.supabaseClient.from('profiles').insert([payload]);
-            if (error) alert("Erreur : " + error.message);
-            else { closeModal('modal-create-client'); loadSupabaseOverview(); }
+            if (error) {
+                alert("Erreur : " + error.message);
+            } else {
+                await logAdminAction('CREATE_CLIENT', payload.full_name, 'Création d’un profil client');
+                closeModal('modal-create-client');
+                loadSupabaseOverview();
+            }
         }
 
         async function submitMissionForm(event) {
@@ -1963,8 +1992,13 @@
             };
 
             const { error } = await window.supabaseClient.from('missions').insert([payload]);
-            if (error) alert("Erreur : " + error.message);
-            else { closeModal('modal-create-mission'); loadSupabaseOverview(); }
+            if (error) {
+                alert("Erreur : " + error.message);
+            } else {
+                await logAdminAction('CREATE_MISSION', finalCode, 'Création d’une nouvelle mission');
+                closeModal('modal-create-mission');
+                loadSupabaseOverview();
+            }
         }
 
         function switchTab(tabId) {
@@ -2048,6 +2082,7 @@
             if (error) {
                 alert("Erreur lors de la mise à jour : " + error.message);
             } else {
+                await logAdminAction('UPDATE_DOCUMENT', payload.title, 'Modification des propriétés du document');
                 closeModal('modal-edit-doc');
                 loadSupabaseOverview();
             }
@@ -2061,6 +2096,7 @@
             if (error) {
                 alert("Erreur lors de la suppression : " + error.message);
             } else {
+                await logAdminAction('DELETE_DOCUMENT', `ID ${id}`, 'Suppression d’un document');
                 closeModal('modal-edit-doc');
                 loadSupabaseOverview();
             }
@@ -2098,7 +2134,6 @@
             try {
                 const tempPassword = Math.random().toString(36).slice(-8) + "A1!";
 
-                // 1. Inscription Auth
                 const { data, error } = await window.supabaseClient.auth.signUp({
                     email: email,
                     password: tempPassword,
@@ -2118,7 +2153,6 @@
                     return;
                 }
 
-                // 2. Synchronisation complète dans la table "profiles" avec toutes les infos obligatoires
                 if (data && data.user) {
                     const userId = data.user.id;
                     
@@ -2151,7 +2185,9 @@
                     }
                 }
 
-                alert(`Utilisateur ${firstName} ${lastName} (${role}) créé avec succès ! L'e-mail d'invitation lui a été envoyé.`);
+                await logAdminAction('CREATE_USER', `${firstName} ${lastName}`, `Création d'un compte [${role}]`);
+
+                alert(`Utilisateur ${firstName} ${lastName} (${role}) créé avec succès !`);
                 closeModal('modal-create-user');
                 
                 event.target.reset();
@@ -2165,29 +2201,29 @@
                 btn.disabled = false;
             }
         }
+
         async function logAdminAction(actionType, targetName, details) {
-    try {
-        const { data: { user } } = await window.supabaseClient.auth.getUser();
-        if (!user) return;
+            try {
+                const { data: { user } } = await window.supabaseClient.auth.getUser();
+                if (!user) return;
 
-        // Récupérer le nom/prénom de l'admin connecté
-        const { data: adminProfile } = await window.supabaseClient
-            .from('profiles')
-            .select('full_name, email')
-            .eq('id', user.id)
-            .single();
+                const { data: adminProfile } = await window.supabaseClient
+                    .from('profiles')
+                    .select('full_name, email')
+                    .eq('id', user.id)
+                    .single();
 
-        await window.supabaseClient.from('activity_logs').insert({
-            admin_id: user.id,
-            admin_email: adminProfile ? adminProfile.email : user.email,
-            action_type: actionType,
-            target_name: targetName,
-            details: details
-        });
-    } catch (err) {
-        console.error("Erreur lors de l'enregistrement du log :", err);
-    }
-}
+                await window.supabaseClient.from('activity_logs').insert({
+                    admin_id: user.id,
+                    admin_email: adminProfile ? adminProfile.email : user.email,
+                    action_type: actionType,
+                    target_name: targetName,
+                    details: details
+                });
+            } catch (err) {
+                console.error("Erreur lors de l'enregistrement du log :", err);
+            }
+        }
     </script>
 </body>
 </html>
