@@ -81,7 +81,7 @@
             btn.innerText = "Connexion en cours...";
             btn.disabled = true;
 
-            // 1. On tente de connecter l'utilisateur via ses identifiants
+            // 1. Connexion via Supabase Auth
             const { data, error } = await window.supabaseClient.auth.signInWithPassword({
                 email: email,
                 password: password,
@@ -95,15 +95,21 @@
                 return;
             }
 
-            // 2. Une fois connecté, on va chercher son rôle dans votre table "profiles" pour l'envoyer sur le bon dashboard
             const user = data.user;
-            const { data: profile } = await window.supabaseClient
+            console.log("Utilisateur authentifié avec succès, ID :", user.id);
+
+            // 2. Récupération du rôle dans la table "profiles"
+            const { data: profile, error: profileError } = await window.supabaseClient
                 .from('profiles')
                 .select('role')
                 .eq('id', user.id)
                 .single();
 
-            if (profile) {
+            console.log("Profil récupéré en base :", profile, "Erreur éventuelle :", profileError);
+
+            if (profile && profile.role) {
+                console.log("Rôle identifié :", profile.role);
+                
                 if (profile.role === 'superadmin') {
                     window.location.href = 'dashboard_superadmin.html';
                 } else if (profile.role === 'admin') {
@@ -116,37 +122,37 @@
                     window.location.href = 'index.html';
                 }
             } else {
+                console.warn("Attention : aucun profil ou rôle trouvé pour cet utilisateur, redirection par défaut vers index.");
                 window.location.href = 'index.html';
             }
         }
-    function openForgotPasswordModal(e) {
+
+        function openForgotPasswordModal(e) {
             e.preventDefault();
-            // Redirige directement vers la page de réinitialisation par code
-            window.location.href = 'reset_password.html';
+            document.getElementById('modal-forgot-password').classList.remove('hidden');
         }
 
-function closeModal(id) {
-    document.getElementById(id).classList.add('hidden');
-}
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
 
-async function handleForgotPassword(e) {
-    e.preventDefault();
-    const email = document.getElementById('forgot-email').value.trim();
-    if (!email) return;
+        async function handleForgotPassword(e) {
+            e.preventDefault();
+            const email = document.getElementById('forgot-email').value.trim();
+            if (!email) return;
 
-    // Utilise une URL de redirection propre vers une page dédiée ou les réglages sans hash
-    const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/settings.html',
-    });
+            const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin + '/settings.html',
+            });
 
-    if (error) {
-        alert("Erreur : " + error.message);
-        return;
-    }
+            if (error) {
+                alert("Erreur : " + error.message);
+                return;
+            }
 
-    alert("Un e-mail de réinitialisation a été envoyé à " + email + ". Veuillez vérifier votre boîte mail.");
-    closeModal('modal-forgot-password');
-}
+            alert("Un e-mail de réinitialisation a été envoyé à " + email + ". Veuillez vérifier votre boîte mail.");
+            closeModal('modal-forgot-password');
+        }
     </script>
 </body>
 </html>
