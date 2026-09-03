@@ -1095,6 +1095,12 @@
                 <div><label class="block text-xs font-bold text-slate-600 mb-1">NPS (%)</label><input type="number" step="0.1" id="edit-ev-nps" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                 <div><label class="block text-xs font-bold text-slate-600 mb-1">CSAT</label><input type="number" step="0.1" id="edit-ev-csat" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
             </div>
+            <div class="bg-slate-50 p-4 rounded-2xl border space-y-2">
+                <label class="block text-xs font-bold text-slate-600 mb-1">Participants (Clients ou Étudiants)</label>
+                <div id="event-participants-checkboxes" class="max-h-40 overflow-y-auto space-y-1 bg-white border border-slate-200 rounded-xl p-3 text-xs">
+                    <!-- Rempli dynamiquement par JavaScript -->
+                </div>
+            </div>
             <div class="flex justify-between items-center pt-4 border-t">
                 <button type="button" onclick="deleteEvent()" class="px-4 py-2 bg-red-50 text-lkdm-accent rounded-full text-xs font-bold hover:bg-red-100"><i class="fa-solid fa-trash mr-1"></i> Supprimer</button>
                 <div class="flex gap-2">
@@ -2587,10 +2593,7 @@
 
         function openEditEventModal(eventId) {
             const ev = globalEventsData.find(e => String(e.id) === String(eventId));
-            if (!ev) {
-                console.error("Événement introuvable pour l'ID :", eventId);
-                return;
-            }
+            if (!ev) return;
 
             document.getElementById('edit-ev-id').value = ev.id;
             document.getElementById('edit-ev-concept').value = ev.concept || '';
@@ -2605,38 +2608,68 @@
             document.getElementById('edit-ev-nps').value = ev.nps_percent || 0;
             document.getElementById('edit-ev-csat').value = ev.csat_score || 0;
 
+            // --- GESTION DES CASES À COCHER DES PARTICIPANTS ---
+            const container = document.getElementById('event-participants-checkboxes');
+            if (container) {
+                container.innerHTML = '';
+                
+                // Récupération des UUIDs déjà stockés dans l'événement (ex: ev.participant_uuids sous forme de tableau)
+                const selectedUuids = ev.participant_uuids || [];
+
+                // Fusion des clients et étudiants disponibles globalement
+                const allProfiles = [
+                    ...(globalClientsData || []).map(c => ({ id: c.id, name: `${c.firstname || ''} ${c.lastname || ''}`.trim() || 'Client', role: 'Client' })),
+                    ...(globalStudentsData || []).map(s => ({ id: s.id, name: `${s.firstname || ''} ${s.lastname || ''}`.trim() || 'Étudiant', role: 'Étudiant' }))
+                ];
+
+                if (allProfiles.length === 0) {
+                    container.innerHTML = '<p class="text-slate-400 italic">Aucun profil disponible.</p>';
+                } else {
+                    allProfiles.forEach(p => {
+                        const isChecked = selectedUuids.includes(p.id) ? 'checked' : '';
+                        container.innerHTML += `
+                            <label class="flex items-center gap-2 hover:bg-slate-50 p-1.5 rounded cursor-pointer">
+                                <input type="checkbox" name="event-participant" value="${p.id}" ${isChecked} class="rounded border-slate-300 text-lkdn-accent focus:ring-lkdn-accent">
+                                <span class="font-medium text-slate-700">${p.name}</span>
+                                <span class="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">${p.role}</span>
+                            </label>
+                        `;
+                    });
+                }
+            }
+
             openModal('modal-edit-event');
         }
         async function submitEditEvent(e) {
             e.preventDefault();
             const id = document.getElementById('edit-ev-id').value;
-            console.log("ID de l'événement à modifier :", id);
+
+            // Récupération de tous les UUIDs cochés
+            const checkedBoxes = document.querySelectorAll('input[name="event-participant"]:checked');
+            const participantUuids = Array.from(checkedBoxes).map(cb => cb.value);
 
             const payload = {
                 concept: document.getElementById('edit-ev-concept').value,
                 event_date: document.getElementById('edit-ev-date').value,
                 revenue_chf: Number(document.getElementById('edit-ev-revenue').value),
                 expenses_chf: Number(document.getElementById('edit-ev-expenses').value),
-                participants_count: Number(document.getElementById('edit-ev-participants').value),
+                participants_count: participantUuids.length || Number(document.getElementById('edit-ev-participants').value),
                 new_participants_count: Number(document.getElementById('edit-ev-new-participants').value),
                 converted_clients_count: Number(document.getElementById('edit-ev-converted-clients').value),
                 students_count: Number(document.getElementById('edit-ev-students').value),
                 new_students_count: Number(document.getElementById('edit-ev-new-students').value),
                 nps_percent: Number(document.getElementById('edit-ev-nps').value),
-                csat_score: Number(document.getElementById('edit-ev-csat').value)
+                csat_score: Number(document.getElementById('edit-ev-csat').value),
+                participant_uuids: participantUuids // Sauvegarde du tableau d'IDs
             };
 
-            console.log("Payload envoyé à Supabase :", payload);
-
-            const { data, error } = await window.supabaseClient.from('events').update(payload).eq('id', id).select();
+            const { error } = await window.supabaseClient.from('events').update(payload).eq('id', id);
             
             if (error) {
-                console.error("Erreur Supabase Update :", error);
                 alert("Erreur lors de la mise à jour : " + error.message);
                 return;
             }
 
-            console.log("Mise à jour réussie :", data);
             closeModal('modal-edit-event');
             loadSupabaseOverview();
         }
