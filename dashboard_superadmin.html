@@ -398,42 +398,65 @@
             </div>
         </main>
     </div>
-                    <!-- TAB 9: JOURNAL D'ACTIVITÉ (LOGS) -->
-                <div id="tab-logs" class="tab-content space-y-6">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Sécurité & Traçabilité</span>
-                            <h2 class="text-2xl font-bold text-lkdm-text mt-0.5">Journal d'activité des Administrateurs</h2>
-                            <p class="text-xs text-slate-500 mt-1">Historique complet de toutes les mutations enregistrées par les administrateurs.</p>
-                        </div>
-                        <button onclick="loadActivityLogs()" class="bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2.5 rounded-full text-xs font-bold text-lkdm-text shadow-sm transition flex items-center gap-2">
-                            <i class="fa-solid fa-rotate"></i> Actualiser les logs
-                        </button>
-                    </div>
-
-                    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse text-xs">
-                                <thead>
-                                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
-                                        <th class="p-4">Date & Heure</th>
-                                        <th class="p-4">Administrateur</th>
-                                        <th class="p-4">Type d'action</th>
-                                        <th class="p-4">Cible / Élément</th>
-                                        <th class="p-4">Détails</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="logs-table-body" class="divide-y divide-slate-100 text-slate-700">
-                                    <tr><td colspan="5" class="p-6 text-center text-slate-400">Chargement de l'historique...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </main>
+<!-- TAB 9: JOURNAL D'ACTIVITÉ (LOGS) -->
+<div id="tab-logs" class="tab-content space-y-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Sécurité & Traçabilité</span>
+            <h2 class="text-2xl font-bold text-lkdm-text mt-0.5">Annuaire & Journal des modifications</h2>
+            <p class="text-xs text-slate-500 mt-1">Filtrez l'historique et cliquez sur une action pour ouvrir la fiche correspondante.</p>
+        </div>
+        <button onclick="loadActivityLogs()" class="bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2.5 rounded-full text-xs font-bold text-lkdm-text shadow-sm transition flex items-center gap-2">
+            <i class="fa-solid fa-rotate"></i> Actualiser
+        </button>
     </div>
+
+    <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+        <div>
+            <label class="block font-bold text-slate-600 mb-1">Du :</label>
+            <input type="date" id="log-filter-start" onchange="filterLogs()" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2">
+        </div>
+        <div>
+            <label class="block font-bold text-slate-600 mb-1">Au :</label>
+            <input type="date" id="log-filter-end" onchange="filterLogs()" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2">
+        </div>
+        <div>
+            <label class="block font-bold text-slate-600 mb-1">Administrateur :</label>
+            <select id="log-filter-admin" onchange="filterLogs()" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2">
+                <option value="all">Tous les admins</option>
+            </select>
+        </div>
+        <div>
+            <label class="block font-bold text-slate-600 mb-1">Type d'action :</label>
+            <select id="log-filter-type" onchange="filterLogs()" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2">
+                <option value="all">Tous les types</option>
+            </select>
+        </div>
+        <div>
+            <label class="block font-bold text-slate-600 mb-1">Cible / Élément :</label>
+            <input type="text" id="log-filter-target" oninput="filterLogs()" placeholder="Rechercher cible..." class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2">
+        </div>
+    </div>
+
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
+                        <th class="p-4">Date & Heure</th>
+                        <th class="p-4">Administrateur</th>
+                        <th class="p-4">Type d'action</th>
+                        <th class="p-4">Cible / Élément</th>
+                        <th class="p-4">Détails & Action directe</th>
+                    </tr>
+                </thead>
+                <tbody id="logs-table-body" class="divide-y divide-slate-100 text-slate-700">
+                    <tr><td colspan="5" class="p-6 text-center text-slate-400">Chargement de l'historique...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
     <!-- MODAL : EXPORT CSV UNIVERSEL -->
     <div id="modal-export-csv" class="hidden fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
