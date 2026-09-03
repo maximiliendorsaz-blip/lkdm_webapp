@@ -2449,6 +2449,94 @@
         `;
     });
 }
+        let globalLogsData = [];
+
+        async function loadActivityLogs() {
+            if (!window.supabaseClient) return;
+
+            const { data: logs, error } = await window.supabaseClient
+                .from('activity_logs')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(200);
+
+            if (error) {
+                console.error("Erreur chargement logs :", error);
+                return;
+            }
+
+            globalLogsData = logs || [];
+            populateLogFilters(globalLogsData);
+            renderFilteredLogs(globalLogsData);
+        }
+
+        function populateLogFilters(logs) {
+            const adminSelect = document.getElementById('log-filter-admin');
+            const typeSelect = document.getElementById('log-filter-type');
+            if (!adminSelect || !typeSelect) return;
+
+            const admins = [...new Set(logs.map(l => l.admin_email))].filter(Boolean);
+            const types = [...new Set(logs.map(l => l.action_type))].filter(Boolean);
+
+            adminSelect.innerHTML = '<option value="all">Tous les admins</option>' + admins.map(a => `<option value="${a}">${a}</option>`).join('');
+            typeSelect.innerHTML = '<option value="all">Tous les types</option>' + types.map(t => `<option value="${t}">${t}</option>`).join('');
+        }
+
+        function filterLogs() {
+            const startDate = document.getElementById('log-filter-start').value;
+            const endDate = document.getElementById('log-filter-end').value;
+            const adminFilter = document.getElementById('log-filter-admin').value;
+            const typeFilter = document.getElementById('log-filter-type').value;
+            const targetQuery = document.getElementById('log-filter-target').value.toLowerCase().trim();
+
+            let filtered = globalLogsData.filter(log => {
+                const logDate = log.created_at ? log.created_at.split('T')[0] : '';
+                if (startDate && logDate < startDate) return false;
+                if (endDate && logDate > endDate) return false;
+                if (adminFilter !== 'all' && log.admin_email !== adminFilter) return false;
+                if (typeFilter !== 'all' && log.action_type !== typeFilter) return false;
+                if (targetQuery && !((log.target_name || '').toLowerCase().includes(targetQuery) || (log.details || '').toLowerCase().includes(targetQuery))) return false;
+                return true;
+            });
+
+            renderFilteredLogs(filtered);
+        }
+
+        function renderFilteredLogs(logs) {
+            const tbody = document.getElementById('logs-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (!logs || logs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Aucun historique correspondant.</td></tr>`;
+                return;
+            }
+
+            logs.forEach(log => {
+                const dateFormatted = new Date(log.created_at).toLocaleString('fr-CH', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+
+                let targetHtml = log.target_name || '-';
+                let clickAttr = '';
+                
+                if (log.target_name && log.target_name !== '-') {
+                    clickAttr = `onclick="inspectTarget('${log.target_name.replace(/'/g, "\\'")}')"`;
+                    targetHtml = `<span class="text-lkdm-accent font-bold hover:underline cursor-pointer" title="Cliquer pour inspecter">${log.target_name} <i class="fa-solid fa-arrow-up-right-from-square text-[10px] ml-0.5"></i></span>`;
+                }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="p-4 font-medium text-slate-500 whitespace-nowrap">${dateFormatted}</td>
+                        <td class="p-4 font-bold text-lkdm-text">${log.admin_email || 'Inconnu'}</td>
+                        <td class="p-4"><span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full font-semibold text-[10px]">${log.action_type}</span></td>
+                        <td class="p-4 font-semibold text-lkdm-secondary" ${clickAttr}>${targetHtml}</td>
+                        <td class="p-4 text-slate-600">${log.details || '-'}</td>
+                    </tr>
+                `;
+            });
+        }
     </script>
 </body>
 </html>
