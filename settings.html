@@ -192,6 +192,12 @@
         async function initSettingsPage() {
             if (!window.supabaseClient) return;
 
+            // Intercepte la confirmation d'e-mail de Supabase pour basculer vers la page dédiée
+            if (window.location.hash && window.location.hash.includes('Confirmation+link+accepted')) {
+                window.location.href = 'email_confirmed.html' + window.location.hash;
+                return;
+            }
+
             if (window.location.hash && window.location.hash.includes('access_token')) {
                 await new Promise(resolve => setTimeout(resolve, 1000));
             }
@@ -328,7 +334,6 @@
 
                     if (authError) {
                         console.warn("Restriction Supabase Auth Email :", authError.message);
-                        // On n'interrompt pas le flux pour que le profil reste modifiable
                     }
                 }
 
