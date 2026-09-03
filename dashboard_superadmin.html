@@ -1297,50 +1297,89 @@
         async function loadSupabaseOverview() {
             if (!window.supabaseClient) return;
 
-            try {
-                // 1. Missions
-                const { data: missions } = await window.supabaseClient.from('missions').select('*, client:client_id(*), student:student_id(*)');
-                globalMissionsData = missions || [];
-            } catch (e) { console.error("Erreur missions:", e); }
+            const startDate = document.getElementById('filter-start-date').value;
+            const endDate = document.getElementById('filter-end-date').value;
+            const cityFilter = document.getElementById('filter-city').value;
 
-            try {
-                // 2. Clients
-                const { data: clients } = await window.supabaseClient.from('profiles').select('*').eq('role', 'client');
-                globalClientsData = clients || [];
-            } catch (e) { console.error("Erreur clients:", e); }
+            let mQuery = window.supabaseClient.from('missions').select('*, client:client_id(*), student:student_id(*)');
+            if (startDate) mQuery = mQuery.gte('mission_date', startDate);
+            if (endDate) mQuery = mQuery.lte('mission_date', endDate);
 
-            try {
-                // 3. Étudiants
-                const { data: students } = await window.supabaseClient.from('profiles').select('*').eq('role', 'student');
-                globalStudentsData = students || [];
-            } catch (e) { console.error("Erreur étudiants:", e); }
+            const { data: missions, error: mErr } = await mQuery;
+            if (mErr) return;
 
-            try {
-                // 4. Événements (Isolé pour éviter tout plantage global si la table a un souci)
-                const { data: events, error: evErr } = await window.supabaseClient.from('events').select('*');
-                if (evErr) console.warn("Attention table events :", evErr.message);
-                globalEventsData = events || [];
-            } catch (e) { 
-                console.error("Erreur events:", e); 
-                globalEventsData = []; 
+            globalMissionsData = missions || [];
+
+            const { data: clients } = await window.supabaseClient.from('profiles').select('*').eq('role', 'client');
+            const { data: students } = await window.supabaseClient.from('profiles').select('*').eq('role', 'student');
+            const { data: events } = await window.supabaseClient.from('events').select('*');
+            const { data: docs } = await window.supabaseClient.from('documents').select('*, client:client_id(*), student:student_id(*), mission:mission_id(*)');
+
+            globalClientsData = clients || [];
+            globalStudentsData = students || [];
+            globalEventsData = events || [];
+            globalDocumentsData = docs || [];
+
+            let filteredMissions = globalMissionsData;
+            if (cityFilter !== "Toutes") {
+                filteredMissions = filteredMissions.filter(m => m.client && m.client.city === cityFilter);
             }
 
-            try {
-                // 5. Documents
-                const { data: docs } = await window.supabaseClient.from('documents').select('*');
-                globalDocumentsData = docs || [];
-            } catch (e) { console.error("Erreur docs:", e); }
+            let caMissions = 0, beneMissions = 0, completedCount = 0, attentionCount = 0;
+            globalMissionsData.forEach(m => {
+                const amt = Number(m.total_amount) || 0;
+                const hours = Number(m.real_hours) || 0;
+                caMissions += amt;
+                beneMissions += (hours * 10);
 
-            // Rendu sécurisé de tous les tableaux
-            if (typeof renderOpenMissionsTable === 'function') renderOpenMissionsTable();
-            if (typeof renderClientsTable === 'function') renderClientsTable(globalClientsData);
-            if (typeof renderStudentsGrid === 'function') renderStudentsGrid();
-            if (typeof renderAvsTracker === 'function') renderAvsTracker();
-            if (typeof renderBillingTable === 'function') renderBillingTable();
-            if (typeof renderDocumentsTable === 'function') renderDocumentsTable();
-            if (typeof renderEventsTable === 'function') renderEventsTable();
+                const status = (m.matching_status || "").toLowerCase();
+                if (["à facturer", "mission effectuée", "en attente de paiement"].includes(status)) completedCount++;
+                if (["nouveau", "a publier", "publié", "accepté", "confirmé", "à facturer", "en attente de paiement"].includes(status)) attentionCount++;
+            });
+
+            let caEvents = 0, beneEvents = 0;
+            globalEventsData.forEach(ev => {
+                const rev = Number(ev.revenue_chf) || 0;
+                const exp = Number(ev.expenses_chf) || 0;
+                caEvents += rev;
+                beneEvents += (rev - exp);
+            });
+
+            const caTotal = caMissions + caEvents;
+            const beneTotal = beneMissions + beneEvents;
+
+            let c1 = 0, c2to5 = 0, c5plus = 0;
+            globalClientsData.forEach(cli => {
+                const count = filteredMissions.filter(m => m.client_id === cli.id).length;
+                if (count === 1) c1++;
+                else if (count >= 2 && count <= 5) c2to5++;
+                else if (count > 5) c5plus++;
+            });
+
+            document.getElementById('stat-ca-total').innerText = `CHF ${caTotal.toLocaleString()}`;
+            document.getElementById('stat-ca-missions').innerText = `CHF ${caMissions.toLocaleString()}`;
+            document.getElementById('stat-ca-events').innerText = `CHF ${caEvents.toLocaleString()}`;
+            document.getElementById('stat-bene-total').innerText = `CHF ${beneTotal.toLocaleString()}`;
+            document.getElementById('stat-bene-missions').innerText = `CHF ${beneMissions.toLocaleString()}`;
+            document.getElementById('stat-bene-events').innerText = `CHF ${beneEvents.toLocaleString()}`;
+            document.getElementById('stat-missions-total').innerText = filteredMissions.length;
+            document.getElementById('stat-missions-completed').innerText = completedCount;
+            document.getElementById('dash-urgent-count').innerText = attentionCount;
+            document.getElementById('badge-unassigned').innerText = attentionCount;
+            document.getElementById('stat-total-clients').innerText = `${globalClientsData.length} clients`;
+            document.getElementById('stat-c-1').innerText = c1;
+            document.getElementById('stat-c-2-5').innerText = c2to5;
+            document.getElementById('stat-c-5plus').innerText = c5plus;
+
+            renderOpenMissionsTable();
+            renderClientsTable(globalClientsData);
+            renderStudentsGrid();
+            renderAvsTracker();
+            renderBillingTable();
+            renderDocumentsTable();
+            renderEventsTable();
+            if(adminMap) renderAdminMapCalendar();
         }
-
         function formatDisplayDateTime(isoStr) {
             if (!isoStr) return 'À convenir';
             const d = new Date(isoStr);
