@@ -2591,7 +2591,7 @@
             });
         }
 
-        function openEditEventModal(eventId) {
+        async function openEditEventModal(eventId) {
             const ev = globalEventsData.find(e => String(e.id) === String(eventId));
             if (!ev) return;
 
@@ -2608,30 +2608,31 @@
             document.getElementById('edit-ev-nps').value = ev.nps_percent || 0;
             document.getElementById('edit-ev-csat').value = ev.csat_score || 0;
 
-            // --- GESTION DES CASES À COCHER DES PARTICIPANTS ---
             const container = document.getElementById('event-participants-checkboxes');
             if (container) {
-                container.innerHTML = '';
-                
-                // Récupération des UUIDs déjà stockés dans l'événement (ex: ev.participant_uuids sous forme de tableau)
-                const selectedUuids = ev.participant_uuids || [];
+                container.innerHTML = '<p class="text-slate-400 italic">Chargement des profils depuis la DB...</p>';
 
-                // Fusion des clients et étudiants disponibles globalement
-                const allProfiles = [
-                    ...(globalClientsData || []).map(c => ({ id: c.id, name: `${c.firstname || ''} ${c.lastname || ''}`.trim() || 'Client', role: 'Client' })),
-                    ...(globalStudentsData || []).map(s => ({ id: s.id, name: `${s.firstname || ''} ${s.lastname || ''}`.trim() || 'Étudiant', role: 'Étudiant' }))
-                ];
+                // Requête directe pour aller chercher tous les profils de la base de données
+                const { data: profiles, error } = await window.supabaseClient.from('profiles').select('*');
 
-                if (allProfiles.length === 0) {
-                    container.innerHTML = '<p class="text-slate-400 italic">Aucun profil disponible.</p>';
+                if (error) {
+                    container.innerHTML = '<p class="text-red-500 text-xs">Erreur lors du chargement des profils.</p>';
+                } else if (!profiles || profiles.length === 0) {
+                    container.innerHTML = '<p class="text-slate-400 italic">Aucun profil trouvé dans la base de données.</p>';
                 } else {
-                    allProfiles.forEach(p => {
+                    container.innerHTML = '';
+                    const selectedUuids = ev.participant_uuids || [];
+
+                    profiles.forEach(p => {
+                        const fullName = `${p.firstname || ''} ${p.lastname || ''}`.trim() || p.email || 'Utilisateur';
+                        const roleLabel = p.role ? p.role.toUpperCase() : 'PROFIL';
                         const isChecked = selectedUuids.includes(p.id) ? 'checked' : '';
+
                         container.innerHTML += `
                             <label class="flex items-center gap-2 hover:bg-slate-50 p-1.5 rounded cursor-pointer">
                                 <input type="checkbox" name="event-participant" value="${p.id}" ${isChecked} class="rounded border-slate-300 text-lkdn-accent focus:ring-lkdn-accent">
-                                <span class="font-medium text-slate-700">${p.name}</span>
-                                <span class="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">${p.role}</span>
+                                <span class="font-medium text-slate-700">${fullName}</span>
+                                <span class="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">${roleLabel}</span>
                             </label>
                         `;
                     });
