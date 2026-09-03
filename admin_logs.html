@@ -49,7 +49,7 @@
                     <div>
                         <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Sécurité & Traçabilité</span>
                         <h2 class="text-2xl font-bold text-lkdm-text mt-0.5">Annuaire des modifications administrateurs</h2>
-                        <p class="text-xs text-slate-500 mt-1">Retrouvez l'historique complet et cliquez sur une cible pour ouvrir sa fiche.</p>
+                        <p class="text-xs text-slate-500 mt-1">Filtrez l'historique et cliquez sur une cible pour ouvrir sa fiche détaillée.</p>
                     </div>
                     <button onclick="loadActivityLogs()" class="bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2.5 rounded-full text-xs font-bold text-lkdm-text shadow-sm transition flex items-center gap-2">
                         <i class="fa-solid fa-rotate"></i> Actualiser
@@ -108,12 +108,12 @@
         </main>
     </div>
 
-    <!-- MODAL D'ÉDITION MISSION -->
-    <div id="modal-edit-mission" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 my-8 relative">
-            <button onclick="closeModal('modal-edit-mission')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-times"></i></button>
-            <h3 class="text-xl font-bold text-lkdm-text mb-4">Inspection de la Mission</h3>
-            <div id="modal-mission-content" class="space-y-3 text-sm text-slate-700">Chargement...</div>
+    <!-- MODAL D'INSPECTION D'ÉLÉMENT -->
+    <div id="modal-inspect" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-xl p-6 my-8 relative">
+            <button onclick="closeModal('modal-inspect')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
+            <h3 class="text-xl font-bold text-lkdm-text mb-4">Détails de l'élément ciblé</h3>
+            <div id="modal-inspect-content" class="space-y-3 text-sm text-slate-700">Chargement...</div>
         </div>
     </div>
 
@@ -190,12 +190,11 @@
                     hour: '2-digit', minute: '2-digit'
                 });
 
-                // Rendre la cible cliquable si c'est une mission ou un élément traçable
                 let targetHtml = log.target_name || '-';
                 let clickAttr = '';
                 
-                if (log.target_name && (log.target_name.startsWith('M') || log.action_type.includes('MISSION'))) {
-                    clickAttr = `onclick="inspectMission('${log.target_name}')"`;
+                if (log.target_name && log.target_name !== '-') {
+                    clickAttr = `onclick="inspectTarget('${log.target_name.replace(/'/g, "\\'")}')"`;
                     targetHtml = `<span class="text-lkdm-accent font-bold hover:underline cursor-pointer" title="Cliquer pour inspecter">${log.target_name} <i class="fa-solid fa-arrow-up-right-from-square text-[10px] ml-0.5"></i></span>`;
                 }
 
@@ -212,32 +211,61 @@
             });
         }
 
-        async function inspectMission(codeOrId) {
-            const { data: mission, error } = await window.supabaseClient
+        async function inspectTarget(targetName) {
+            if (!window.supabaseClient) return;
+
+            // 1. Chercher dans les missions
+            let { data: mission } = await window.supabaseClient
                 .from('missions')
                 .select('*, client:client_id(*), student:student_id(*)')
-                .or(`mission_code.eq.${codeOrId},id.eq.${codeOrId}`)
+                .or(`mission_code.eq.${targetName},exact_description.ilike.%${targetName}%`)
+                .limit(1)
                 .maybeSingle();
 
-            if (error || !mission) {
-                alert("Impossible de retrouver les détails de cet élément en base de données.");
+            if (mission) {
+                document.getElementById('modal-inspect-content').innerHTML = `
+                    <div class="space-y-2 bg-slate-50 p-4 rounded-xl border text-xs">
+                        <p><strong>Type :</strong> Mission</p>
+                        <p><strong>Code :</strong> ${mission.mission_code}</p>
+                        <p><strong>Description :</strong> ${mission.exact_description || '-'}</p>
+                        <p><strong>Statut :</strong> <span class="px-2 py-0.5 rounded font-bold bg-amber-100 text-amber-800">${mission.matching_status || 'Nouveau'}</span></p>
+                        <p><strong>Client :</strong> ${mission.client ? mission.client.full_name : 'Inconnu'}</p>
+                        <p><strong>Montant :</strong> CHF ${mission.total_amount || 0}</p>
+                    </div>
+                    <div class="flex justify-end pt-3">
+                        <button onclick="closeModal('modal-inspect')" class="px-5 py-2 bg-slate-800 text-white rounded-full text-xs font-medium">Fermer</button>
+                    </div>
+                `;
+                openModal('modal-inspect');
                 return;
             }
 
-            const container = document.getElementById('modal-mission-content');
-            container.innerHTML = `
-                <div class="space-y-2 bg-slate-50 p-4 rounded-xl border">
-                    <p><strong>Code Mission :</strong> ${mission.mission_code}</p>
-                    <p><strong>Description :</strong> ${mission.exact_description || '-'}</p>
-                    <p><strong>Statut :</strong> <span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-800">${mission.matching_status || 'Nouveau'}</span></p>
-                    <p><strong>Client :</strong> ${mission.client ? mission.client.full_name : 'Inconnu'}</p>
-                    <p><strong>Montant :</strong> CHF ${mission.total_amount || 0}</p>
-                </div>
-                <div class="flex justify-end pt-3">
-                    <button onclick="closeModal('modal-edit-mission')" class="px-5 py-2 bg-slate-800 text-white rounded-full text-xs font-medium">Fermer</button>
-                </div>
-            `;
-            openModal('modal-edit-mission');
+            // 2. Chercher dans les profils (Clients / Étudiants)
+            let { data: profile } = await window.supabaseClient
+                .from('profiles')
+                .select('*')
+                .ilike('full_name', `%${targetName}%`)
+                .limit(1)
+                .maybeSingle();
+
+            if (profile) {
+                document.getElementById('modal-inspect-content').innerHTML = `
+                    <div class="space-y-2 bg-slate-50 p-4 rounded-xl border text-xs">
+                        <p><strong>Type :</strong> Profil (${profile.role})</p>
+                        <p><strong>Nom :</strong> ${profile.full_name}</p>
+                        <p><strong>Email :</strong> ${profile.email || '-'}</p>
+                        <p><strong>Téléphone :</strong> ${profile.phone || '-'}</p>
+                        <p><strong>Ville :</strong> ${profile.city || '-'}</p>
+                    </div>
+                    <div class="flex justify-end pt-3">
+                        <button onclick="closeModal('modal-inspect')" class="px-5 py-2 bg-slate-800 text-white rounded-full text-xs font-medium">Fermer</button>
+                    </div>
+                `;
+                openModal('modal-inspect');
+                return;
+            }
+
+            alert(`Aucun détail trouvé en base de données pour "${targetName}".`);
         }
 
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
