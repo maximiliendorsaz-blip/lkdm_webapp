@@ -192,12 +192,10 @@
         async function initSettingsPage() {
             if (!window.supabaseClient) return;
 
-            // Intercepte et laisse le temps à Supabase de traiter le token de récupération de mot de passe s'il est présent dans l'URL
             if (window.location.hash && window.location.hash.includes('access_token')) {
                 await new Promise(resolve => setTimeout(resolve, 1000));
             }
 
-            // Récupérer la session active de manière sécurisée
             const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
             
             if (sessionError || !session || !session.user) {
@@ -292,13 +290,27 @@
 
             const firstName = document.getElementById('set-firstname').value.trim();
             const lastName = document.getElementById('set-lastname').value.trim();
+            const newEmail = document.getElementById('set-email').value.trim();
+
+            const { data: { user } } = await window.supabaseClient.auth.getUser();
+            if (user && user.email !== newEmail) {
+                const { error: authError } = await window.supabaseClient.auth.updateUser({
+                    email: newEmail
+                });
+                if (authError) {
+                    alert("Erreur lors de la mise à jour de l'e-mail de connexion : " + authError.message);
+                    btn.innerText = "Enregistrer le profil";
+                    btn.disabled = false;
+                    return;
+                }
+            }
 
             const payload = {
                 first_name: firstName,
                 last_name: lastName,
                 full_name: `${firstName} ${lastName}`,
                 phone: document.getElementById('set-phone').value.trim(),
-                email: document.getElementById('set-email').value.trim(),
+                email: newEmail,
                 address: document.getElementById('set-address').value.trim(),
                 npa: document.getElementById('set-npa').value.trim(),
                 city: document.getElementById('set-city').value.trim()
@@ -315,7 +327,7 @@
             btn.disabled = false;
 
             if (error) {
-                alert("Erreur lors de la mise à jour : " + error.message);
+                alert("Erreur lors de la mise à jour du profil : " + error.message);
                 return;
             }
 
