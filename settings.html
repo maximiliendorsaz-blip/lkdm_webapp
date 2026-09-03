@@ -323,7 +323,7 @@
                     const { error: authError } = await window.supabaseClient.auth.updateUser({
                         email: newEmail
                     }, {
-                        emailRedirectTo: 'https://maximiliendorsaz-blip.github.io/lkdm_webapp/settings.html'
+                        emailRedirectTo: 'https://maximiliendorsaz-blip.github.io/lkdm_webapp/email_confirmed.html'
                     });
 
                     if (authError) {
