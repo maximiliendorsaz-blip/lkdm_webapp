@@ -292,58 +292,62 @@
             const lastName = document.getElementById('set-lastname').value.trim();
             const newEmail = document.getElementById('set-email').value.trim();
 
-            const { data: { user } } = await window.supabaseClient.auth.getUser();
-            if (user && user.email !== newEmail) {
-                const { error: authError } = await window.supabaseClient.auth.updateUser({
-                    email: newEmail
-                }, {
-                    emailRedirectTo: 'https://maximiliendorsaz-blip.github.io/lkdm_webapp/settings.html'
-                });
+            try {
+                // 1. Mise à jour des données textuelles du profil dans la base de données
+                const payload = {
+                    first_name: firstName,
+                    last_name: lastName,
+                    full_name: `${firstName} ${lastName}`,
+                    phone: document.getElementById('set-phone').value.trim(),
+                    email: newEmail,
+                    address: document.getElementById('set-address').value.trim(),
+                    npa: document.getElementById('set-npa').value.trim(),
+                    city: document.getElementById('set-city').value.trim()
+                };
 
-                if (authError) {
-                    alert("Erreur lors de la mise à jour de l'e-mail de connexion : " + authError.message);
-                    btn.innerText = "Enregistrer le profil";
-                    btn.disabled = false;
-                    return;
+                if (currentUserRole === 'student') {
+                    payload.iban = document.getElementById('set-iban').value.trim() || null;
+                    payload.avs_number = document.getElementById('set-avs').value.trim() || null;
                 }
-            }
 
-            const payload = {
-                first_name: firstName,
-                last_name: lastName,
-                full_name: `${firstName} ${lastName}`,
-                phone: document.getElementById('set-phone').value.trim(),
-                email: newEmail,
-                address: document.getElementById('set-address').value.trim(),
-                npa: document.getElementById('set-npa').value.trim(),
-                city: document.getElementById('set-city').value.trim()
-            };
+                const { error: profileError } = await window.supabaseClient
+                    .from('profiles')
+                    .update(payload)
+                    .eq('id', currentProfileId);
 
-            if (currentUserRole === 'student') {
-                payload.iban = document.getElementById('set-iban').value.trim() || null;
-                payload.avs_number = document.getElementById('set-avs').value.trim() || null;
-            }
+                if (profileError) throw profileError;
 
-            const { error } = await window.supabaseClient.from('profiles').update(payload).eq('id', currentProfileId);
+                // 2. Tentative de mise à jour de l'e-mail de connexion (Auth) si modifié
+                const { data: { user } } = await window.supabaseClient.auth.getUser();
+                if (user && user.email !== newEmail) {
+                    const { error: authError } = await window.supabaseClient.auth.updateUser({
+                        email: newEmail
+                    }, {
+                        emailRedirectTo: 'https://maximiliendorsaz-blip.github.io/lkdm_webapp/settings.html'
+                    });
 
-            btn.innerText = "Enregistrer le profil";
-            btn.disabled = false;
-
-            if (error) {
-                alert("Erreur lors de la mise à jour du profil : " + error.message);
-                return;
-            }
-
-            showToast("Profil mis à jour", "Vos informations ont bien été enregistrées.");
-            setTimeout(() => {
-                if (currentUserRole === 'admin') {
-                    window.location.href = 'dashboard_admin.html';
-                } else if (currentUserRole === 'student') {
-                    window.location.href = 'dashboard_student.html';
-                } else {
-                    window.location.href = 'dashboard_customer.html';
+                    if (authError) {
+                        console.warn("Avertissement Auth Email :", authError.message);
+                        alert("Profil mis à jour dans l'application, mais l'e-mail de connexion n'a pas pu être modifié (vérifiez les limites d'envoi de Supabase).");
+                    }
                 }
-            }, 1200);
+
+                showToast("Profil mis à jour", "Vos informations ont bien été enregistrées.");
+                setTimeout(() => {
+                    if (currentUserRole === 'admin') {
+                        window.location.href = 'dashboard_admin.html';
+                    } else if (currentUserRole === 'student') {
+                        window.location.href = 'dashboard_student.html';
+                    } else {
+                        window.location.href = 'dashboard_customer.html';
+                    }
+                }, 1200);
+
+            } catch (err) {
+                alert("Erreur lors de la mise à jour : " + err.message);
+                btn.innerText = "Enregistrer le profil";
+                btn.disabled = false;
+            }
         }
 
         async function saveNewPassword(event) {
