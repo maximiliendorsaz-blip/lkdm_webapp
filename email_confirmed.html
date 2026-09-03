@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-mail Confirmé - Le Koup de Main</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+</head>
+<body class="antialiased flex flex-col items-center justify-center min-h-screen bg-lkdm-bg p-4 selection:bg-lkdm-accent selection:text-white">
+
+    <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-xl max-w-md w-full text-center space-y-6">
+        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl shadow-sm">
+            <i class="fa-solid fa-check"></i>
+        </div>
+
+        <div class="space-y-2">
+            <h1 class="text-2xl font-bold text-lkdm-text">E-mail modifié avec succès !</h1>
+            <p class="text-xs text-slate-500 leading-relaxed">Votre nouvelle adresse e-mail a bien été validée et enregistrée sur votre compte Le Koup de Main (LKDM).</p>
+        </div>
+
+        <div class="pt-4 border-t border-slate-100">
+            <a id="return-dashboard-btn" href="index.html" class="w-full inline-block bg-lkdm-accent text-white py-3 px-6 rounded-full text-xs font-bold shadow-sm hover:bg-[#b53838] transition">
+                Retourner à mon espace
+            </a>
+        </div>
+    </div>
+
+    <script>
+        async function initConfirmationPage() {
+            if (!window.supabaseClient) return;
+
+            // Supabase envoie souvent les tokens de validation dans le hash de l'URL (#access_token=...)
+            // On s'assure que la session est bien rafraîchie avec la nouvelle adresse
+            const { data: { session } } = await window.supabaseClient.auth.getSession();
+            
+            if (session && session.user) {
+                // Récupérer le rôle de l'utilisateur pour adapter dynamiquement le bouton de retour
+                const { data: profile } = await window.supabaseClient
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', session.user.id)
+                    .maybeSingle();
+
+                const btn = document.getElementById('return-dashboard-btn');
+                if (profile) {
+                    if (profile.role === 'admin') btn.setAttribute('href', 'dashboard_admin.html');
+                    else if (profile.role === 'student') btn.setAttribute('href', 'dashboard_student.html');
+                    else btn.setAttribute('href', 'dashboard_customer.html');
+                }
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', initConfirmationPage);
+    </script>
+</body>
+</html>
