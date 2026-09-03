@@ -44,16 +44,44 @@
 
         <!-- Main Content -->
         <main class="flex-1 h-screen overflow-y-auto p-4 lg:p-8">
-            <div class="max-w-5xl mx-auto space-y-6">
+            <div class="max-w-6xl mx-auto space-y-6">
                 <div class="flex justify-between items-center">
                     <div>
                         <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Sécurité & Traçabilité</span>
                         <h2 class="text-2xl font-bold text-lkdm-text mt-0.5">Annuaire des modifications administrateurs</h2>
-                        <p class="text-xs text-slate-500 mt-1">Retrouvez l'historique complet de toutes les actions effectuées sur la plateforme.</p>
+                        <p class="text-xs text-slate-500 mt-1">Retrouvez l'historique complet et cliquez sur une cible pour ouvrir sa fiche.</p>
                     </div>
                     <button onclick="loadActivityLogs()" class="bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2.5 rounded-full text-xs font-bold text-lkdm-text shadow-sm transition flex items-center gap-2">
                         <i class="fa-solid fa-rotate"></i> Actualiser
                     </button>
+                </div>
+
+                <!-- Barre de filtres avancés -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-600 mb-1">Du :</label>
+                        <input type="date" id="log-filter-start" onchange="filterLogs()" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-600 mb-1">Au :</label>
+                        <input type="date" id="log-filter-end" onchange="filterLogs()" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-600 mb-1">Administrateur :</label>
+                        <select id="log-filter-admin" onchange="filterLogs()" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2">
+                            <option value="all">Tous les admins</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-600 mb-1">Type d'action :</label>
+                        <select id="log-filter-type" onchange="filterLogs()" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2">
+                            <option value="all">Tous les types</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-600 mb-1">Cible / Élément :</label>
+                        <input type="text" id="log-filter-target" oninput="filterLogs()" placeholder="Rechercher cible..." class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2">
+                    </div>
                 </div>
 
                 <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
@@ -80,34 +108,79 @@
         </main>
     </div>
 
+    <!-- MODAL D'ÉDITION MISSION -->
+    <div id="modal-edit-mission" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 my-8 relative">
+            <button onclick="closeModal('modal-edit-mission')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-times"></i></button>
+            <h3 class="text-xl font-bold text-lkdm-text mb-4">Inspection de la Mission</h3>
+            <div id="modal-mission-content" class="space-y-3 text-sm text-slate-700">Chargement...</div>
+        </div>
+    </div>
+
     <script>
+        let globalLogsData = [];
+
         async function loadActivityLogs() {
             if (!window.supabaseClient) {
                 console.error("Client Supabase introuvable !");
                 return;
             }
 
-            console.log("Tentative de récupération des logs depuis Supabase...");
-
             const { data: logs, error } = await window.supabaseClient
                 .from('activity_logs')
                 .select('*')
                 .order('created_at', { ascending: false })
-                .limit(100);
-
-            const tbody = document.getElementById('logs-table-body');
-            tbody.innerHTML = '';
+                .limit(200);
 
             if (error) {
                 console.error("Erreur Supabase :", error);
-                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-500">Erreur de chargement : ${error.message}</td></tr>`;
+                document.getElementById('logs-table-body').innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-500">Erreur : ${error.message}</td></tr>`;
                 return;
             }
 
-            console.log("Logs reçus de Supabase :", logs);
+            globalLogsData = logs || [];
+            populateLogFilters(globalLogsData);
+            renderFilteredLogs(globalLogsData);
+        }
+
+        function populateLogFilters(logs) {
+            const adminSelect = document.getElementById('log-filter-admin');
+            const typeSelect = document.getElementById('log-filter-type');
+            if (!adminSelect || !typeSelect) return;
+
+            const admins = [...new Set(logs.map(l => l.admin_email))].filter(Boolean);
+            const types = [...new Set(logs.map(l => l.action_type))].filter(Boolean);
+
+            adminSelect.innerHTML = '<option value="all">Tous les admins</option>' + admins.map(a => `<option value="${a}">${a}</option>`).join('');
+            typeSelect.innerHTML = '<option value="all">Tous les types</option>' + types.map(t => `<option value="${t}">${t}</option>`).join('');
+        }
+
+        function filterLogs() {
+            const startDate = document.getElementById('log-filter-start').value;
+            const endDate = document.getElementById('log-filter-end').value;
+            const adminFilter = document.getElementById('log-filter-admin').value;
+            const typeFilter = document.getElementById('log-filter-type').value;
+            const targetQuery = document.getElementById('log-filter-target').value.toLowerCase().trim();
+
+            let filtered = globalLogsData.filter(log => {
+                const logDate = log.created_at ? log.created_at.split('T')[0] : '';
+                if (startDate && logDate < startDate) return false;
+                if (endDate && logDate > endDate) return false;
+                if (adminFilter !== 'all' && log.admin_email !== adminFilter) return false;
+                if (typeFilter !== 'all' && log.action_type !== typeFilter) return false;
+                if (targetQuery && !((log.target_name || '').toLowerCase().includes(targetQuery) || (log.details || '').toLowerCase().includes(targetQuery))) return false;
+                return true;
+            });
+
+            renderFilteredLogs(filtered);
+        }
+
+        function renderFilteredLogs(logs) {
+            const tbody = document.getElementById('logs-table-body');
+            tbody.innerHTML = '';
 
             if (!logs || logs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Aucune modification enregistrée pour le moment.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Aucun historique correspondant.</td></tr>`;
                 return;
             }
 
@@ -117,18 +190,58 @@
                     hour: '2-digit', minute: '2-digit'
                 });
 
+                // Rendre la cible cliquable si c'est une mission ou un élément traçable
+                let targetHtml = log.target_name || '-';
+                let clickAttr = '';
+                
+                if (log.target_name && (log.target_name.startsWith('M') || log.action_type.includes('MISSION'))) {
+                    clickAttr = `onclick="inspectMission('${log.target_name}')"`;
+                    targetHtml = `<span class="text-lkdm-accent font-bold hover:underline cursor-pointer" title="Cliquer pour inspecter">${log.target_name} <i class="fa-solid fa-arrow-up-right-from-square text-[10px] ml-0.5"></i></span>`;
+                }
+
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50/80 transition";
                 tr.innerHTML = `
                     <td class="p-4 font-medium text-slate-500 whitespace-nowrap">${dateFormatted}</td>
                     <td class="p-4 font-bold text-lkdm-text">${log.admin_email || 'Inconnu'}</td>
                     <td class="p-4"><span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full font-semibold text-[10px]">${log.action_type}</span></td>
-                    <td class="p-4 font-semibold text-lkdm-secondary">${log.target_name || '-'}</td>
+                    <td class="p-4 font-semibold text-lkdm-secondary" ${clickAttr}>${targetHtml}</td>
                     <td class="p-4 text-slate-600">${log.details || '-'}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
+
+        async function inspectMission(codeOrId) {
+            const { data: mission, error } = await window.supabaseClient
+                .from('missions')
+                .select('*, client:client_id(*), student:student_id(*)')
+                .or(`mission_code.eq.${codeOrId},id.eq.${codeOrId}`)
+                .maybeSingle();
+
+            if (error || !mission) {
+                alert("Impossible de retrouver les détails de cet élément en base de données.");
+                return;
+            }
+
+            const container = document.getElementById('modal-mission-content');
+            container.innerHTML = `
+                <div class="space-y-2 bg-slate-50 p-4 rounded-xl border">
+                    <p><strong>Code Mission :</strong> ${mission.mission_code}</p>
+                    <p><strong>Description :</strong> ${mission.exact_description || '-'}</p>
+                    <p><strong>Statut :</strong> <span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-800">${mission.matching_status || 'Nouveau'}</span></p>
+                    <p><strong>Client :</strong> ${mission.client ? mission.client.full_name : 'Inconnu'}</p>
+                    <p><strong>Montant :</strong> CHF ${mission.total_amount || 0}</p>
+                </div>
+                <div class="flex justify-end pt-3">
+                    <button onclick="closeModal('modal-edit-mission')" class="px-5 py-2 bg-slate-800 text-white rounded-full text-xs font-medium">Fermer</button>
+                </div>
+            `;
+            openModal('modal-edit-mission');
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
         window.addEventListener('DOMContentLoaded', loadActivityLogs);
     </script>
