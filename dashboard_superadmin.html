@@ -1113,15 +1113,36 @@
         let adminMap = null;
         let adminMarkers = null;
 
-        async function checkAuth() {
-            if (!window.supabaseClient) return;
-            const { data: { session } } = await window.supabaseClient.auth.getSession();
-            if (!session) {
+    async function verifySuperAdmin() {
+            if (!window.supabaseClient) {
                 window.location.href = 'login.html';
+                return;
             }
+
+            const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
+            if (sessionError || !session || !session.user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const { data: profile, error: profileError } = await window.supabaseClient
+                .from('profiles')
+                .select('role')
+                .eq('id', session.user.id)
+                .single();
+
+            if (profileError || !profile || profile.role !== 'superadmin') {
+                alert("Accès refusé : Espace strictement réservé au Super Administrateur.");
+                window.location.href = 'dashboard_admin.html';
+                return;
+            }
+
+            populateDynamicDropdowns();
+            loadSupabaseOverview();
+            loadActivityLogs();
         }
         
-        checkAuth();
+        verifySuperAdmin();
         
         function getStatusColorClass(status) {
             const st = (status || "").toLowerCase();
