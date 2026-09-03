@@ -398,6 +398,41 @@
             </div>
         </main>
     </div>
+
+    <!-- TAB : ÉVÉNEMENTS -->
+<div id="tab-events" class="tab-content space-y-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Animation & RSE</span>
+            <h2 class="text-2xl font-bold text-lkdm-text mt-0.5">Gestion des Événements & 24h Client</h2>
+            <p class="text-xs text-slate-500 mt-1">Suivi des budgets, conversions et retours d'expérience.</p>
+        </div>
+        <button onclick="openModal('modal-create-event')" class="bg-lkdm-accent text-white px-4 py-2.5 rounded-[50px] text-xs font-medium shadow-sm hover:bg-[#b53838] transition flex items-center gap-2">
+            <i class="fa-solid fa-plus"></i> Créer un événement
+        </button>
+    </div>
+
+    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs whitespace-nowrap">
+                <thead class="bg-slate-50 text-lkdm-secondary uppercase">
+                    <tr>
+                        <th class="p-3">Code & Date</th>
+                        <th class="p-3">Titre & Concept</th>
+                        <th class="p-3">Lieu</th>
+                        <th class="p-3">Revenus / Dépenses</th>
+                        <th class="p-3">Participants</th>
+                        <th class="p-3">Conversions</th>
+                        <th class="p-3 text-right">Satisfaction</th>
+                    </tr>
+                </thead>
+                <tbody id="events-table-tbody" class="divide-y divide-slate-100">
+                    <tr><td colspan="7" class="p-6 text-center text-slate-400">Chargement des événements...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 <!-- TAB 9: JOURNAL D'ACTIVITÉ (LOGS) -->
 <div id="tab-logs" class="tab-content space-y-6">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -1025,6 +1060,60 @@
             </form>
         </div>
     </div>
+
+    <!-- MODAL : CRÉER ÉVÉNEMENT -->
+<div id="modal-create-event" class="hidden fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
+        <button onclick="closeModal('modal-create-event')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
+        <h3 class="text-xl font-bold text-lkdm-text mb-4"><i class="fa-solid fa-calendar-star mr-2 text-lkdm-accent"></i> Nouvel Événement / 24h Client</h3>
+        <form onsubmit="submitEventForm(event)" class="space-y-4 text-sm">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Titre de l'événement *</label>
+                    <input type="text" id="ev-title" required placeholder="Ex: Velux Mysteries 24h..." class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Date *</label>
+                    <input type="date" id="ev-date" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Lieu</label>
+                <input type="text" id="ev-location" placeholder="Ex: Sion / En ligne" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Concept de l'événement</label>
+                <textarea id="ev-concept" rows="2" placeholder="Objectif de collecte, description du défi..." class="w-full bg-lkdm-bg border border-slate-200 rounded-xl p-3 text-xs"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div><label class="block text-xs font-bold text-slate-600 mb-1">Revenus (CHF)</label><input type="number" step="0.05" id="ev-revenue" value="0" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                <div><label class="block text-xs font-bold text-slate-600 mb-1">Dépenses / Coûts (CHF)</label><input type="number" step="0.05" id="ev-expenses" value="0" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+            </div>
+            <div class="grid grid-cols-4 gap-3">
+                <div><label class="block text-xs font-bold text-slate-600 mb-1">Total participants</label><input type="number" id="ev-tot-part" value="0" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                <div><label class="block text-xs font-bold text-slate-600 mb-1">Nouveaux participants</label><input type="number" id="ev-new-part" value="0" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                <div><label class="block text-xs font-bold text-slate-600 mb-1">Clients convertis</label><input type="number" id="ev-conv-cli" value="0" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                <div><label class="block text-xs font-bold text-slate-600 mb-1">Nouveaux étudiants</label><input type="number" id="ev-new-stu" value="0" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div><label class="block text-xs font-bold text-slate-600 mb-1">NPS (1-10)</label><input type="number" step="0.1" min="1" max="10" id="ev-nps" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                <div><label class="block text-xs font-bold text-slate-600 mb-1">CSAT (1-5)</label><input type="number" step="0.1" min="1" max="5" id="ev-csat" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Liste des participants (Clients)</label>
+                <textarea id="ev-list-clients" rows="2" placeholder="Noms séparés par des virgules..." class="w-full bg-lkdm-bg border border-slate-200 rounded-xl p-3 text-xs"></textarea>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Liste des participants (Étudiants)</label>
+                <textarea id="ev-list-students" rows="2" placeholder="Noms séparés par des virgules..." class="w-full bg-lkdm-bg border border-slate-200 rounded-xl p-3 text-xs"></textarea>
+            </div>
+            <div class="flex justify-end gap-3 pt-4 border-t">
+                <button type="button" onclick="closeModal('modal-create-event')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Annuler</button>
+                <button type="submit" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm">Créer l'événement</button>
+            </div>
+        </form>
+    </div>
+</div>
 
     <!-- SCRIPTS JAVASCRIPT PRINCIPAUX -->
     <script>
@@ -2313,6 +2402,78 @@
                     </tr>
                 `;
             });
+        }
+        // 1. Charger et afficher les événements dans le tableau
+        function renderEventsTable() {
+            const tbody = document.getElementById('events-table-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (!globalEventsData || globalEventsData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400">Aucun événement enregistré.</td></tr>`;
+                return;
+            }
+
+            globalEventsData.forEach(ev => {
+                const dateFormatted = ev.event_date ? new Date(ev.event_date).toLocaleDateString('fr-CH') : '-';
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 font-bold text-lkdm-accent">${ev.event_code}<br><span class="text-[10px] text-slate-400 font-normal">${dateFormatted}</span></td>
+                        <td class="p-3"><strong>${ev.title}</strong><br><span class="text-[11px] text-slate-500">${ev.concept || '-'}</span></td>
+                        <td class="p-3 text-slate-600">${ev.location || '-'}</td>
+                        <td class="p-3">
+                            <span class="text-emerald-600 font-bold">+CHF ${Number(ev.revenue_chf || 0).toFixed(2)}</span><br>
+                            <span class="text-red-500 text-[10px]">Dep: CHF ${Number(ev.expenses_chf || 0).toFixed(2)}</span>
+                        </td>
+                        <td class="p-3 font-semibold">${ev.total_participants || 0} <span class="text-[10px] text-slate-400">(+${ev.new_participants || 0} nouv.)</span></td>
+                        <td class="p-3">Clients: <strong>${ev.converted_clients || 0}</strong><br>Étudiants: ${ev.new_students || 0}</td>
+                        <td class="p-3 text-right">
+                            NPS: <span class="font-bold text-lkdm-text">${ev.nps || '-'}</span><br>
+                            CSAT: <span class="font-bold text-lkdm-text">${ev.csat || '-'}/5</span>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // 2. Soumission du formulaire de création d'événement (Génération auto de l'ID 2026_E1, etc.)
+        async function submitEventForm(event) {
+            event.preventDefault();
+            const currentYear = new Date().getFullYear();
+            const prefix = `${currentYear}_E`;
+
+            // Compter les events de l'année pour numéroter proprement (ex: 2026_E1, 2026_E2)
+            const { count } = await window.supabaseClient.from('events').select('*', { count: 'exact', head: true }).ilike('event_code', `${prefix}%`);
+            const nextNum = (count || 0) + 1;
+            const finalCode = `${prefix}${nextNum}`;
+
+            const payload = {
+                event_code: finalCode,
+                title: document.getElementById('ev-title').value.trim(),
+                event_date: document.getElementById('ev-date').value,
+                location: document.getElementById('ev-location').value.trim(),
+                concept: document.getElementById('ev-concept').value.trim(),
+                revenue_chf: parseFloat(document.getElementById('ev-revenue').value) || 0,
+                expenses_chf: parseFloat(document.getElementById('ev-expenses').value) || 0,
+                total_participants: parseInt(document.getElementById('ev-tot-part').value) || 0,
+                new_participants: parseInt(document.getElementById('ev-new-part').value) || 0,
+                converted_clients: parseInt(document.getElementById('ev-conv-cli').value) || 0,
+                new_students: parseInt(document.getElementById('ev-new-stu').value) || 0,
+                nps: parseFloat(document.getElementById('ev-nps').value) || null,
+                csat: parseFloat(document.getElementById('ev-csat').value) || null,
+                client_participants_list: document.getElementById('ev-list-clients').value.trim(),
+                student_participants_list: document.getElementById('ev-list-students').value.trim()
+            };
+
+            const { error } = await window.supabaseClient.from('events').insert([payload]);
+            if (error) {
+                alert("Erreur lors de la création de l'événement : " + error.message);
+            } else {
+                alert(`Événement ${finalCode} créé avec succès !`);
+                closeModal('modal-create-event');
+                event.target.reset();
+                loadSupabaseOverview(); // Recharge les données globales incluant les events
+            }
         }
     </script>
 </body>
