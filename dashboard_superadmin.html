@@ -1061,7 +1061,7 @@
         </div>
     </div>
 
-    <!-- MODAL : CRÉER ÉVÉNEMENT -->
+ <!-- MODAL : CRÉER ÉVÉNEMENT -->
 <div id="modal-create-event" class="hidden fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
         <button onclick="closeModal('modal-create-event')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
@@ -1069,43 +1069,28 @@
         <form onsubmit="submitEventForm(event)" class="space-y-4 text-sm">
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Titre de l'événement *</label>
-                    <input type="text" id="ev-title" required placeholder="Ex: Velux Mysteries 24h..." class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Titre / Code Concept *</label>
+                    <input type="text" id="ev-concept" required placeholder="Ex: Velux Mysteries 24h..." class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">Date *</label>
                     <input type="date" id="ev-date" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
                 </div>
             </div>
-            <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">Lieu</label>
-                <input type="text" id="ev-location" placeholder="Ex: Sion / En ligne" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">Concept de l'événement</label>
-                <textarea id="ev-concept" rows="2" placeholder="Objectif de collecte, description du défi..." class="w-full bg-lkdm-bg border border-slate-200 rounded-xl p-3 text-xs"></textarea>
-            </div>
             <div class="grid grid-cols-2 gap-4">
                 <div><label class="block text-xs font-bold text-slate-600 mb-1">Revenus (CHF)</label><input type="number" step="0.05" id="ev-revenue" value="0" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                <div><label class="block text-xs font-bold text-slate-600 mb-1">Dépenses / Coûts (CHF)</label><input type="number" step="0.05" id="ev-expenses" value="0" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                <div><label class="block text-xs font-bold text-slate-600 mb-1">Dépenses (CHF)</label><input type="number" step="0.05" id="ev-expenses" value="0" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
             </div>
             <div class="grid grid-cols-4 gap-3">
-                <div><label class="block text-xs font-bold text-slate-600 mb-1">Total participants</label><input type="number" id="ev-tot-part" value="0" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                <div><label class="block text-xs font-bold text-slate-600 mb-1">Nouveaux participants</label><input type="number" id="ev-new-part" value="0" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                <div><label class="block text-xs font-bold text-slate-600 mb-1">Clients convertis</label><input type="number" id="ev-conv-cli" value="0" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                <div><label class="block text-xs font-bold text-slate-600 mb-1">Nouveaux étudiants</label><input type="number" id="ev-new-stu" value="0" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                <div><label class="block text-xs font-bold text-slate-600 mb-1">Participants</label><input type="number" id="ev-participants-count" value="0" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                <div><label class="block text-xs font-bold text-slate-600 mb-1">Nouveaux</label><input type="number" id="ev-new-participants-count" value="0" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                <div><label class="block text-xs font-bold text-slate-600 mb-1">Clients convertis</label><input type="number" id="ev-converted-clients-count" value="0" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                <div><label class="block text-xs font-bold text-slate-600 mb-1">Étudiants</label><input type="number" id="ev-students-count" value="0" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
             </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div><label class="block text-xs font-bold text-slate-600 mb-1">NPS (1-10)</label><input type="number" step="0.1" min="1" max="10" id="ev-nps" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                <div><label class="block text-xs font-bold text-slate-600 mb-1">CSAT (1-5)</label><input type="number" step="0.1" min="1" max="5" id="ev-csat" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">Liste des participants (Clients)</label>
-                <textarea id="ev-list-clients" rows="2" placeholder="Noms séparés par des virgules..." class="w-full bg-lkdm-bg border border-slate-200 rounded-xl p-3 text-xs"></textarea>
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">Liste des participants (Étudiants)</label>
-                <textarea id="ev-list-students" rows="2" placeholder="Noms séparés par des virgules..." class="w-full bg-lkdm-bg border border-slate-200 rounded-xl p-3 text-xs"></textarea>
+            <div class="grid grid-cols-3 gap-3">
+                <div><label class="block text-xs font-bold text-slate-600 mb-1">Nouveaux étudiants</label><input type="number" id="ev-new-students" value="0" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                <div><label class="block text-xs font-bold text-slate-600 mb-1">NPS (%)</label><input type="number" step="0.1" id="ev-nps" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                <div><label class="block text-xs font-bold text-slate-600 mb-1">CSAT</label><input type="number" step="0.1" id="ev-csat" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
             </div>
             <div class="flex justify-end gap-3 pt-4 border-t">
                 <button type="button" onclick="closeModal('modal-create-event')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Annuler</button>
@@ -2372,109 +2357,43 @@
                 console.error("Erreur lors de l'enregistrement du log :", err);
             }
         }
-        async function loadActivityLogs() {
-            const { data: logs, error } = await window.supabaseClient
-                .from('activity_logs')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(100);
-
-            const tbody = document.getElementById('logs-table-body');
-            if(!tbody) return;
-            tbody.innerHTML = '';
-
-            if (error || !logs || logs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Aucun historique disponible.</td></tr>`;
-                return;
-            }
-
-            logs.forEach(log => {
-                const dateFormatted = new Date(log.created_at).toLocaleString('fr-CH', {
-                    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                });
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-4 text-slate-500 whitespace-nowrap">${dateFormatted}</td>
-                        <td class="p-4 font-bold text-lkdm-text">${log.admin_email || 'Inconnu'}</td>
-                        <td class="p-4"><span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full font-semibold text-[10px]">${log.action_type}</span></td>
-                        <td class="p-4 font-semibold text-lkdm-secondary">${log.target_name || '-'}</td>
-                        <td class="p-4 text-slate-600">${log.details || '-'}</td>
-                    </tr>
-                `;
-            });
-        }
-        // 1. Charger et afficher les événements dans le tableau
-        function renderEventsTable() {
-            const tbody = document.getElementById('events-table-tbody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            if (!globalEventsData || globalEventsData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400">Aucun événement enregistré.</td></tr>`;
-                return;
-            }
-
-            globalEventsData.forEach(ev => {
-                const dateFormatted = ev.event_date ? new Date(ev.event_date).toLocaleDateString('fr-CH') : '-';
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-3 font-bold text-lkdm-accent">${ev.event_code}<br><span class="text-[10px] text-slate-400 font-normal">${dateFormatted}</span></td>
-                        <td class="p-3"><strong>${ev.title}</strong><br><span class="text-[11px] text-slate-500">${ev.concept || '-'}</span></td>
-                        <td class="p-3 text-slate-600">${ev.location || '-'}</td>
-                        <td class="p-3">
-                            <span class="text-emerald-600 font-bold">+CHF ${Number(ev.revenue_chf || 0).toFixed(2)}</span><br>
-                            <span class="text-red-500 text-[10px]">Dep: CHF ${Number(ev.expenses_chf || 0).toFixed(2)}</span>
-                        </td>
-                        <td class="p-3 font-semibold">${ev.total_participants || 0} <span class="text-[10px] text-slate-400">(+${ev.new_participants || 0} nouv.)</span></td>
-                        <td class="p-3">Clients: <strong>${ev.converted_clients || 0}</strong><br>Étudiants: ${ev.new_students || 0}</td>
-                        <td class="p-3 text-right">
-                            NPS: <span class="font-bold text-lkdm-text">${ev.nps || '-'}</span><br>
-                            CSAT: <span class="font-bold text-lkdm-text">${ev.csat || '-'}/5</span>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        // 2. Soumission du formulaire de création d'événement (Génération auto de l'ID 2026_E1, etc.)
         async function submitEventForm(event) {
-            event.preventDefault();
-            const currentYear = new Date().getFullYear();
-            const prefix = `${currentYear}_E`;
+    event.preventDefault();
+    const currentYear = new Date().getFullYear();
+    const prefix = `${currentYear}-E`;
 
-            // Compter les events de l'année pour numéroter proprement (ex: 2026_E1, 2026_E2)
-            const { count } = await window.supabaseClient.from('events').select('*', { count: 'exact', head: true }).ilike('event_code', `${prefix}%`);
-            const nextNum = (count || 0) + 1;
-            const finalCode = `${prefix}${nextNum}`;
+    // Recherche automatique du prochain numéro d'événement pour l'année courante (ex: 2026-E1, 2026-E2...)
+    const { count } = await window.supabaseClient.from('events').select('*', { count: 'exact', head: true }).ilike('event_code', `${prefix}%`);
+    const nextNum = (count || 0) + 1;
+    const finalCode = `${prefix}${nextNum}`;
 
-            const payload = {
-                event_code: finalCode,
-                title: document.getElementById('ev-title').value.trim(),
-                event_date: document.getElementById('ev-date').value,
-                location: document.getElementById('ev-location').value.trim(),
-                concept: document.getElementById('ev-concept').value.trim(),
-                revenue_chf: parseFloat(document.getElementById('ev-revenue').value) || 0,
-                expenses_chf: parseFloat(document.getElementById('ev-expenses').value) || 0,
-                total_participants: parseInt(document.getElementById('ev-tot-part').value) || 0,
-                new_participants: parseInt(document.getElementById('ev-new-part').value) || 0,
-                converted_clients: parseInt(document.getElementById('ev-conv-cli').value) || 0,
-                new_students: parseInt(document.getElementById('ev-new-stu').value) || 0,
-                nps: parseFloat(document.getElementById('ev-nps').value) || null,
-                csat: parseFloat(document.getElementById('ev-csat').value) || null,
-                client_participants_list: document.getElementById('ev-list-clients').value.trim(),
-                student_participants_list: document.getElementById('ev-list-students').value.trim()
-            };
+    const payload = {
+        event_code: finalCode,
+        concept: document.getElementById('ev-concept').value.trim(),
+        event_date: document.getElementById('ev-date').value,
+        revenue_chf: parseFloat(document.getElementById('ev-revenue').value) || 0,
+        expenses_chf: parseFloat(document.getElementById('ev-expenses').value) || 0,
+        participants_count: parseInt(document.getElementById('ev-participants-count').value) || 0,
+        new_participants_count: parseInt(document.getElementById('ev-new-participants-count').value) || 0,
+        converted_clients_count: parseInt(document.getElementById('ev-converted-clients-count').value) || 0,
+        students_count: parseInt(document.getElementById('ev-students-count').value) || 0,
+        new_students_count: parseInt(document.getElementById('ev-new-students').value) || 0,
+        nps_percent: parseFloat(document.getElementById('ev-nps').value) || null,
+        csat_score: parseFloat(document.getElementById('ev-csat').value) || null,
+        student_uuids: [],
+        participant_uuids: []
+    };
 
-            const { error } = await window.supabaseClient.from('events').insert([payload]);
-            if (error) {
-                alert("Erreur lors de la création de l'événement : " + error.message);
-            } else {
-                alert(`Événement ${finalCode} créé avec succès !`);
-                closeModal('modal-create-event');
-                event.target.reset();
-                loadSupabaseOverview(); // Recharge les données globales incluant les events
-            }
-        }
+    const { error } = await window.supabaseClient.from('events').insert([payload]);
+    if (error) {
+        alert("Erreur lors de la création de l'événement : " + error.message);
+    } else {
+        alert(`Événement ${finalCode} créé avec succès !`);
+        closeModal('modal-create-event');
+        event.target.reset();
+        loadSupabaseOverview(); // Recharge les données globales
+    }
+}
     </script>
 </body>
 </html>
