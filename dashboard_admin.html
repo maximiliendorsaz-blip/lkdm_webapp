@@ -2165,6 +2165,29 @@
                 btn.disabled = false;
             }
         }
+        async function logAdminAction(actionType, targetName, details) {
+    try {
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        if (!user) return;
+
+        // Récupérer le nom/prénom de l'admin connecté
+        const { data: adminProfile } = await window.supabaseClient
+            .from('profiles')
+            .select('full_name, email')
+            .eq('id', user.id)
+            .single();
+
+        await window.supabaseClient.from('activity_logs').insert({
+            admin_id: user.id,
+            admin_email: adminProfile ? adminProfile.email : user.email,
+            action_type: actionType,
+            target_name: targetName,
+            details: details
+        });
+    } catch (err) {
+        console.error("Erreur lors de l'enregistrement du log :", err);
+    }
+}
     </script>
 </body>
 </html>
