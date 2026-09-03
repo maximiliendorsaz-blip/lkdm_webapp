@@ -1357,6 +1357,7 @@
             renderAvsTracker();
             renderBillingTable();
             renderDocumentsTable();
+            renderEventsTable();
             if(adminMap) renderAdminMapCalendar();
         }
 
@@ -2396,6 +2397,36 @@
         event.target.reset();
         loadSupabaseOverview(); // Recharge les données globales
     }
+}
+        function renderEventsTable() {
+    const tbody = document.getElementById('events-table-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (!globalEventsData || globalEventsData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">Aucun événement enregistré.</td></tr>`;
+        return;
+    }
+
+    globalEventsData.forEach(ev => {
+        const dateFormatted = ev.event_date ? new Date(ev.event_date).toLocaleDateString('fr-CH') : '-';
+        tbody.innerHTML += `
+            <tr class="hover:bg-slate-50 transition">
+                <td class="p-3 font-bold text-lkdm-accent">${ev.event_code}<br><span class="text-[10px] text-slate-400 font-normal">${dateFormatted}</span></td>
+                <td class="p-3"><strong>${ev.concept || 'Événement'}</strong></td>
+                <td class="p-3">
+                    <span class="text-emerald-600 font-bold">+CHF ${Number(ev.revenue_chf || 0).toFixed(2)}</span><br>
+                    <span class="text-red-500 text-[10px]">Dep: CHF ${Number(ev.expenses_chf || 0).toFixed(2)}</span>
+                </td>
+                <td class="p-3 font-semibold">${ev.participants_count || 0} <span class="text-[10px] text-slate-400">(+${ev.new_participants_count || 0} nouv.)</span></td>
+                <td class="p-3">Clients: <strong>${ev.converted_clients_count || 0}</strong><br>Étudiants: ${ev.new_students_count || 0}</td>
+                <td class="p-3 text-right">
+                    NPS: <span class="font-bold text-lkdm-text">${ev.nps_percent || '-'}%</span><br>
+                    CSAT: <span class="font-bold text-lkdm-text">${ev.csat_score || '-'}/5</span>
+                </td>
+            </tr>
+        `;
+    });
 }
     </script>
 </body>
