@@ -2624,7 +2624,11 @@
                     const selectedUuids = ev.participant_uuids || [];
 
                     profiles.forEach(p => {
-                        const fullName = `${p.firstname || ''} ${p.lastname || ''}`.trim() || p.email || 'Utilisateur';
+                        // Supporte les deux formats de noms possibles dans Supabase
+                        const firstName = p.firstname || p.first_name || '';
+                        const lastName = p.lastname || p.last_name || '';
+                        const fullName = `${firstName} ${lastName}`.trim() || p.email || 'Utilisateur';
+                        
                         const roleLabel = p.role ? p.role.toUpperCase() : 'PROFIL';
                         const isChecked = selectedUuids.includes(p.id) ? 'checked' : '';
 
