@@ -122,379 +122,379 @@
 
         <!-- Main Content Area -->
         <main class="flex-1 h-screen overflow-y-auto bg-lkdm-bg p-4 lg:p-8">
-            <div class="max-w-6xl mx-auto space-y-8">
-                
-                <!-- Toast -->
-                <div id="toast" class="hidden fixed top-5 right-5 bg-lkdm-text text-white px-6 py-4 rounded-xl shadow-xl z-50 flex items-center gap-3 border-l-4 border-emerald-500 transition transform duration-300">
-                    <i class="fa-solid fa-circle-check text-emerald-500 text-xl"></i>
-                    <div>
-                        <h4 class="font-bold text-sm" id="toast-title">Succès</h4>
-                        <p id="toast-msg" class="text-xs text-slate-300">Action validée.</p>
-                    </div>
-                </div>
-
-                <!-- TAB 1: DASHBOARD -->
-                <div id="tab-dashboard" class="tab-content active space-y-8">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <div>
-                            <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">V1</span>
-                            <h2 class="text-3xl font-bold text-lkdm-text mt-1">Pilotage central</h2>
-                        </div>
-                        <div class="flex flex-wrap gap-2">
-                            <button onclick="openModal('modal-create-mission'); prepareMissionModalOptions();" class="bg-lkdm-accent text-white px-4 py-2.5 rounded-[50px] text-xs font-medium shadow-sm hover:bg-[#b53838] transition flex items-center gap-2">
-                                <i class="fa-solid fa-plus"></i> Créer mission
-                            </button>
-                            <button onclick="openModal('modal-create-student')" class="bg-white border border-slate-200 text-lkdm-text px-4 py-2.5 rounded-[50px] text-xs font-medium shadow-sm hover:bg-slate-50 transition flex items-center gap-2">
-                                <i class="fa-solid fa-graduation-cap"></i> Créer étudiant
-                            </button>
-                            <button onclick="openModal('modal-create-client')" class="bg-white border border-slate-200 text-lkdm-text px-4 py-2.5 rounded-[50px] text-xs font-medium shadow-sm hover:bg-slate-50 transition flex items-center gap-2">
-                                <i class="fa-solid fa-user-plus"></i> Créer client
-                            </button>
-                            <button onclick="openModal('modal-create-user')" class="bg-lkdm-accent text-white px-4 py-2.5 rounded-full text-xs font-medium shadow-sm hover:bg-[#b53838] transition flex items-center gap-2">
-                                <i class="fa-solid fa-user-plus"></i> Nouvel utilisateur
-                            </button>
-                            <button onclick="openModal('modal-create-doc'); prepareDocModalOptions();" class="bg-slate-800 text-white px-4 py-2.5 rounded-[50px] text-xs font-medium shadow-sm hover:bg-slate-900 transition flex items-center gap-2">
-                                <i class="fa-solid fa-file-arrow-up"></i> Créer doc
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Filtres -->
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-wrap items-center gap-4">
-                        <span class="text-xs font-bold text-lkdm-secondary uppercase">Filtres :</span>
-                        <div class="flex items-center gap-2">
-                            <label class="text-xs text-lkdm-secondary">Du :</label>
-                            <input type="date" id="filter-start-date" onchange="loadSupabaseOverview()" class="bg-lkdm-bg border border-slate-200 text-xs rounded-xl px-3 py-2">
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <label class="text-xs text-lkdm-secondary">Au :</label>
-                            <input type="date" id="filter-end-date" onchange="loadSupabaseOverview()" class="bg-lkdm-bg border border-slate-200 text-xs rounded-xl px-3 py-2">
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <label class="text-xs text-lkdm-secondary">Localité :</label>
-                            <select id="filter-city" onchange="loadSupabaseOverview()" class="bg-lkdm-bg border border-slate-200 text-xs rounded-xl px-3 py-2">
-                                <option value="Toutes">Toutes</option>
-                                <option value="Sion">Sion</option>
-                                <option value="Sierre">Sierre</option>
-                                <option value="Martigny">Martigny</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- KPIs CA & Bénéfices -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-                            <p class="text-[10px] font-bold text-lkdm-secondary uppercase tracking-wider">Chiffre d'Affaires Total</p>
-                            <h3 class="text-2xl font-bold text-lkdm-text mt-1" id="stat-ca-total">CHF 0</h3>
-                            <p class="text-[11px] text-lkdm-secondary mt-1">Missions: <span id="stat-ca-missions" class="font-semibold text-lkdm-text">CHF 0</span> | Events: <span id="stat-ca-events" class="font-semibold text-lkdm-text">CHF 0</span></p>
-                        </div>
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-                            <p class="text-[10px] font-bold text-lkdm-secondary uppercase tracking-wider">Bénéfice Net Total</p>
-                            <h3 class="text-2xl font-bold text-emerald-600 mt-1" id="stat-bene-total">CHF 0</h3>
-                            <p class="text-[11px] text-lkdm-secondary mt-1">Missions: <span id="stat-bene-missions" class="font-semibold text-lkdm-text">CHF 0</span> | Events: <span id="stat-bene-events" class="font-semibold text-lkdm-text">CHF 0</span></p>
-                        </div>
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-                            <p class="text-[10px] font-bold text-lkdm-secondary uppercase tracking-wider">Clients & Fidélité</p>
-                            <h3 class="text-2xl font-bold text-lkdm-text mt-1" id="stat-total-clients">0 clients</h3>
-                            <p class="text-[11px] text-lkdm-secondary mt-1">1 miss.: <span id="stat-c-1">0</span> | 2-5 miss.: <span id="stat-c-2-5">0</span> | >5 miss.: <span id="stat-c-5plus">0</span></p>
-                        </div>
-                    </div>
-
-                    <!-- KPIs Volumes de Missions -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-                            <p class="text-[10px] font-bold text-lkdm-secondary uppercase tracking-wider">Missions Totales (DB)</p>
-                            <h3 class="text-3xl font-bold text-lkdm-text mt-1" id="stat-missions-total">0</h3>
-                        </div>
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-                            <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Missions Effectuées</p>
-                            <h3 class="text-3xl font-bold text-emerald-600 mt-1" id="stat-missions-completed">0</h3>
-                            <p class="text-[11px] text-lkdm-secondary mt-1">À facturer, effectuées, en attente de paiement</p>
-                        </div>
-                        <div class="bg-white p-5 rounded-2xl border-2 border-lkdm-accent shadow-sm relative overflow-hidden flex flex-col justify-center cursor-pointer hover:bg-red-50/30 transition" onclick="switchTab('missions')">
-                            <p class="text-[10px] font-bold text-lkdm-accent uppercase tracking-wider relative z-10">À SURVEILLER / ATTRIBUER</p>
-                            <h3 class="text-4xl font-extrabold text-lkdm-accent mt-1 relative z-10" id="dash-urgent-count">0</h3>
-                            <p class="text-xs text-lkdm-secondary mt-1 relative z-10 font-medium">Nouveau, à publier... <i class="fa-solid fa-arrow-right ml-1"></i></p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 2: MISSIONS -->
-                <div id="tab-missions" class="tab-content space-y-6">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <h2 class="text-2xl font-bold text-lkdm-text">Gestion des Missions</h2>
-                        <div class="flex items-center gap-2">
-                            <select id="mission-sort-order" onchange="renderOpenMissionsTable()" class="bg-white border border-slate-200 text-lkdm-text text-xs font-medium rounded-xl px-3 py-2 shadow-sm">
-                                <option value="num">Trier par N° de mission</option>
-                                <option value="status">Trier par ordre de statut</option>
-                            </select>
-                            <select id="mission-status-filter" onchange="renderOpenMissionsTable()" class="bg-white border border-slate-200 text-lkdm-text text-xs font-medium rounded-xl px-3 py-2 shadow-sm">
-                                <option value="all-open">Tous les statuts ouverts</option>
-                                <option value="all">Toutes les missions</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
-                        <div class="overflow-x-auto custom-scrollbar">
-                            <table class="w-full text-left text-sm whitespace-nowrap">
-                                <thead class="bg-slate-50 text-xs font-semibold text-lkdm-secondary uppercase tracking-wider border-b border-slate-100">
-                                    <tr>
-                                        <th class="py-5 px-6">Code & Date</th>
-                                        <th class="py-5 px-6">Description</th>
-                                        <th class="py-5 px-6">Client</th>
-                                        <th class="py-5 px-6">Statut</th>
-                                        <th class="py-5 px-6 text-right">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="admin-missions-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 3: CALENDAR & MAP -->
-                <div id="tab-calendar-map" class="tab-content space-y-6">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <div>
-                            <h2 class="text-2xl font-bold text-lkdm-text">Calendrier & Carte</h2>
-                            <p class="text-sm text-lkdm-secondary">Visualisation géographique exacte et temporelle.</p>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="bg-white p-3 rounded-3xl border border-slate-200 shadow-sm relative">
-                            <div id="admin-map" style="height: 450px; border-radius: 1.5rem;"></div>
-                        </div>
-                        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="font-bold text-lkdm-text text-lg">Septembre 2026</h3>
-                            </div>
-                            <div class="grid grid-cols-7 gap-2 text-center text-[10px] font-semibold text-lkdm-secondary mb-2 uppercase">
-                                <div>Lun</div><div>Mar</div><div>Mer</div><div>Jeu</div><div>Ven</div><div>Sam</div><div>Dim</div>
-                            </div>
-                            <div id="admin-calendar-grid" class="grid grid-cols-7 gap-2 flex-1 auto-rows-fr"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 4: ETUDIANTS -->
-                <div id="tab-students" class="tab-content space-y-6">
-                    <h2 class="text-2xl font-bold text-lkdm-text">Étudiants</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="students-grid"></div>
-                </div>
-
-                <!-- TAB 5: CLIENTS -->
-                <div id="tab-clients" class="tab-content space-y-6">
-                    <h2 class="text-2xl font-bold text-lkdm-text">Clients</h2>
-                    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
-                        <table class="w-full text-left text-sm whitespace-nowrap">
-                            <thead class="bg-slate-50 text-xs font-semibold text-lkdm-secondary uppercase border-b border-slate-100">
-                                <tr>
-                                    <th class="py-4 px-6">Client</th>
-                                    <th class="py-4 px-6">Ville</th>
-                                    <th class="py-4 px-6">Email / Téléphone</th>
-                                </tr>
-                            </thead>
-                            <tbody id="clients-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- TAB 6: SUIVI HEURES -->
-                <div id="tab-avs-tracker" class="tab-content space-y-6">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h2 class="text-2xl font-bold text-lkdm-text">Suivi des Heures Étudiants & AVS (Seuil 92h / an)</h2>
-                            <p class="text-sm text-lkdm-secondary">Contrôle du volume horaire annuel civil et suivi des versements étudiants.</p>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm whitespace-nowrap">
-                                <thead class="bg-slate-50 text-xs font-semibold text-lkdm-secondary uppercase border-b border-slate-100">
-                                    <tr>
-                                        <th class="py-4 px-6">Étudiant</th>
-                                        <th class="py-4 px-6">Heures Totales (2026)</th>
-                                        <th class="py-4 px-6">Montant À Verser (CHF)</th>
-                                        <th class="py-4 px-6">Statut AVS</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="avs-tracker-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 7: FACTURATION & SUIVI DES PAIEMENTS -->
-                <div id="tab-billing" class="tab-content space-y-6">
-                    <div class="flex justify-between items-center">
-                        <h2 class="text-2xl font-bold text-lkdm-text">Facturation & Suivi des Paiements</h2>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
-                        <span class="text-xs font-bold text-lkdm-secondary uppercase">Filtres :</span>
-                        <div class="flex items-center gap-2">
-                            <label class="text-xs text-lkdm-secondary">Statut Mission :</label>
-                            <select id="billing-mission-filter" onchange="renderBillingTable()" class="bg-lkdm-bg border border-slate-200 text-xs rounded-xl px-3 py-2">
-                                <option value="all">Tous</option>
-                                <option value="À facturer">À facturer</option>
-                                <option value="Mission effectuée">Mission effectuée</option>
-                            </select>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <label class="text-xs text-lkdm-secondary">Statut Paiement :</label>
-                            <select id="billing-payment-filter" onchange="renderBillingTable()" class="bg-lkdm-bg border border-slate-200 text-xs rounded-xl px-3 py-2">
-                                <option value="all">Tous</option>
-                                <option value="Facture non envoyée">Facture non envoyée</option>
-                                <option value="Facture envoyée">Facture envoyée</option>
-                                <option value="Payé">Payé</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6 space-y-4">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs whitespace-nowrap">
-                                <thead class="bg-slate-50 text-lkdm-secondary uppercase">
-                                    <tr>
-                                        <th class="p-3">N° Mission</th>
-                                        <th class="p-3">Client</th>
-                                        <th class="p-3">Statut Mission</th>
-                                        <th class="p-3">Montant</th>
-                                        <th class="p-3">Paiement</th>
-                                        <th class="p-3">Statut Paiement</th>
-                                        <th class="p-3 text-right">Générer / Envoyer & Valider</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="billing-table-tbody" class="divide-y divide-slate-100"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 8: DOCUMENTS & ARCHIVES -->
-                <div id="tab-documents" class="tab-content space-y-6">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h2 class="text-2xl font-bold text-lkdm-text">Documents & Archives</h2>
-                            <p class="text-sm text-lkdm-secondary">Liste globale de tous les fichiers stockés et leurs liaisons (missions, profils).</p>
-                        </div>
-                        <button onclick="openModal('modal-create-doc'); prepareDocModalOptions();" class="bg-lkdm-accent text-white px-4 py-2 rounded-full text-xs font-medium shadow-sm">
-                            <i class="fa-solid fa-file-arrow-up mr-1"></i> Uploader un document
-                        </button>
-                    </div>
-                    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs whitespace-nowrap">
-                                <thead class="bg-slate-50 text-lkdm-secondary uppercase">
-                                    <tr>
-                                        <th class="p-3">Titre</th>
-                                        <th class="p-3">Type</th>
-                                        <th class="p-3">Lié à (Client / Étudiant)</th>
-                                        <th class="p-3">Lié à (Mission)</th>
-                                        <th class="p-3 text-right">Fichier</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="documents-table-tbody" class="divide-y divide-slate-100"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
+    <div class="max-w-6xl mx-auto space-y-8">
+        
+        <!-- Toast -->
+        <div id="toast" class="hidden fixed top-5 right-5 bg-lkdm-text text-white px-6 py-4 rounded-xl shadow-xl z-50 flex items-center gap-3 border-l-4 border-emerald-500 transition transform duration-300">
+            <i class="fa-solid fa-circle-check text-emerald-500 text-xl"></i>
+            <div>
+                <h4 class="font-bold text-sm" id="toast-title">Succès</h4>
+                <p id="toast-msg" class="text-xs text-slate-300">Action validée.</p>
             </div>
-        </main>
-    </div>
+        </div>
 
-<!-- TAB : ÉVÉNEMENTS & 24H CLIENT -->
-<div id="tab-events" class="tab-content space-y-6">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-            <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Animation & RSE</span>
-            <h2 class="text-2xl font-bold text-lkdm-text mt-0.5">Gestion des Événements & 24h Client</h2>
-            <p class="text-xs text-slate-500 mt-1">Suivi des budgets, conversions et retours d'expérience.</p>
-        </div>
-        <button onclick="openModal('modal-create-event')" class="bg-lkdm-accent text-white px-4 py-2.5 rounded-[50px] text-xs font-medium shadow-sm hover:bg-[#b53838] transition flex items-center gap-2">
-            <i class="fa-solid fa-plus"></i> Créer un événement
-        </button>
-    </div>
+        <!-- TAB 1: DASHBOARD -->
+        <div id="tab-dashboard" class="tab-content active space-y-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">V1</span>
+                    <h2 class="text-3xl font-bold text-lkdm-text mt-1">Pilotage central</h2>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="openModal('modal-create-mission'); prepareMissionModalOptions();" class="bg-lkdm-accent text-white px-4 py-2.5 rounded-[50px] text-xs font-medium shadow-sm hover:bg-[#b53838] transition flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Créer mission
+                    </button>
+                    <button onclick="openModal('modal-create-student')" class="bg-white border border-slate-200 text-lkdm-text px-4 py-2.5 rounded-[50px] text-xs font-medium shadow-sm hover:bg-slate-50 transition flex items-center gap-2">
+                        <i class="fa-solid fa-graduation-cap"></i> Créer étudiant
+                    </button>
+                    <button onclick="openModal('modal-create-client')" class="bg-white border border-slate-200 text-lkdm-text px-4 py-2.5 rounded-[50px] text-xs font-medium shadow-sm hover:bg-slate-50 transition flex items-center gap-2">
+                        <i class="fa-solid fa-user-plus"></i> Créer client
+                    </button>
+                    <button onclick="openModal('modal-create-user')" class="bg-lkdm-accent text-white px-4 py-2.5 rounded-full text-xs font-medium shadow-sm hover:bg-[#b53838] transition flex items-center gap-2">
+                        <i class="fa-solid fa-user-plus"></i> Nouvel utilisateur
+                    </button>
+                    <button onclick="openModal('modal-create-doc'); prepareDocModalOptions();" class="bg-slate-800 text-white px-4 py-2.5 rounded-[50px] text-xs font-medium shadow-sm hover:bg-slate-900 transition flex items-center gap-2">
+                        <i class="fa-solid fa-file-arrow-up"></i> Créer doc
+                    </button>
+                </div>
+            </div>
 
-    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs whitespace-nowrap">
-                <thead class="bg-slate-50 text-lkdm-secondary uppercase">
-                    <tr>
-                        <th class="p-3">Code & Date</th>
-                        <th class="p-3">Titre & Concept</th>
-                        <th class="p-3">Revenus / Dépenses</th>
-                        <th class="p-3">Participants</th>
-                        <th class="p-3">Conversions</th>
-                        <th class="p-3 text-right">Satisfaction</th>
-                    </tr>
-                </thead>
-                <tbody id="events-table-tbody" class="divide-y divide-slate-100">
-                    <tr><td colspan="6" class="p-6 text-center text-slate-400">Chargement des événements...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-<!-- TAB 9: JOURNAL D'ACTIVITÉ (LOGS) -->
-<div id="tab-logs" class="tab-content space-y-6">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-            <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Sécurité & Traçabilité</span>
-            <h2 class="text-2xl font-bold text-lkdm-text mt-0.5">Annuaire & Journal des modifications</h2>
-            <p class="text-xs text-slate-500 mt-1">Filtrez l'historique et cliquez sur une action pour ouvrir la fiche correspondante.</p>
-        </div>
-        <button onclick="loadActivityLogs()" class="bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2.5 rounded-full text-xs font-bold text-lkdm-text shadow-sm transition flex items-center gap-2">
-            <i class="fa-solid fa-rotate"></i> Actualiser
-        </button>
-    </div>
+            <!-- Filtres -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-wrap items-center gap-4">
+                <span class="text-xs font-bold text-lkdm-secondary uppercase">Filtres :</span>
+                <div class="flex items-center gap-2">
+                    <label class="text-xs text-lkdm-secondary">Du :</label>
+                    <input type="date" id="filter-start-date" onchange="loadSupabaseOverview()" class="bg-lkdm-bg border border-slate-200 text-xs rounded-xl px-3 py-2">
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-xs text-lkdm-secondary">Au :</label>
+                    <input type="date" id="filter-end-date" onchange="loadSupabaseOverview()" class="bg-lkdm-bg border border-slate-200 text-xs rounded-xl px-3 py-2">
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-xs text-lkdm-secondary">Localité :</label>
+                    <select id="filter-city" onchange="loadSupabaseOverview()" class="bg-lkdm-bg border border-slate-200 text-xs rounded-xl px-3 py-2">
+                        <option value="Toutes">Toutes</option>
+                        <option value="Sion">Sion</option>
+                        <option value="Sierre">Sierre</option>
+                        <option value="Martigny">Martigny</option>
+                    </select>
+                </div>
+            </div>
 
-    <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
-        <div>
-            <label class="block font-bold text-slate-600 mb-1">Du :</label>
-            <input type="date" id="log-filter-start" onchange="filterLogs()" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2">
-        </div>
-        <div>
-            <label class="block font-bold text-slate-600 mb-1">Au :</label>
-            <input type="date" id="log-filter-end" onchange="filterLogs()" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2">
-        </div>
-        <div>
-            <label class="block font-bold text-slate-600 mb-1">Administrateur :</label>
-            <select id="log-filter-admin" onchange="filterLogs()" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2">
-                <option value="all">Tous les admins</option>
-            </select>
-        </div>
-        <div>
-            <label class="block font-bold text-slate-600 mb-1">Type d'action :</label>
-            <select id="log-filter-type" onchange="filterLogs()" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2">
-                <option value="all">Tous les types</option>
-            </select>
-        </div>
-        <div>
-            <label class="block font-bold text-slate-600 mb-1">Cible / Élément :</label>
-            <input type="text" id="log-filter-target" oninput="filterLogs()" placeholder="Rechercher cible..." class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2">
-        </div>
-    </div>
+            <!-- KPIs CA & Bénéfices -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <p class="text-[10px] font-bold text-lkdm-secondary uppercase tracking-wider">Chiffre d'Affaires Total</p>
+                    <h3 class="text-2xl font-bold text-lkdm-text mt-1" id="stat-ca-total">CHF 0</h3>
+                    <p class="text-[11px] text-lkdm-secondary mt-1">Missions: <span id="stat-ca-missions" class="font-semibold text-lkdm-text">CHF 0</span> | Events: <span id="stat-ca-events" class="font-semibold text-lkdm-text">CHF 0</span></p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <p class="text-[10px] font-bold text-lkdm-secondary uppercase tracking-wider">Bénéfice Net Total</p>
+                    <h3 class="text-2xl font-bold text-emerald-600 mt-1" id="stat-bene-total">CHF 0</h3>
+                    <p class="text-[11px] text-lkdm-secondary mt-1">Missions: <span id="stat-bene-missions" class="font-semibold text-lkdm-text">CHF 0</span> | Events: <span id="stat-bene-events" class="font-semibold text-lkdm-text">CHF 0</span></p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <p class="text-[10px] font-bold text-lkdm-secondary uppercase tracking-wider">Clients & Fidélité</p>
+                    <h3 class="text-2xl font-bold text-lkdm-text mt-1" id="stat-total-clients">0 clients</h3>
+                    <p class="text-[11px] text-lkdm-secondary mt-1">1 miss.: <span id="stat-c-1">0</span> | 2-5 miss.: <span id="stat-c-2-5">0</span> | >5 miss.: <span id="stat-c-5plus">0</span></p>
+                </div>
+            </div>
 
-    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
-                <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
-                        <th class="p-4">Date & Heure</th>
-                        <th class="p-4">Administrateur</th>
-                        <th class="p-4">Type d'action</th>
-                        <th class="p-4">Cible / Élément</th>
-                        <th class="p-4">Détails & Action directe</th>
-                    </tr>
-                </thead>
-                <tbody id="logs-table-body" class="divide-y divide-slate-100 text-slate-700">
-                    <tr><td colspan="5" class="p-6 text-center text-slate-400">Chargement de l'historique...</td></tr>
-                </tbody>
-            </table>
+            <!-- KPIs Volumes de Missions -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <p class="text-[10px] font-bold text-lkdm-secondary uppercase tracking-wider">Missions Totales (DB)</p>
+                    <h3 class="text-3xl font-bold text-lkdm-text mt-1" id="stat-missions-total">0</h3>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Missions Effectuées</p>
+                    <h3 class="text-3xl font-bold text-emerald-600 mt-1" id="stat-missions-completed">0</h3>
+                    <p class="text-[11px] text-lkdm-secondary mt-1">À facturer, effectuées, en attente de paiement</p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border-2 border-lkdm-accent shadow-sm relative overflow-hidden flex flex-col justify-center cursor-pointer hover:bg-red-50/30 transition" onclick="switchTab('missions')">
+                    <p class="text-[10px] font-bold text-lkdm-accent uppercase tracking-wider relative z-10">À SURVEILLER / ATTRIBUER</p>
+                    <h3 class="text-4xl font-extrabold text-lkdm-accent mt-1 relative z-10" id="dash-urgent-count">0</h3>
+                    <p class="text-xs text-lkdm-secondary mt-1 relative z-10 font-medium">Nouveau, à publier... <i class="fa-solid fa-arrow-right ml-1"></i></p>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
+        <!-- TAB 2: MISSIONS -->
+        <div id="tab-missions" class="tab-content space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <h2 class="text-2xl font-bold text-lkdm-text">Gestion des Missions</h2>
+                <div class="flex items-center gap-2">
+                    <select id="mission-sort-order" onchange="renderOpenMissionsTable()" class="bg-white border border-slate-200 text-lkdm-text text-xs font-medium rounded-xl px-3 py-2 shadow-sm">
+                        <option value="num">Trier par N° de mission</option>
+                        <option value="status">Trier par ordre de statut</option>
+                    </select>
+                    <select id="mission-status-filter" onchange="renderOpenMissionsTable()" class="bg-white border border-slate-200 text-lkdm-text text-xs font-medium rounded-xl px-3 py-2 shadow-sm">
+                        <option value="all-open">Tous les statuts ouverts</option>
+                        <option value="all">Toutes les missions</option>
+                    </select>
+                </div>
+            </div>
+            <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-slate-50 text-xs font-semibold text-lkdm-secondary uppercase tracking-wider border-b border-slate-100">
+                            <tr>
+                                <th class="py-5 px-6">Code & Date</th>
+                                <th class="py-5 px-6">Description</th>
+                                <th class="py-5 px-6">Client</th>
+                                <th class="py-5 px-6">Statut</th>
+                                <th class="py-5 px-6 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-missions-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: CALENDAR & MAP -->
+        <div id="tab-calendar-map" class="tab-content space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-lkdm-text">Calendrier & Carte</h2>
+                    <p class="text-sm text-lkdm-secondary">Visualisation géographique exacte et temporelle.</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-3 rounded-3xl border border-slate-200 shadow-sm relative">
+                    <div id="admin-map" style="height: 450px; border-radius: 1.5rem;"></div>
+                </div>
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-lkdm-text text-lg">Septembre 2026</h3>
+                    </div>
+                    <div class="grid grid-cols-7 gap-2 text-center text-[10px] font-semibold text-lkdm-secondary mb-2 uppercase">
+                        <div>Lun</div><div>Mar</div><div>Mer</div><div>Jeu</div><div>Ven</div><div>Sam</div><div>Dim</div>
+                    </div>
+                    <div id="admin-calendar-grid" class="grid grid-cols-7 gap-2 flex-1 auto-rows-fr"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: ETUDIANTS -->
+        <div id="tab-students" class="tab-content space-y-6">
+            <h2 class="text-2xl font-bold text-lkdm-text">Étudiants</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="students-grid"></div>
+        </div>
+
+        <!-- TAB 5: CLIENTS -->
+        <div id="tab-clients" class="tab-content space-y-6">
+            <h2 class="text-2xl font-bold text-lkdm-text">Clients</h2>
+            <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-slate-50 text-xs font-semibold text-lkdm-secondary uppercase border-b border-slate-100">
+                        <tr>
+                            <th class="py-4 px-6">Client</th>
+                            <th class="py-4 px-6">Ville</th>
+                            <th class="py-4 px-6">Email / Téléphone</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clients-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 6: SUIVI HEURES -->
+        <div id="tab-avs-tracker" class="tab-content space-y-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-lkdm-text">Suivi des Heures Étudiants & AVS (Seuil 92h / an)</h2>
+                    <p class="text-sm text-lkdm-secondary">Contrôle du volume horaire annuel civil et suivi des versements étudiants.</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-slate-50 text-xs font-semibold text-lkdm-secondary uppercase border-b border-slate-100">
+                            <tr>
+                                <th class="py-4 px-6">Étudiant</th>
+                                <th class="py-4 px-6">Heures Totales (2026)</th>
+                                <th class="py-4 px-6">Montant À Verser (CHF)</th>
+                                <th class="py-4 px-6">Statut AVS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="avs-tracker-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 7: FACTURATION & SUIVI DES PAIEMENTS -->
+        <div id="tab-billing" class="tab-content space-y-6">
+            <div class="flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-lkdm-text">Facturation & Suivi des Paiements</h2>
+            </div>
+            <div class="flex flex-wrap items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+                <span class="text-xs font-bold text-lkdm-secondary uppercase">Filtres :</span>
+                <div class="flex items-center gap-2">
+                    <label class="text-xs text-lkdm-secondary">Statut Mission :</label>
+                    <select id="billing-mission-filter" onchange="renderBillingTable()" class="bg-lkdm-bg border border-slate-200 text-xs rounded-xl px-3 py-2">
+                        <option value="all">Tous</option>
+                        <option value="À facturer">À facturer</option>
+                        <option value="Mission effectuée">Mission effectuée</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-xs text-lkdm-secondary">Statut Paiement :</label>
+                    <select id="billing-payment-filter" onchange="renderBillingTable()" class="bg-lkdm-bg border border-slate-200 text-xs rounded-xl px-3 py-2">
+                        <option value="all">Tous</option>
+                        <option value="Facture non envoyée">Facture non envoyée</option>
+                        <option value="Facture envoyée">Facture envoyée</option>
+                        <option value="Payé">Payé</option>
+                    </select>
+                </div>
+            </div>
+            <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6 space-y-4">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead class="bg-slate-50 text-lkdm-secondary uppercase">
+                            <tr>
+                                <th class="p-3">N° Mission</th>
+                                <th class="p-3">Client</th>
+                                <th class="p-3">Statut Mission</th>
+                                <th class="p-3">Montant</th>
+                                <th class="p-3">Paiement</th>
+                                <th class="p-3">Statut Paiement</th>
+                                <th class="p-3 text-right">Générer / Envoyer & Valider</th>
+                            </tr>
+                        </thead>
+                        <tbody id="billing-table-tbody" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 8: DOCUMENTS & ARCHIVES -->
+        <div id="tab-documents" class="tab-content space-y-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-lkdm-text">Documents & Archives</h2>
+                    <p class="text-sm text-lkdm-secondary">Liste globale de tous les fichiers stockés et leurs liaisons (missions, profils).</p>
+                </div>
+                <button onclick="openModal('modal-create-doc'); prepareDocModalOptions();" class="bg-lkdm-accent text-white px-4 py-2 rounded-full text-xs font-medium shadow-sm">
+                    <i class="fa-solid fa-file-arrow-up mr-1"></i> Uploader un document
+                </button>
+            </div>
+            <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead class="bg-slate-50 text-lkdm-secondary uppercase">
+                            <tr>
+                                <th class="p-3">Titre</th>
+                                <th class="p-3">Type</th>
+                                <th class="p-3">Lié à (Client / Étudiant)</th>
+                                <th class="p-3">Lié à (Mission)</th>
+                                <th class="p-3 text-right">Fichier</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documents-table-tbody" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 9: ÉVÉNEMENTS & 24H CLIENT (MAINTENANT À L'INTÉRIEUR DU MAIN) -->
+        <div id="tab-events" class="tab-content space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Animation & RSE</span>
+                    <h2 class="text-2xl font-bold text-lkdm-text mt-0.5">Gestion des Événements & 24h Client</h2>
+                    <p class="text-xs text-slate-500 mt-1">Suivi des budgets, conversions et retours d'expérience.</p>
+                </div>
+                <button onclick="openModal('modal-create-event')" class="bg-lkdm-accent text-white px-4 py-2.5 rounded-[50px] text-xs font-medium shadow-sm hover:bg-[#b53838] transition flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Créer un événement
+                </button>
+            </div>
+
+            <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead class="bg-slate-50 text-lkdm-secondary uppercase">
+                            <tr>
+                                <th class="p-3">Code & Date</th>
+                                <th class="p-3">Titre & Concept</th>
+                                <th class="p-3">Revenus / Dépenses</th>
+                                <th class="p-3">Participants</th>
+                                <th class="p-3">Conversions</th>
+                                <th class="p-3 text-right">Satisfaction</th>
+                            </tr>
+                        </thead>
+                        <tbody id="events-table-tbody" class="divide-y divide-slate-100">
+                            <tr><td colspan="6" class="p-6 text-center text-slate-400">Chargement des événements...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 10: JOURNAL D'ACTIVITÉ / LOGS (MAINTENANT À L'INTÉRIEUR DU MAIN) -->
+        <div id="tab-logs" class="tab-content space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Sécurité & Traçabilité</span>
+                    <h2 class="text-2xl font-bold text-lkdm-text mt-0.5">Annuaire & Journal des modifications</h2>
+                    <p class="text-xs text-slate-500 mt-1">Filtrez l'historique et cliquez sur une action pour ouvrir la fiche correspondante.</p>
+                </div>
+                <button onclick="loadActivityLogs()" class="bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2.5 rounded-full text-xs font-bold text-lkdm-text shadow-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-rotate"></i> Actualiser
+                </button>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">Du :</label>
+                    <input type="date" id="log-filter-start" onchange="filterLogs()" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">Au :</label>
+                    <input type="date" id="log-filter-end" onchange="filterLogs()" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">Administrateur :</label>
+                    <select id="log-filter-admin" onchange="filterLogs()" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2">
+                        <option value="all">Tous les admins</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">Type d'action :</label>
+                    <select id="log-filter-type" onchange="filterLogs()" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2">
+                        <option value="all">Tous les types</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">Cible / Élément :</label>
+                    <input type="text" id="log-filter-target" oninput="filterLogs()" placeholder="Rechercher cible..." class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2">
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
+                                <th class="p-4">Date & Heure</th>
+                                <th class="p-4">Administrateur</th>
+                                <th class="p-4">Type d'action</th>
+                                <th class="p-4">Cible / Élément</th>
+                                <th class="p-4">Détails & Action directe</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-table-body" class="divide-y divide-slate-100 text-slate-700">
+                            <tr><td colspan="5" class="p-6 text-center text-slate-400">Chargement de l'historique...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+        
     <!-- MODAL : EXPORT CSV UNIVERSEL -->
     <div id="modal-export-csv" class="hidden fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 my-8 relative">
