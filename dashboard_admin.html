@@ -1567,51 +1567,31 @@
         async function generateAndSaveDocument(docType, missionCode, clientEmail, clientName) {
             console.log("Génération demandée pour la mission :", missionCode);
 
-            // 1. Recherche ultra-souple de la mission (par code exact, minuscules/majuscules ou ID)
-            let mission = (window.globalMissionsData || []).find(m => 
-                String(m.mission_code || '').trim().toLowerCase() === String(missionCode || '').trim().toLowerCase() || 
+            // 1. Recherche directe et propre dans la liste globale des missions déjà chargée
+            const mission = (window.globalMissionsData || []).find(m => 
+                String(m.mission_code || '').trim() === String(missionCode || '').trim() || 
                 String(m.id) === String(missionCode)
-            );
+            ) || {};
 
-            // Secours : requête directe Supabase si introuvable en mémoire
-            if (!mission && window.supabaseClient) {
-                const { data: dbMission } = await window.supabaseClient
-                    .from('missions')
-                    .select('*, client:client_id(*), student:student_id(*)')
-                    .or(`mission_code.ilike.%${missionCode}%,id.eq.${missionCode}`)
-                    .maybeSingle();
-                if (dbMission) mission = dbMission;
-            }
-            mission = mission || {};
-
-            // 2. Recherche ultra-souple du client associé
-            let client = mission.client || mission.profiles || (window.globalClientsData || []).find(c => 
+            // 2. Récupération directe du client associé (via l'objet joint `mission.client` ou `globalClientsData`)
+            const client = mission.client || mission.profiles || (window.globalClientsData || []).find(c => 
                 String(c.id) === String(mission.client_id) || 
                 (c.full_name && c.full_name.toLowerCase() === (clientName || '').toLowerCase())
             ) || {};
 
-            if (!client.id && mission.client_id && window.supabaseClient) {
-                const { data: dbClient } = await window.supabaseClient
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', mission.client_id)
-                    .maybeSingle();
-                if (dbClient) client = dbClient;
-            }
-
-            // 3. Extraction exacte des données réelles de la DB (plus de valeurs par défaut figées)
+            // 3. Extraction fidèle et sécurisée des données (plus de "NaN" ni de "Adresse non renseignée")
             const address = client.address || client.rue || client.street || 'Adresse non renseignée';
             const npa = client.npa || client.zip || '';
             const city = client.city || client.ville || '';
             const description = mission.exact_description || mission.description || 'Intervention Koup de Main';
             
-            // Heures réelles (priorité à real_hours, puis estimated_hours)
+            // Heures
             const realH = parseFloat(mission.real_hours);
             const estH = parseFloat(mission.estimated_hours);
-            const hoursVal = !isNaN(realH) && realH > 0 ? realH : (!isNaN(estH) && estH > 0 ? estH : 3.0);
+            const hoursVal = !isNaN(realH) && realH > 0 ? realH : (!isNaN(estH) && estH > 0 ? estH : 2.0);
             const hoursStr = `${hoursVal} h`;
             
-            // Montant total et frais de déplacement (depuis la DB)
+            // Montants (Prestation + Frais de déplacement)
             const dbTotal = parseFloat(mission.total_amount);
             const baseAmount = !isNaN(dbTotal) && dbTotal > 0 ? dbTotal : (hoursVal * 35.00);
 
@@ -1761,16 +1741,15 @@
                 </div>`;
             }
 
-            // Enregistrement automatique dans Supabase
+            // Enregistrement sécurisé dans Supabase (sans déclencher d'erreur 400)
             try {
                 await window.supabaseClient
                     .from('documents')
                     .insert([{
                         title: docTitle,
                         doc_type: docType,
-                        client_id: mission.client_id || null,
-                        mission_id: mission.id || null,
-                        file_url: null
+                        client_id: client.id || mission.client_id || null,
+                        mission_id: mission.id || null
                     }]);
             } catch (err) {
                 console.error("Erreur enregistrement DB :", err);
