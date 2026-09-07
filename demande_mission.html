@@ -233,8 +233,8 @@
                             birth_date: document.getElementById('pub-birth').value,
                             gender: document.getElementById('pub-gender').value,
                             language: document.getElementById('pub-lang').value,
-                            prospect_source_type: document.getElementById('pub-srctype').value,
-                            prospect_source: document.getElementById('pub-src').value,
+                            prospect_source_type: [document.getElementById('pub-srctype').value],
+                            prospect_source: [document.getElementById('pub-src').value],
                             role: 'client'
                         }])
                         .select()
