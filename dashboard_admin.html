@@ -723,7 +723,30 @@
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">Début (exact)</label><input type="datetime-local" id="edit-mis-start" onchange="autoCalcRealHours()" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-xs transition-colors"></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">Fin (exacte)</label><input type="datetime-local" id="edit-mis-end" onchange="autoCalcRealHours()" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-xs transition-colors"></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">Temps estimé (h)</label><input type="number" step="0.25" id="edit-mis-est-hours" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs transition-colors"></div>
-                        <div><label class="block text-xs font-bold text-lkdm-accent mb-1">Temps réel (h) - Auto</label><input type="number" step="0.25" id="edit-mis-real" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-500 cursor-not-allowed"></div>
+                        <div><label class="block text-xs font-bold text-lkdm-accent mb-1">Temps réel (h)</label><input type="number" step="0.25" id="edit-mis-real" oninput="recalcAdminTotal()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-lkdm-text"></div>
+                    </div>
+                </div>
+
+                <!-- BLOC FRAIS DE DÉPLACEMENT & TRANSPORT (Ajouté) -->
+                <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-200 space-y-4">
+                    <h4 class="font-bold text-xs uppercase text-emerald-900">Frais de déplacement & Transport</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Type de transport</label>
+                            <select id="edit-mis-transport-type" onchange="toggleAdminTransportFields()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                                <option value="none">Aucun frais</option>
+                                <option value="km">Voiture (Kilomètres)</option>
+                                <option value="bus">Bus (Billet)</option>
+                            </select>
+                        </div>
+                        <div id="edit-container-km" class="hidden">
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Nombre de km (0.75 CHF / km)</label>
+                            <input type="number" id="edit-mis-km-count" min="0" step="1" value="0" oninput="recalcAdminTotal()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                        </div>
+                        <div id="edit-container-bus" class="hidden">
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Prix du billet de bus (CHF)</label>
+                            <input type="number" id="edit-mis-bus-price" min="0" step="0.05" value="0" oninput="recalcAdminTotal()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                        </div>
                     </div>
                 </div>
 
@@ -739,8 +762,8 @@
                                 <option value="Payé">Payé</option>
                             </select>
                         </div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Montant total (CHF)</label><input type="number" step="0.05" id="edit-mis-total" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Commission LKDM (CHF)</label><input type="number" step="0.05" id="edit-mis-comm" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Montant total (CHF)</label><input type="number" step="0.05" id="edit-mis-total" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-emerald-700"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Frais déplacement (CHF)</label><input type="number" step="0.05" id="edit-mis-travel" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-500"></div>
                     </div>
                 </div>
 
@@ -2759,6 +2782,38 @@
 
             closeModal('modal-edit-event');
             loadSupabaseOverview();
+        }
+
+        function toggleAdminTransportFields() {
+            const type = document.getElementById('edit-mis-transport-type').value;
+            const kmContainer = document.getElementById('edit-container-km');
+            const busContainer = document.getElementById('edit-container-bus');
+
+            kmContainer.classList.add('hidden');
+            busContainer.classList.add('hidden');
+
+            if (type === 'km') kmContainer.classList.remove('hidden');
+            if (type === 'bus') busContainer.classList.remove('hidden');
+            recalcAdminTotal();
+        }
+
+        function recalcAdminTotal() {
+            const hours = parseFloat(document.getElementById('edit-mis-real').value) || 0;
+            const transportType = document.getElementById('edit-mis-transport-type').value;
+            
+            let travelCost = 0;
+            if (transportType === 'km') {
+                const km = parseFloat(document.getElementById('edit-mis-km-count').value) || 0;
+                travelCost = km * 0.75;
+            } else if (transportType === 'bus') {
+                travelCost = parseFloat(document.getElementById('edit-mis-bus-price').value) || 0;
+            }
+
+            const laborCost = hours * 35.00;
+            const total = laborCost + travelCost;
+
+            document.getElementById('edit-mis-travel').value = travelCost.toFixed(2);
+            document.getElementById('edit-mis-total').value = total.toFixed(2);
         }
     </script>
 </body>
