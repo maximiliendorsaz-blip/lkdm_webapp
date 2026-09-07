@@ -991,104 +991,7 @@
         let adminMap = null;
         let adminMarkers = null;
 
-        function previewDocument(docType, missionCode, clientEmail, clientName) {
-        const container = document.getElementById('document-preview-container');
-        if (!container) return;
-
-        let templateHtml = "";
-        const currentDate = new Date().toLocaleDateString('fr-CH');
-
-        if (docType === 'Facture') {
-            templateHtml = `
-                <div class="bg-white p-8 rounded-2xl border border-slate-200 text-slate-800 text-sm font-sans space-y-6">
-                    <div class="flex justify-between items-start border-b pb-4">
-                        <div>
-                            <h2 class="text-xl font-bold text-lkdm-text">FACTURE</h2>
-                            <p class="text-xs text-slate-500">Réf: FAC-${missionCode}</p>
-                        </div>
-                        <div class="text-right text-xs">
-                            <p class="font-bold text-lkdm-text">Le Koup de Main (LKDM)</p>
-                            <p class="text-slate-500">1950 Sion, Valais</p>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 text-xs">
-                        <div>
-                            <p class="font-bold text-slate-600 uppercase">Facturé à :</p>
-                            <p class="font-semibold text-slate-800">${clientName}</p>
-                            <p class="text-slate-500">${clientEmail}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-slate-500">Date : ${currentDate}</p>
-                            <p class="text-slate-500">Échéance : 30 jours</p>
-                        </div>
-                    </div>
-                    <table class="w-full text-xs border-collapse">
-                        <thead>
-                            <tr class="bg-slate-50 border-b text-left"><th class="p-2">Prestation</th><th class="p-2 text-right">Total</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr class="border-b"><td class="p-2">Intervention Koup de Main (${missionCode})</td><td class="p-2 text-right font-semibold">CHF 60.00</td></tr>
-                        </tbody>
-                    </table>
-                    <div class="flex justify-end text-xs font-bold text-lkdm-text">
-                        <span>Total à payer : CHF 60.00</span>
-                    </div>
-                </div>`;
-        } else if (docType === 'Quittance') {
-            templateHtml = `
-                <div class="bg-white p-8 rounded-2xl border border-emerald-200 bg-emerald-50/20 text-slate-800 text-sm font-sans space-y-6">
-                    <div class="flex justify-between items-start border-b pb-4">
-                        <div>
-                            <h2 class="text-xl font-bold text-emerald-700">QUITTANCE DE PAIEMENT</h2>
-                            <p class="text-xs text-slate-500">Reçu N°: QUI-${missionCode}</p>
-                        </div>
-                        <div class="text-right text-xs">
-                            <p class="font-bold text-lkdm-text">Le Koup de Main</p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-slate-600">Nous confirmons par la présente la réception du paiement intégral pour la mission <strong>${missionCode}</strong>.</p>
-                    <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200 text-xs space-y-1">
-                        <p><strong>Client :</strong> ${clientName}</p>
-                        <p><strong>Montant réglé :</strong> CHF 60.00</p>
-                        <p><strong>Date :</strong> ${currentDate}</p>
-                    </div>
-                </div>`;
-        } else if (docType === 'Rapport') {
-            templateHtml = `
-                <div class="bg-white p-8 rounded-2xl border border-slate-200 text-slate-800 text-sm font-sans space-y-6">
-                    <div class="flex justify-between items-start border-b pb-4">
-                        <div>
-                            <h2 class="text-xl font-bold text-lkdm-text">RAPPORT DE MISSION</h2>
-                            <p class="text-xs text-slate-500">Mission : ${missionCode}</p>
-                        </div>
-                        <div class="text-right text-xs">
-                            <p class="font-bold text-lkdm-text">Le Koup de Main</p>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-xl">
-                        <div><strong>Bénéficiaire :</strong> ${clientName}</div>
-                        <div><strong>Statut :</strong> Effectué & Validé</div>
-                    </div>
-                    <div class="space-y-2 text-xs">
-                        <p class="font-bold text-slate-600 uppercase">Détails de l'intervention :</p>
-                        <div class="p-3 bg-white border rounded-xl text-slate-600">Prestation réalisée avec succès dans le cadre du réseau d'aide valaisan LKDM.</div>
-                    </div>
-                </div>`;
-        }
-
-        container.innerHTML = templateHtml;
-
-        // Configurer le bouton d'envoi depuis la modale de prévisualisation
-        const btnSend = document.getElementById('btn-proceed-to-email');
-        btnSend.onclick = () => {
-            closeModal('modal-view-document');
-            openEmailModal(docType, missionCode, clientEmail, clientName);
-        };
-
-        openModal('modal-view-document');
-    }
-        
-    async function VerifyAdmin() {
+        async function VerifyAdmin() {
             if (!window.supabaseClient) {
                 window.location.href = 'login.html';
                 return;
@@ -1114,7 +1017,6 @@
 
             populateDynamicDropdowns();
             loadSupabaseOverview();
-            loadActivityLogs();
         }
         
         VerifyAdmin();
@@ -1476,102 +1378,82 @@
         }
 
         function renderBillingTable() {
-        const tbody = document.getElementById('billing-table-tbody');
-        if (!tbody) return;
-        tbody.innerHTML = '';
+            const tbody = document.getElementById('billing-table-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
 
-        const missionFilter = document.getElementById('billing-mission-filter')?.value || 'all';
-        const paymentFilter = document.getElementById('billing-payment-filter')?.value || 'all';
+            const missionFilter = document.getElementById('billing-mission-filter')?.value || 'all';
+            const paymentFilter = document.getElementById('billing-payment-filter')?.value || 'all';
 
-        const filteredMissions = (window.globalMissionsData || []).filter(m => {
-            const mStatus = (m.matching_status || "").trim();
-            const pStatus = (m.payment_status || "Facture non envoyée").trim();
+            const filteredMissions = (window.globalMissionsData || []).filter(m => {
+                const mStatus = (m.matching_status || "").trim();
+                const pStatus = (m.payment_status || "Facture non envoyée").trim();
 
-            const matchMission = (missionFilter === 'all' || mStatus === missionFilter);
-            const matchPayment = (paymentFilter === 'all' || pStatus === paymentFilter);
-            return matchMission && matchPayment;
-        });
+                const matchMission = (missionFilter === 'all' || mStatus === missionFilter);
+                const matchPayment = (paymentFilter === 'all' || pStatus === paymentFilter);
+                return matchMission && matchPayment;
+            });
 
-        if (filteredMissions.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400 italic">Aucune mission trouvée.</td></tr>`;
-            return;
-        }
+            if (filteredMissions.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400 italic">Aucune mission trouvée.</td></tr>`;
+                return;
+            }
 
-        filteredMissions.forEach(m => {
-            // Utilisation correcte de globalClientsData pour retrouver le client lié
-            const client = (window.globalClientsData || []).find(p => p.id === m.client_id) || {};
-            const clientName = client.full_name || `${client.first_name || ''} ${client.last_name || ''}`.trim() || 'Client inconnu';
-            const clientEmail = client.email || '';
-            const amount = m.total_amount ? `CHF ${Number(m.total_amount).toFixed(2)}` : 'CHF 0.00';
-            const paymentType = m.payment_type || 'Facture';
-            const paymentStatus = m.payment_status || 'Facture non envoyée';
-            const missionCode = m.mission_code || 'M...';
+            filteredMissions.forEach(m => {
+                const client = (window.globalClientsData || []).find(p => p.id === m.client_id) || {};
+                const clientName = client.full_name || `${client.first_name || ''} ${client.last_name || ''}`.trim() || 'Client inconnu';
+                const clientEmail = client.email || '';
+                const amount = m.total_amount ? `CHF ${Number(m.total_amount).toFixed(2)}` : 'CHF 0.00';
+                const paymentType = m.payment_type || 'Facture';
+                const paymentStatus = m.payment_status || 'Facture non envoyée';
+                const missionCode = m.mission_code || 'M...';
 
-            tbody.innerHTML += `
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="p-3 font-semibold text-lkdm-text">${missionCode}</td>
-                    <td class="p-3 text-slate-700">${clientName}</td>
-                    <td class="p-3">
-                        <span class="px-2 py-1 bg-slate-100 rounded-md text-[10px] font-medium text-slate-600">${m.matching_status || 'Nouveau'}</span>
-                    </td>
-                    <td class="p-3 font-semibold text-lkdm-text">${amount}</td>
-                    <td class="p-3 text-slate-500">${paymentType}</td>
-                    <td class="p-3">
-                        <span class="px-2 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-md text-[10px] font-medium">${paymentStatus}</span>
-                    </td>
-                    <td class="p-3 text-right">
-                        <div class="flex items-center justify-end gap-2">
-                            <!-- Groupe Facture -->
-                            <div class="flex items-center bg-slate-50 border rounded-lg p-0.5">
-                                <button type="button" onclick="generateAndSaveDocument('Facture', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-slate-600 text-xs px-1.5" title="Générer / Voir la Facture">
-                                    <i class="fa-solid fa-eye"></i>
-                                </button>
-                                <button type="button" onclick="openEmailModal('Facture', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-lkdm-accent text-xs px-1.5 border-l" title="Envoyer la Facture">
-                                    <i class="fa-solid fa-paper-plane"></i>
-                                </button>
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 font-semibold text-lkdm-text">${missionCode}</td>
+                        <td class="p-3 text-slate-700">${clientName}</td>
+                        <td class="p-3">
+                            <span class="px-2 py-1 bg-slate-100 rounded-md text-[10px] font-medium text-slate-600">${m.matching_status || 'Nouveau'}</span>
+                        </td>
+                        <td class="p-3 font-semibold text-lkdm-text">${amount}</td>
+                        <td class="p-3 text-slate-500">${paymentType}</td>
+                        <td class="p-3">
+                            <span class="px-2 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-md text-[10px] font-medium">${paymentStatus}</span>
+                        </td>
+                        <td class="p-3 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <!-- Groupe Facture -->
+                                <div class="flex items-center bg-slate-50 border rounded-lg p-0.5">
+                                    <button type="button" onclick="generateAndSaveDocument('Facture', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-slate-600 text-xs px-1.5" title="Générer / Voir la Facture">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                    <button type="button" onclick="openEmailModal('Facture', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-lkdm-accent text-xs px-1.5 border-l" title="Envoyer la Facture">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                                <!-- Groupe Quittance -->
+                                <div class="flex items-center bg-emerald-50/50 border border-emerald-200 rounded-lg p-0.5">
+                                    <button type="button" onclick="generateAndSaveDocument('Quittance', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-emerald-700 text-xs px-1.5" title="Générer / Voir la Quittance">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                    <button type="button" onclick="openEmailModal('Quittance', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-emerald-700 text-xs px-1.5 border-l border-emerald-200" title="Envoyer la Quittance">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                                <!-- Groupe Rapport -->
+                                <div class="flex items-center bg-blue-50/50 border border-blue-200 rounded-lg p-0.5">
+                                    <button type="button" onclick="generateAndSaveDocument('Rapport', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-blue-700 text-xs px-1.5" title="Générer / Voir le Rapport">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                    <button type="button" onclick="openEmailModal('Rapport', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-blue-700 text-xs px-1.5 border-l border-blue-200" title="Envoyer le Rapport">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                    </button>
+                                </div>
                             </div>
-                            <!-- Groupe Quittance -->
-                            <div class="flex items-center bg-emerald-50/50 border border-emerald-200 rounded-lg p-0.5">
-                                <button type="button" onclick="generateAndSaveDocument('Quittance', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-emerald-700 text-xs px-1.5" title="Générer / Voir la Quittance">
-                                    <i class="fa-solid fa-eye"></i>
-                                </button>
-                                <button type="button" onclick="openEmailModal('Quittance', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-emerald-700 text-xs px-1.5 border-l border-emerald-200" title="Envoyer la Quittance">
-                                    <i class="fa-solid fa-paper-plane"></i>
-                                </button>
-                            </div>
-                            <!-- Groupe Rapport -->
-                            <div class="flex items-center bg-blue-50/50 border border-blue-200 rounded-lg p-0.5">
-                                <button type="button" onclick="generateAndSaveDocument('Rapport', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-blue-700 text-xs px-1.5" title="Générer / Voir le Rapport">
-                                    <i class="fa-solid fa-eye"></i>
-                                </button>
-                                <button type="button" onclick="openEmailModal('Rapport', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-blue-700 text-xs px-1.5 border-l border-blue-200" title="Envoyer le Rapport">
-                                    <i class="fa-solid fa-paper-plane"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        });
-    }
-
-        function generateDoc(missionId, docType) {
-            alert(`[Génération 1-clic] ${docType} générée avec succès.`);
-        }
-
-        async function sendBillingEmail(missionId, clientName) {
-            const todayStr = new Date().toISOString().split('T')[0];
-            await window.supabaseClient.from('missions').update({ payment_status: 'Facture envoyée', invoice_sent_date: todayStr }).eq('id', missionId);
-            await logAdminAction('SEND_BILLING', clientName, `Envoi des documents de facturation pour la mission #${missionId}`);
-            alert(`[Email] Facture, quittance et rapport envoyés à ${clientName} !`);
-            loadSupabaseOverview();
-        }
-
-        async function validatePayment(missionId) {
-            await window.supabaseClient.from('missions').update({ payment_status: 'Payé' }).eq('id', missionId);
-            await logAdminAction('VALIDATE_PAYMENT', `Mission #${missionId}`, `Paiement validé avec succès`);
-            alert(`[Paiement Validé] Facture marquée comme payée.`);
-            loadSupabaseOverview();
+                        </td>
+                    </tr>
+                `;
+            });
         }
 
         function executeUniversalCSVExport() {
@@ -2374,168 +2256,164 @@
         }
 
         async function generateAndSaveDocument(docType, missionCode, clientEmail, clientName) {
-    // 1. Récupérer les données de la mission et du client
-    const mission = (window.globalMissionsData || []).find(m => m.mission_code === missionCode) || {};
-    const client = (window.globalProfilesData || []).find(p => p.id === mission.client_id) || {};
-    
-    const address = client.address || 'Adresse du client';
-    const npa = client.npa || '1950';
-    const city = client.city || 'Sion';
-    const description = mission.exact_description || 'Intervention Koup de Main';
-    const hours = mission.estimated_hours ? `${mission.estimated_hours} h` : '2.0 h';
-    const amount = mission.amount_chf ? Number(mission.amount_chf).toFixed(2) : '85.00';
-    const subtotal = amount;
-    const currentDate = new Date().toLocaleDateString('fr-CH');
+            const mission = (window.globalMissionsData || []).find(m => m.mission_code === missionCode) || {};
+            const client = (window.globalClientsData || []).find(p => p.id === mission.client_id) || {};
+            
+            const address = client.address || 'Adresse du client';
+            const npa = client.npa || '1950';
+            const city = client.city || 'Sion';
+            const description = mission.exact_description || 'Intervention Koup de Main';
+            const hours = mission.estimated_hours ? `${mission.estimated_hours} h` : '2.0 h';
+            const amount = mission.total_amount ? Number(mission.total_amount).toFixed(2) : '85.00';
+            const subtotal = amount;
+            const currentDate = new Date().toLocaleDateString('fr-CH');
 
-    let templateHtml = "";
-    let docTitle = `${docType} - ${missionCode} - ${clientName}`;
+            let templateHtml = "";
+            let docTitle = `${docType} - ${missionCode} - ${clientName}`;
 
-    // 2. Génération du HTML selon le type
-    if (docType === 'Facture') {
-        templateHtml = `
-        <div class="bg-white p-12 max-w-[210mm] mx-auto text-slate-800 text-sm shadow-xl rounded-2xl border border-slate-200" style="width: 210mm; min-height: 297mm; box-sizing: border-box;">
-            <div class="flex justify-between items-start border-b-2 border-lkdm-accent pb-8 mb-8">
-                <div>
-                    <h1 class="text-3xl font-bold text-lkdm-text tracking-tight">FACTURE</h1>
-                    <p class="text-xs font-semibold text-lkdm-secondary mt-1">Réf: FAC-${missionCode}</p>
-                </div>
-                <div class="text-right">
-                    <h2 class="font-bold text-lg text-lkdm-text">Le Koup de Main (LKDM)</h2>
-                    <p class="text-xs text-slate-500">Eleveight Société Coopérative</p>
-                    <p class="text-xs text-slate-500">Technopôle 1, 3960 Sierre, Valais</p>
-                    <p class="text-xs text-slate-500">hello@lekoupdemain.ch</p>
-                    <p class="text-xs text-slate-500">+41 77 280 76 97</p>
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-8 mb-10 text-xs">
-                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                    <p class="font-bold text-xs uppercase tracking-wider text-lkdm-secondary mb-2">Facturé à :</p>
-                    <p class="font-bold text-slate-800 text-sm">${clientName}</p>
-                    <p class="text-slate-600 mt-1">${address}</p>
-                    <p class="text-slate-600"><span>${npa}</span> <span>${city}</span></p>
-                </div>
-                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-1.5">
-                    <p class="font-bold text-xs uppercase tracking-wider text-lkdm-secondary mb-2">Détails :</p>
-                    <div class="flex justify-between"><span class="text-slate-500">Date :</span><span class="font-semibold">${currentDate}</span></div>
-                    <div class="flex justify-between"><span class="text-slate-500">Échéance :</span><span class="font-semibold">10 jours</span></div>
-                </div>
-            </div>
-            <table class="w-full mb-10 border-collapse text-xs">
-                <thead>
-                    <tr class="bg-lkdm-text text-white text-left">
-                        <th class="p-3.5 rounded-l-xl">Description de la prestation</th>
-                        <th class="p-3.5 text-center">Nombres d'unités</th>
-                        <th class="p-3.5 text-right rounded-r-xl">Total (CHF)</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    <tr>
-                        <td class="p-4 text-slate-700">${description}</td>
-                        <td class="p-4 text-center font-medium">${hours}</td>
-                        <td class="p-4 text-right font-bold text-lkdm-text">CHF ${amount}</td>
-                    </tr>
-                </tbody>
-            </table>
-            <div class="flex justify-end mb-16">
-                <div class="w-80 space-y-2.5 text-xs bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                    <div class="flex justify-between py-1 border-b border-slate-200"><span class="text-slate-500">Sous-total</span><span class="font-semibold">CHF ${subtotal}</span></div>
-                    <div class="flex justify-between py-1 border-b border-slate-200"><span class="text-slate-500">TVA 0%</span><span class="font-semibold">CHF 0.00</span></div>
-                    <div class="flex justify-between py-1.5 text-sm font-bold text-lkdm-text"><span>Total à payer</span><span>CHF ${amount}</span></div>
-                    <div class="pt-2 border-t border-slate-200 text-[11px] font-semibold text-slate-600">IBAN : CH94 8080 8003 6095 4058 7</div>
-                </div>
-            </div>
-            <div class="border-t pt-8 text-center text-[11px] text-slate-400 space-y-1">
-                <p>Merci de votre confiance. Veuillez effectuer le règlement dans les délais.</p>
-                <p>Le Koup de Main c/o Eleveight Société Coopérative • www.lekoupdemain.ch</p>
-            </div>
-        </div>`;
-    } else if (docType === 'Quittance') {
-        templateHtml = `
-        <div class="bg-white p-12 max-w-[210mm] mx-auto text-slate-800 text-sm shadow-xl rounded-2xl border border-slate-200" style="width: 210mm; min-height: 297mm; box-sizing: border-box;">
-            <div class="flex justify-between items-start border-b-2 border-emerald-600 pb-8 mb-8">
-                <div>
-                    <h1 class="text-3xl font-bold text-emerald-700 tracking-tight">QUITTANCE DE PAIEMENT</h1>
-                    <p class="text-xs font-semibold text-emerald-600 mt-1">Reçu N° : QUI-${missionCode}</p>
-                </div>
-                <div class="text-right">
-                    <h2 class="font-bold text-lg text-lkdm-text">Le Koup de Main (LKDM)</h2>
-                    <p class="text-xs text-slate-500">1950 Sion, Valais</p>
-                </div>
-            </div>
-            <p class="text-xs text-slate-600 mb-8 leading-relaxed">Nous confirmons par la présente la réception du paiement intégral pour la prestation suivante.</p>
-            <div class="bg-emerald-50/60 p-6 rounded-2xl border border-emerald-200 text-xs mb-10 space-y-3">
-                <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Client / Bénéficiaire :</span><span class="font-bold text-slate-800 text-sm">${clientName}</span></div>
-                <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Référence Mission :</span><span class="font-semibold text-emerald-800">${missionCode}</span></div>
-                <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Montant acquitté :</span><span class="font-bold text-emerald-800 text-base">CHF ${amount}</span></div>
-                <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Date de règlement :</span><span class="font-semibold text-slate-800">${currentDate}</span></div>
-                <div class="flex justify-between"><span class="text-slate-500">Moyen de règlement :</span><span class="font-semibold text-slate-800">Facture / TWINT</span></div>
-            </div>
-            <div class="flex justify-between items-end mt-32 pt-10 border-t">
-                <div class="text-xs text-slate-400"><p>Document officiel émis par Le Koup de Main.</p></div>
-                <div class="text-center w-48"><div class="h-16 border-b border-slate-300 mb-2"></div><p class="text-xs font-bold text-slate-700">Cachet / Signature</p></div>
-            </div>
-        </div>`;
-    } else if (docType === 'Rapport') {
-        templateHtml = `
-        <div class="bg-white p-12 max-w-[210mm] mx-auto text-slate-800 text-sm shadow-xl rounded-2xl border border-slate-200" style="width: 210mm; min-height: 297mm; box-sizing: border-box;">
-            <div class="flex justify-between items-start border-b-2 border-lkdm-text pb-8 mb-8">
-                <div>
-                    <h1 class="text-3xl font-bold text-lkdm-text tracking-tight">RAPPORT DE MISSION</h1>
-                    <p class="text-xs font-semibold text-lkdm-secondary mt-1">Fiche d'intervention : ${missionCode}</p>
-                </div>
-                <div class="text-right">
-                    <h2 class="font-bold text-lg text-lkdm-text">Le Koup de Main</h2>
-                    <p class="text-xs text-slate-500">Suivi des interventions</p>
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4 text-xs mb-8 bg-slate-50 p-6 rounded-2xl border border-slate-200">
-                <div class="space-y-1"><p class="text-slate-500 uppercase font-bold text-[10px]">Bénéficiaire</p><p class="font-bold text-slate-800 text-sm">${clientName}</p></div>
-                <div class="space-y-1"><p class="text-slate-500 uppercase font-bold text-[10px]">Étudiant Intervenant</p><p class="font-bold text-slate-800 text-sm">Attribué à l'étudiant</p></div>
-                <div class="space-y-1 pt-3 border-t border-slate-200"><p class="text-slate-500 uppercase font-bold text-[10px]">Date et heure</p><p class="font-semibold text-slate-700">${currentDate}</p></div>
-                <div class="space-y-1 pt-3 border-t border-slate-200"><p class="text-slate-500 uppercase font-bold text-[10px]">Durée effective</p><p class="font-semibold text-slate-700">${hours}</p></div>
-            </div>
-            <div class="space-y-3 mb-10 text-xs">
-                <p class="font-bold text-slate-600 uppercase tracking-wider">Description exacte de l'intervention :</p>
-                <div class="p-5 bg-white border border-slate-200 rounded-2xl text-slate-700 min-h-[140px] leading-relaxed">${description}</div>
-            </div>
-            <div class="bg-blue-50/50 p-5 rounded-2xl border border-blue-200 flex justify-between items-center text-xs mb-20">
-                <div><p class="font-bold text-blue-900">Validation du Koup de Main</p><p class="text-blue-700">Mission menée à bien et validée.</p></div>
-                <span class="px-3 py-1 bg-blue-600 text-white rounded-full font-bold text-[11px]">Effectué & Validé</span>
-            </div>
-        </div>`;
-    }
+            if (docType === 'Facture') {
+                templateHtml = `
+                <div class="bg-white p-12 max-w-[210mm] mx-auto text-slate-800 text-sm shadow-xl rounded-2xl border border-slate-200" style="width: 210mm; min-height: 297mm; box-sizing: border-box;">
+                    <div class="flex justify-between items-start border-b-2 border-lkdm-accent pb-8 mb-8">
+                        <div>
+                            <h1 class="text-3xl font-bold text-lkdm-text tracking-tight">FACTURE</h1>
+                            <p class="text-xs font-semibold text-lkdm-secondary mt-1">Réf: FAC-${missionCode}</p>
+                        </div>
+                        <div class="text-right">
+                            <h2 class="font-bold text-lg text-lkdm-text">Le Koup de Main (LKDM)</h2>
+                            <p class="text-xs text-slate-500">Eleveight Société Coopérative</p>
+                            <p class="text-xs text-slate-500">Technopôle 1, 3960 Sierre, Valais</p>
+                            <p class="text-xs text-slate-500">hello@lekoupdemain.ch</p>
+                            <p class="text-xs text-slate-500">+41 77 280 76 97</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-8 mb-10 text-xs">
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                            <p class="font-bold text-xs uppercase tracking-wider text-lkdm-secondary mb-2">Facturé à :</p>
+                            <p class="font-bold text-slate-800 text-sm">${clientName}</p>
+                            <p class="text-slate-600 mt-1">${address}</p>
+                            <p class="text-slate-600"><span>${npa}</span> <span>${city}</span></p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-1.5">
+                            <p class="font-bold text-xs uppercase tracking-wider text-lkdm-secondary mb-2">Détails :</p>
+                            <div class="flex justify-between"><span class="text-slate-500">Date :</span><span class="font-semibold">${currentDate}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-500">Échéance :</span><span class="font-semibold">10 jours</span></div>
+                        </div>
+                    </div>
+                    <table class="w-full mb-10 border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-lkdm-text text-white text-left">
+                                <th class="p-3.5 rounded-l-xl">Description de la prestation</th>
+                                <th class="p-3.5 text-center">Nombres d'unités</th>
+                                <th class="p-3.5 text-right rounded-r-xl">Total (CHF)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr>
+                                <td class="p-4 text-slate-700">${description}</td>
+                                <td class="p-4 text-center font-medium">${hours}</td>
+                                <td class="p-4 text-right font-bold text-lkdm-text">CHF ${amount}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="flex justify-end mb-16">
+                        <div class="w-80 space-y-2.5 text-xs bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                            <div class="flex justify-between py-1 border-b border-slate-200"><span class="text-slate-500">Sous-total</span><span class="font-semibold">CHF ${subtotal}</span></div>
+                            <div class="flex justify-between py-1 border-b border-slate-200"><span class="text-slate-500">TVA 0%</span><span class="font-semibold">CHF 0.00</span></div>
+                            <div class="flex justify-between py-1.5 text-sm font-bold text-lkdm-text"><span>Total à payer</span><span>CHF ${amount}</span></div>
+                            <div class="pt-2 border-t border-slate-200 text-[11px] font-semibold text-slate-600">IBAN : CH94 8080 8003 6095 4058 7</div>
+                        </div>
+                    </div>
+                    <div class="border-t pt-8 text-center text-[11px] text-slate-400 space-y-1">
+                        <p>Merci de votre confiance. Veuillez effectuer le règlement dans les délais.</p>
+                        <p>Le Koup de Main c/o Eleveight Société Coopérative • www.lekoupdemain.ch</p>
+                    </div>
+                </div>`;
+            } else if (docType === 'Quittance') {
+                templateHtml = `
+                <div class="bg-white p-12 max-w-[210mm] mx-auto text-slate-800 text-sm shadow-xl rounded-2xl border border-slate-200" style="width: 210mm; min-height: 297mm; box-sizing: border-box;">
+                    <div class="flex justify-between items-start border-b-2 border-emerald-600 pb-8 mb-8">
+                        <div>
+                            <h1 class="text-3xl font-bold text-emerald-700 tracking-tight">QUITTANCE DE PAIEMENT</h1>
+                            <p class="text-xs font-semibold text-emerald-600 mt-1">Reçu N° : QUI-${missionCode}</p>
+                        </div>
+                        <div class="text-right">
+                            <h2 class="font-bold text-lg text-lkdm-text">Le Koup de Main (LKDM)</h2>
+                            <p class="text-xs text-slate-500">1950 Sion, Valais</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-600 mb-8 leading-relaxed">Nous confirmons par la présente la réception du paiement intégral pour la prestation suivante.</p>
+                    <div class="bg-emerald-50/60 p-6 rounded-2xl border border-emerald-200 text-xs mb-10 space-y-3">
+                        <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Client / Bénéficiaire :</span><span class="font-bold text-slate-800 text-sm">${clientName}</span></div>
+                        <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Référence Mission :</span><span class="font-semibold text-emerald-800">${missionCode}</span></div>
+                        <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Montant acquitté :</span><span class="font-bold text-emerald-800 text-base">CHF ${amount}</span></div>
+                        <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Date de règlement :</span><span class="font-semibold text-slate-800">${currentDate}</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Moyen de règlement :</span><span class="font-semibold text-slate-800">Facture / TWINT</span></div>
+                    </div>
+                    <div class="flex justify-between items-end mt-32 pt-10 border-t">
+                        <div class="text-xs text-slate-400"><p>Document officiel émis par Le Koup de Main.</p></div>
+                        <div class="text-center w-48"><div class="h-16 border-b border-slate-300 mb-2"></div><p class="text-xs font-bold text-slate-700">Cachet / Signature</p></div>
+                    </div>
+                </div>`;
+            } else if (docType === 'Rapport') {
+                templateHtml = `
+                <div class="bg-white p-12 max-w-[210mm] mx-auto text-slate-800 text-sm shadow-xl rounded-2xl border border-slate-200" style="width: 210mm; min-height: 297mm; box-sizing: border-box;">
+                    <div class="flex justify-between items-start border-b-2 border-lkdm-text pb-8 mb-8">
+                        <div>
+                            <h1 class="text-3xl font-bold text-lkdm-text tracking-tight">RAPPORT DE MISSION</h1>
+                            <p class="text-xs font-semibold text-lkdm-secondary mt-1">Fiche d'intervention : ${missionCode}</p>
+                        </div>
+                        <div class="text-right">
+                            <h2 class="font-bold text-lg text-lkdm-text">Le Koup de Main</h2>
+                            <p class="text-xs text-slate-500">Suivi des interventions</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 text-xs mb-8 bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                        <div class="space-y-1"><p class="text-slate-500 uppercase font-bold text-[10px]">Bénéficiaire</p><p class="font-bold text-slate-800 text-sm">${clientName}</p></div>
+                        <div class="space-y-1"><p class="text-slate-500 uppercase font-bold text-[10px]">Étudiant Intervenant</p><p class="font-bold text-slate-800 text-sm">Attribué à l'étudiant</p></div>
+                        <div class="space-y-1 pt-3 border-t border-slate-200"><p class="text-slate-500 uppercase font-bold text-[10px]">Date et heure</p><p class="font-semibold text-slate-700">${currentDate}</p></div>
+                        <div class="space-y-1 pt-3 border-t border-slate-200"><p class="text-slate-500 uppercase font-bold text-[10px]">Durée effective</p><p class="font-semibold text-slate-700">${hours}</p></div>
+                    </div>
+                    <div class="space-y-3 mb-10 text-xs">
+                        <p class="font-bold text-slate-600 uppercase tracking-wider">Description exacte de l'intervention :</p>
+                        <div class="p-5 bg-white border border-slate-200 rounded-2xl text-slate-700 min-h-[140px] leading-relaxed">${description}</div>
+                    </div>
+                    <div class="bg-blue-50/50 p-5 rounded-2xl border border-blue-200 flex justify-between items-center text-xs mb-20">
+                        <div><p class="font-bold text-blue-900">Validation du Koup de Main</p><p class="text-blue-700">Mission menée à bien et validée.</p></div>
+                        <span class="px-3 py-1 bg-blue-600 text-white rounded-full font-bold text-[11px]">Effectué & Validé</span>
+                    </div>
+                </div>`;
+            }
 
-    // 3. Enregistrement automatique dans la table Supabase selon vos colonnes exactes
-    try {
-        const { error: dbError } = await window.supabaseClient
-            .from('documents') // Nom de votre table visible sur la capture
-            .insert([{
-                title: docTitle,
-                doc_type: docType,
-                client_id: mission.client_id || null,
-                mission_id: mission.id || null, // Assurez-vous que mission.id est l'UUID de la mission
-                file_url: null // Rempli si vous stockez un PDF dans un bucket Supabase Storage, sinon stocké via le HTML rendu
-            }]);
+            try {
+                const { error: dbError } = await window.supabaseClient
+                    .from('documents')
+                    .insert([{
+                        title: docTitle,
+                        doc_type: docType,
+                        client_id: mission.client_id || null,
+                        mission_id: mission.id || null,
+                        file_url: null
+                    }]);
 
-        if (dbError) console.warn("Erreur d'enregistrement Supabase :", dbError.message);
-    } catch (err) {
-        console.error("Erreur technique Supabase :", err);
-    }
+                if (dbError) console.warn("Erreur d'enregistrement Supabase :", dbError.message);
+            } catch (err) {
+                console.error("Erreur technique Supabase :", err);
+            }
 
-    // 4. Affichage dans la modale de prévisualisation
-    const container = document.getElementById('document-preview-container');
-    if (container) container.innerHTML = templateHtml;
+            const container = document.getElementById('document-preview-container');
+            if (container) container.innerHTML = templateHtml;
 
-    const btnSend = document.getElementById('btn-proceed-to-email');
-    if (btnSend) {
-        btnSend.onclick = () => {
-            closeModal('modal-view-document');
-            openEmailModal(docType, missionCode, clientEmail, clientName);
-        };
-    }
+            const btnSend = document.getElementById('btn-proceed-to-email');
+            if (btnSend) {
+                btnSend.onclick = () => {
+                    closeModal('modal-view-document');
+                    openEmailModal(docType, missionCode, clientEmail, clientName);
+                };
+            }
 
-    openModal('modal-view-document');
-}
+            openModal('modal-view-document');
+        }
     </script>
 </body>
 </html>
