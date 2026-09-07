@@ -35,7 +35,7 @@
                 <input type="password" id="login-password" required placeholder="••••••••" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-lkdm-accent">
             </div>
             <div class="flex items-center justify-between text-xs mt-2 mb-4">
-                <a href="#" onclick="openForgotPasswordModal(event)" class="text-lkdm-secondary hover:text-lkdm-accent transition font-medium">
+                <a href="/reset_password.html" class="text-lkdm-secondary hover:text-lkdm-accent transition font-medium">
                     Mot de passe oublié ?
                 </a>
             </div>
@@ -45,28 +45,6 @@
                 </button>
             </div>
         </form>
-    </div>
-
-    <!-- MODAL : MOT DE PASSE OUBLIÉ -->
-    <div id="modal-forgot-password" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 relative">
-            <button onclick="closeModal('modal-forgot-password')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200">
-                <i class="fa-solid fa-times"></i>
-            </button>
-            <h3 class="text-xl font-bold text-lkdm-text mb-2">Réinitialisation</h3>
-            <p class="text-xs text-slate-500 mb-5">Entrez votre adresse e-mail. Nous vous enverrons un lien pour réinitialiser votre mot de passe.</p>
-            
-            <form onsubmit="handleForgotPassword(event)" class="space-y-4 text-sm">
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Votre email *</label>
-                    <input type="email" id="forgot-email" required placeholder="nom@exemple.ch" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs">
-                </div>
-                <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" onclick="closeModal('modal-forgot-password')" class="px-4 py-2 bg-slate-100 rounded-full text-xs font-medium">Annuler</button>
-                    <button type="submit" id="btn-forgot-submit" class="px-5 py-2 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm hover:bg-[#b53838]">Envoyer le lien</button>
-                </div>
-            </form>
-        </div>
     </div>
     
     <script>
@@ -127,10 +105,6 @@
             }
         }
 
-        function openForgotPasswordModal(e) {
-            e.preventDefault();
-            document.getElementById('modal-forgot-password').classList.remove('hidden');
-        }
 
         function closeModal(id) {
             document.getElementById(id).classList.add('hidden');
