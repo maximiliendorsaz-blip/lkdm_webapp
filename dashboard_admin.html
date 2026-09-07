@@ -1565,24 +1565,33 @@
         }
 
         async function generateAndSaveDocument(docType, missionCode, clientEmail, clientName) {
-            // Recherche élargie (par code de mission ou par ID) pour être sûr de trouver la bonne mission
+            // Recherche de la mission et du client dans les tableaux globaux
             const mission = (window.globalMissionsData || []).find(m => 
                 String(m.mission_code) === String(missionCode) || String(m.id) === String(missionCode)
             ) || {};
 
-            // Recherche élargie du client (par ID direct de la mission ou par nom)
             const client = (window.globalClientsData || []).find(c => 
                 String(c.id) === String(mission.client_id) || (c.full_name && c.full_name === clientName)
             ) || {};
             
-            // Récupération sécurisée des données de la DB (avec fallbacks propres)
-            const address = client.address || client.rue || 'Adresse non renseignée';
-            const npa = client.npa || client.zip || '1950';
-            const city = client.city || client.ville || 'Sion';
-            const description = mission.exact_description || mission.description || 'Intervention Koup de Main';
-            const hours = mission.estimated_hours ? `${mission.estimated_hours} h` : (mission.real_hours ? `${mission.real_hours} h` : '2.0 h');
-            const amountVal = mission.total_amount || mission.amount || 85.00;
-            const amount = Number(amountVal).toFixed(2);
+            // Récupération dynamique et exacte des informations depuis la base de données
+            const address = client.address || 'Adresse non renseignée';
+            const npa = client.npa || '1950';
+            const city = client.city || 'Sion';
+            const description = mission.exact_description || 'Intervention Koup de Main';
+            
+            // Récupération dynamique des heures
+            const hoursVal = mission.real_hours || mission.estimated_hours || 2.0;
+            const hoursStr = `${hoursVal} h`;
+            
+            // Calcul du montant de la prestation et des frais de déplacement éventuels ("travel_expenses")
+            const baseAmount = Number(mission.total_amount || (hoursVal * 35));
+            const travelExpenses = Number(mission.travel_expenses || 0);
+            const totalAmountVal = baseAmount + travelExpenses;
+            
+            const amount = totalAmountVal.toFixed(2);
+            const baseAmountStr = baseAmount.toFixed(2);
+            const travelExpensesStr = travelExpenses.toFixed(2);
             const subtotal = amount;
             const currentDate = new Date().toLocaleDateString('fr-CH');
             const finalClientName = client.full_name || clientName || 'Client LKDM';
@@ -1591,6 +1600,25 @@
             let docTitle = `${docType} - ${mission.mission_code || missionCode} - ${finalClientName}`;
 
             if (docType === 'Facture') {
+                // Construction dynamique des lignes du tableau (prestation + déplacement si présent)
+                let tableRowsHtml = `
+                    <tr>
+                        <td class="p-4 text-slate-700">${description}</td>
+                        <td class="p-4 text-center font-medium">${hoursStr}</td>
+                        <td class="p-4 text-right font-bold text-lkdm-text">CHF ${baseAmountStr}</td>
+                    </tr>
+                `;
+
+                if (travelExpenses > 0) {
+                    tableRowsHtml += `
+                        <tr>
+                            <td class="p-4 text-slate-700">Frais de déplacement</td>
+                            <td class="p-4 text-center font-medium">1 forfait</td>
+                            <td class="p-4 text-right font-bold text-lkdm-text">CHF ${travelExpensesStr}</td>
+                        </tr>
+                    `;
+                }
+
                 templateHtml = `
                 <div class="bg-white p-12 max-w-[210mm] mx-auto text-slate-800 text-sm shadow-xl rounded-2xl border border-slate-200" style="width: 100%; box-sizing: border-box;">
                     <div class="flex justify-between items-start border-b-2 border-lkdm-accent pb-8 mb-8">
@@ -1619,6 +1647,7 @@
                             <div class="flex justify-between"><span class="text-slate-500">Échéance :</span><span class="font-semibold">10 jours</span></div>
                         </div>
                     </div>
+                    <!-- Tableau de la facture avec gestion dynamique des lignes -->
                     <table class="w-full mb-10 border-collapse text-xs">
                         <thead>
                             <tr class="bg-lkdm-text text-white text-left">
@@ -1628,11 +1657,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            <tr>
-                                <td class="p-4 text-slate-700">${description}</td>
-                                <td class="p-4 text-center font-medium">${hours}</td>
-                                <td class="p-4 text-right font-bold text-lkdm-text">CHF ${amount}</td>
-                            </tr>
+                            ${tableRowsHtml}
                         </tbody>
                     </table>
                     <div class="flex justify-end mb-16">
@@ -1661,11 +1686,11 @@
                             <p class="text-xs text-slate-500">1950 Sion, Valais</p>
                         </div>
                     </div>
-                    <p class="text-xs text-slate-600 mb-8 leading-relaxed">Nous confirmons par la présente la réception du paiement intégral pour la prestation suivante.</p>
+                    <p class="text-xs text-slate-600 mb-8 leading-relaxed">Nous confirmons par la présente la réception du paiement intégral pour la prestation suivante (incluant les frais de déplacement le cas échéant).</p>
                     <div class="bg-emerald-50/60 p-6 rounded-2xl border border-emerald-200 text-xs mb-10 space-y-3">
                         <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Client / Bénéficiaire :</span><span class="font-bold text-slate-800 text-sm">${finalClientName}</span></div>
                         <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Référence Mission :</span><span class="font-semibold text-emerald-800">${mission.mission_code || missionCode}</span></div>
-                        <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Montant acquitté :</span><span class="font-bold text-emerald-800 text-base">CHF ${amount}</span></div>
+                        <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Montant acquitté total :</span><span class="font-bold text-emerald-800 text-base">CHF ${amount}</span></div>
                         <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Date de règlement :</span><span class="font-semibold text-slate-800">${currentDate}</span></div>
                         <div class="flex justify-between"><span class="text-slate-500">Moyen de règlement :</span><span class="font-semibold text-slate-800">Facture / TWINT</span></div>
                     </div>
@@ -1691,7 +1716,7 @@
                         <div class="space-y-1"><p class="text-slate-500 uppercase font-bold text-[10px]">Bénéficiaire</p><p class="font-bold text-slate-800 text-sm">${finalClientName}</p></div>
                         <div class="space-y-1"><p class="text-slate-500 uppercase font-bold text-[10px]">Étudiant Intervenant</p><p class="font-bold text-slate-800 text-sm">Attribué à l'étudiant</p></div>
                         <div class="space-y-1 pt-3 border-t border-slate-200"><p class="text-slate-500 uppercase font-bold text-[10px]">Date et heure</p><p class="font-semibold text-slate-700">${currentDate}</p></div>
-                        <div class="space-y-1 pt-3 border-t border-slate-200"><p class="text-slate-500 uppercase font-bold text-[10px]">Durée effective</p><p class="font-semibold text-slate-700">${hours}</p></div>
+                        <div class="space-y-1 pt-3 border-t border-slate-200"><p class="text-slate-500 uppercase font-bold text-[10px]">Durée effective</p><p class="font-semibold text-slate-700">${hoursStr}</p></div>
                     </div>
                     <div class="space-y-3 mb-10 text-xs">
                         <p class="font-bold text-slate-600 uppercase tracking-wider">Description exacte de l'intervention :</p>
