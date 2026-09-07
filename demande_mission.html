@@ -46,6 +46,11 @@
                 <!-- Section : Informations personnelles -->
                 <div class="space-y-4">
                     <h3 class="font-bold text-xs uppercase tracking-wider text-lkdm-secondary border-b pb-2">1. Vos Coordonnées</h3>
+
+                    <div style="display: none !important;" aria-hidden="true">
+                        <label for="website-check">Ne pas remplir ce champ si vous êtes humain :</label>
+                        <input type="text" id="website-check" name="website-check" tabindex="-1" autocomplete="off">
+                    </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -198,14 +203,12 @@
             const btn = document.getElementById('btn-submit-mission');
             
             alertBox.classList.add('hidden');
-            btn.innerText = "Enregistrement en cours...";
-            btn.disabled = true;
-
+        
             const email = document.getElementById('pub-email').value.trim();
             const phone = document.getElementById('pub-phone').value.trim();
             const firstname = document.getElementById('pub-firstname').value.trim();
             const lastname = document.getElementById('pub-lastname').value.trim();
-
+        
             try {
                 let profileId = null;
                 const { data: existingProfile } = await window.supabaseClient
@@ -213,7 +216,7 @@
                     .select('id')
                     .eq('email', email)
                     .maybeSingle();
-
+        
                 if (existingProfile) {
                     profileId = existingProfile.id;
                 } else {
@@ -236,15 +239,15 @@
                         }])
                         .select()
                         .single();
-
+        
                     if (profileError) throw profileError;
                     profileId = newProfile.id;
                 }
-
+        
                 const { count } = await window.supabaseClient.from('missions').select('*', { count: 'exact', head: true });
                 const nextNum = (count || 0) + 1;
                 const missionCode = `M2026_${nextNum}`;
-
+        
                 const { error: missionError } = await window.supabaseClient
                     .from('missions')
                     .insert([{
@@ -256,16 +259,16 @@
                         estimated_hours: Number(document.getElementById('pub-est-hours').value),
                         matching_status: 'Nouveau'
                     }]);
-
+        
                 if (missionError) throw missionError;
-
+        
                 alertBox.className = "p-4 rounded-xl text-xs font-medium border bg-emerald-50 text-emerald-700 border-emerald-200";
                 alertBox.innerText = "Votre demande a été transmise avec succès ! Notre équipe vous contactera très rapidement.";
                 alertBox.classList.remove('hidden');
                 
                 e.target.reset();
                 btn.innerText = "Demande envoyée avec succès";
-
+        
             } catch (err) {
                 console.error("Erreur lors de la soumission :", err);
                 alertBox.className = "p-4 rounded-xl text-xs font-medium border bg-red-50 text-lkdm-accent border-red-200";
