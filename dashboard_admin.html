@@ -353,11 +353,29 @@
                                         <th class="p-3">Montant</th>
                                         <th class="p-3">Paiement</th>
                                         <th class="p-3">Statut Paiement</th>
-                                        <th class="p-3 text-right">Générer / Envoyer & Valider</th>
+                                        <th class="p-3 text-right">Générer, Visualiser & Envoyer</th>
                                     </tr>
                                 </thead>
                                 <tbody id="billing-table-tbody" class="divide-y divide-slate-100"></tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- MODALE DE VISUALISATION DES DOCUMENTS (FACTURE / QUITTANCE / RAPPORT) -->
+                <div id="modal-view-document" class="hidden fixed inset-0 z-[250] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+                    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 relative my-8">
+                        <button onclick="closeModal('modal-view-document')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200">
+                            <i class="fa-solid fa-times"></i>
+                        </button>
+                        <div id="document-preview-container" class="mb-6 max-h-[70vh] overflow-y-auto p-2">
+                            <!-- Le contenu du document généré s'insère ici dynamiquement -->
+                        </div>
+                        <div class="flex justify-end gap-3 border-t pt-4">
+                            <button type="button" onclick="closeModal('modal-view-document')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Fermer</button>
+                            <button type="button" id="btn-proceed-to-email" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm hover:bg-[#b53838]">
+                                <i class="fa-solid fa-paper-plane mr-1.5"></i> Envoyer par e-mail
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -973,6 +991,103 @@
         let adminMap = null;
         let adminMarkers = null;
 
+        function previewDocument(docType, missionCode, clientEmail, clientName) {
+        const container = document.getElementById('document-preview-container');
+        if (!container) return;
+
+        let templateHtml = "";
+        const currentDate = new Date().toLocaleDateString('fr-CH');
+
+        if (docType === 'Facture') {
+            templateHtml = `
+                <div class="bg-white p-8 rounded-2xl border border-slate-200 text-slate-800 text-sm font-sans space-y-6">
+                    <div class="flex justify-between items-start border-b pb-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-lkdm-text">FACTURE</h2>
+                            <p class="text-xs text-slate-500">Réf: FAC-${missionCode}</p>
+                        </div>
+                        <div class="text-right text-xs">
+                            <p class="font-bold text-lkdm-text">Le Koup de Main (LKDM)</p>
+                            <p class="text-slate-500">1950 Sion, Valais</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <p class="font-bold text-slate-600 uppercase">Facturé à :</p>
+                            <p class="font-semibold text-slate-800">${clientName}</p>
+                            <p class="text-slate-500">${clientEmail}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-slate-500">Date : ${currentDate}</p>
+                            <p class="text-slate-500">Échéance : 30 jours</p>
+                        </div>
+                    </div>
+                    <table class="w-full text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b text-left"><th class="p-2">Prestation</th><th class="p-2 text-right">Total</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b"><td class="p-2">Intervention Koup de Main (${missionCode})</td><td class="p-2 text-right font-semibold">CHF 60.00</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="flex justify-end text-xs font-bold text-lkdm-text">
+                        <span>Total à payer : CHF 60.00</span>
+                    </div>
+                </div>`;
+        } else if (docType === 'Quittance') {
+            templateHtml = `
+                <div class="bg-white p-8 rounded-2xl border border-emerald-200 bg-emerald-50/20 text-slate-800 text-sm font-sans space-y-6">
+                    <div class="flex justify-between items-start border-b pb-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-emerald-700">QUITTANCE DE PAIEMENT</h2>
+                            <p class="text-xs text-slate-500">Reçu N°: QUI-${missionCode}</p>
+                        </div>
+                        <div class="text-right text-xs">
+                            <p class="font-bold text-lkdm-text">Le Koup de Main</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-600">Nous confirmons par la présente la réception du paiement intégral pour la mission <strong>${missionCode}</strong>.</p>
+                    <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200 text-xs space-y-1">
+                        <p><strong>Client :</strong> ${clientName}</p>
+                        <p><strong>Montant réglé :</strong> CHF 60.00</p>
+                        <p><strong>Date :</strong> ${currentDate}</p>
+                    </div>
+                </div>`;
+        } else if (docType === 'Rapport') {
+            templateHtml = `
+                <div class="bg-white p-8 rounded-2xl border border-slate-200 text-slate-800 text-sm font-sans space-y-6">
+                    <div class="flex justify-between items-start border-b pb-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-lkdm-text">RAPPORT DE MISSION</h2>
+                            <p class="text-xs text-slate-500">Mission : ${missionCode}</p>
+                        </div>
+                        <div class="text-right text-xs">
+                            <p class="font-bold text-lkdm-text">Le Koup de Main</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-xl">
+                        <div><strong>Bénéficiaire :</strong> ${clientName}</div>
+                        <div><strong>Statut :</strong> Effectué & Validé</div>
+                    </div>
+                    <div class="space-y-2 text-xs">
+                        <p class="font-bold text-slate-600 uppercase">Détails de l'intervention :</p>
+                        <div class="p-3 bg-white border rounded-xl text-slate-600">Prestation réalisée avec succès dans le cadre du réseau d'aide valaisan LKDM.</div>
+                    </div>
+                </div>`;
+        }
+
+        container.innerHTML = templateHtml;
+
+        // Configurer le bouton d'envoi depuis la modale de prévisualisation
+        const btnSend = document.getElementById('btn-proceed-to-email');
+        btnSend.onclick = () => {
+            closeModal('modal-view-document');
+            openEmailModal(docType, missionCode, clientEmail, clientName);
+        };
+
+        openModal('modal-view-document');
+    }
+        
     async function VerifyAdmin() {
             if (!window.supabaseClient) {
                 window.location.href = 'login.html';
@@ -1361,68 +1476,80 @@
         }
 
         function renderBillingTable() {
-            const tbody = document.getElementById('billing-table-tbody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-            const today = new Date();
+        const tbody = document.getElementById('billing-table-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
 
-            const missionFilterVal = document.getElementById('billing-mission-filter')?.value || 'all';
-            const paymentFilterVal = document.getElementById('billing-payment-filter')?.value || 'all';
+        const missionFilter = document.getElementById('billing-mission-filter')?.value || 'all';
+        const paymentFilter = document.getElementById('billing-payment-filter')?.value || 'all';
 
-            let filteredMissions = globalMissionsData.filter(m => {
-                const mStatus = m.matching_status || 'Nouveau';
-                const pStatus = m.payment_status || 'Facture non envoyée';
-                let matchMission = (missionFilterVal === 'all' || mStatus === missionFilterVal);
-                let matchPayment = (paymentFilterVal === 'all' || pStatus.startsWith(paymentFilterVal));
-                return matchMission && matchPayment;
-            });
+        const filteredMissions = (window.globalMissionsData || []).filter(m => {
+            const matchMission = (missionFilter === 'all' || m.matching_status === missionFilter);
+            const matchPayment = (paymentFilter === 'all' || m.payment_status === paymentFilter);
+            return matchMission && matchPayment;
+        });
 
-            filteredMissions.forEach(m => {
-                const clientName = m.client ? m.client.full_name : 'Inconnu';
-                const amount = Number(m.total_amount) || 0;
-                const payType = m.payment_type || 'Facture';
-                const missionStatus = m.matching_status || 'Nouveau';
-
-                let paymentBadge = '';
-                const pStatus = m.payment_status || 'Facture non envoyée';
-
-                if (pStatus === 'Facture non envoyée') {
-                    paymentBadge = `<span class="bg-blue-100 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Facture non envoyée</span>`;
-                } else if (pStatus.startsWith('Facture envoyée')) {
-                    let daysElapsed = 0;
-                    if (m.invoice_sent_date) {
-                        const sentDate = new Date(m.invoice_sent_date);
-                        daysElapsed = Math.floor((today - sentDate) / (1000 * 60 * 60 * 24));
-                    }
-                    if (daysElapsed > 30) {
-                        const overdueDays = daysElapsed - 30;
-                        paymentBadge = `<span class="bg-red-100 text-lkdm-accent border border-red-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Facture en retard de ${overdueDays} j.</span>`;
-                    } else {
-                        paymentBadge = `<span class="bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Facture envoyée (${daysElapsed} j.)</span>`;
-                    }
-                } else if (pStatus === 'Payé') {
-                    paymentBadge = `<span class="bg-emerald-100 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Payé ✓</span>`;
-                }
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-3 font-bold cursor-pointer text-lkdm-accent" onclick="openEditMissionModal('${m.id}')">${m.mission_code}</td>
-                        <td class="p-3">${clientName}</td>
-                        <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${getStatusColorClass(missionStatus)}">${missionStatus}</span></td>
-                        <td class="p-3 font-semibold">CHF ${amount.toFixed(2)}</td>
-                        <td class="p-3 font-medium text-slate-600">${payType}</td>
-                        <td class="p-3">${paymentBadge}</td>
-                        <td class="p-3 text-right space-x-1">
-                            <button onclick="generateDoc('${m.id}', 'Facture')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Générer Facture"><i class="fa-solid fa-file-invoice"></i></button>
-                            <button onclick="generateDoc('${m.id}', 'Quittance')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Générer Quittance"><i class="fa-solid fa-receipt"></i></button>
-                            <button onclick="generateDoc('${m.id}', 'Rapport')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Rapport"><i class="fa-solid fa-flag-checkered"></i></button>
-                            <button onclick="sendBillingEmail('${m.id}', '${clientName}')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-bold"><i class="fa-solid fa-paper-plane"></i> Envoyer</button>
-                            <button onclick="validatePayment('${m.id}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold"><i class="fa-solid fa-check"></i> Valider</button>
-                        </td>
-                    </tr>
-                `;
-            });
+        if (filteredMissions.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400 italic">Aucune mission trouvée.</td></tr>`;
+            return;
         }
+
+        filteredMissions.forEach(m => {
+            const client = (window.globalProfilesData || []).find(p => p.id === m.client_id) || {};
+            const clientName = client.full_name || `${client.firstname || ''} ${client.lastname || ''}`.trim() || 'Client inconnu';
+            const clientEmail = client.email || '';
+            const amount = m.amount_chf ? `CHF ${Number(m.amount_chf).toFixed(2)}` : 'CHF 0.00';
+            const paymentType = m.payment_type || 'Facture';
+            const paymentStatus = m.payment_status || 'Facture non envoyée';
+            const missionCode = m.mission_code || 'M...';
+
+            tbody.innerHTML += `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="p-3 font-semibold text-lkdm-text">${missionCode}</td>
+                    <td class="p-3 text-slate-700">${clientName}</td>
+                    <td class="p-3">
+                        <span class="px-2 py-1 bg-slate-100 rounded-md text-[10px] font-medium text-slate-600">${m.matching_status || 'Nouveau'}</span>
+                    </td>
+                    <td class="p-3 font-semibold text-lkdm-text">${amount}</td>
+                    <td class="p-3 text-slate-500">${paymentType}</td>
+                    <td class="p-3">
+                        <span class="px-2 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-md text-[10px] font-medium">${paymentStatus}</span>
+                    </td>
+                    <td class="p-3 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <!-- Groupe Facture -->
+                            <div class="flex items-center bg-slate-50 border rounded-lg p-0.5">
+                                <button type="button" onclick="previewDocument('Facture', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-slate-600 text-xs px-1.5" title="Générer / Voir la Facture">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                                <button type="button" onclick="openEmailModal('Facture', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-lkdm-accent text-xs px-1.5 border-l" title="Envoyer la Facture">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                            </div>
+                            <!-- Groupe Quittance -->
+                            <div class="flex items-center bg-emerald-50/50 border border-emerald-200 rounded-lg p-0.5">
+                                <button type="button" onclick="previewDocument('Quittance', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-emerald-700 text-xs px-1.5" title="Générer / Voir la Quittance">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                                <button type="button" onclick="openEmailModal('Quittance', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-emerald-700 text-xs px-1.5 border-l border-emerald-200" title="Envoyer la Quittance">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                            </div>
+                            <!-- Groupe Rapport -->
+                            <div class="flex items-center bg-blue-50/50 border border-blue-200 rounded-lg p-0.5">
+                                <button type="button" onclick="previewDocument('Rapport', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-blue-700 text-xs px-1.5" title="Générer / Voir le Rapport">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                                <button type="button" onclick="openEmailModal('Rapport', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-blue-700 text-xs px-1.5 border-l border-blue-200" title="Envoyer le Rapport">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+    }
 
         function generateDoc(missionId, docType) {
             alert(`[Génération 1-clic] ${docType} générée avec succès.`);
