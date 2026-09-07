@@ -1484,8 +1484,11 @@
         const paymentFilter = document.getElementById('billing-payment-filter')?.value || 'all';
 
         const filteredMissions = (window.globalMissionsData || []).filter(m => {
-            const matchMission = (missionFilter === 'all' || m.matching_status === missionFilter);
-            const matchPayment = (paymentFilter === 'all' || m.payment_status === paymentFilter);
+            const mStatus = (m.matching_status || "").trim();
+            const pStatus = (m.payment_status || "Facture non envoyée").trim();
+
+            const matchMission = (missionFilter === 'all' || mStatus === missionFilter);
+            const matchPayment = (paymentFilter === 'all' || pStatus === paymentFilter);
             return matchMission && matchPayment;
         });
 
@@ -1495,10 +1498,11 @@
         }
 
         filteredMissions.forEach(m => {
-            const client = (window.globalProfilesData || []).find(p => p.id === m.client_id) || {};
-            const clientName = client.full_name || `${client.firstname || ''} ${client.lastname || ''}`.trim() || 'Client inconnu';
+            // Utilisation correcte de globalClientsData pour retrouver le client lié
+            const client = (window.globalClientsData || []).find(p => p.id === m.client_id) || {};
+            const clientName = client.full_name || `${client.first_name || ''} ${client.last_name || ''}`.trim() || 'Client inconnu';
             const clientEmail = client.email || '';
-            const amount = m.amount_chf ? `CHF ${Number(m.amount_chf).toFixed(2)}` : 'CHF 0.00';
+            const amount = m.total_amount ? `CHF ${Number(m.total_amount).toFixed(2)}` : 'CHF 0.00';
             const paymentType = m.payment_type || 'Facture';
             const paymentStatus = m.payment_status || 'Facture non envoyée';
             const missionCode = m.mission_code || 'M...';
@@ -1519,7 +1523,7 @@
                         <div class="flex items-center justify-end gap-2">
                             <!-- Groupe Facture -->
                             <div class="flex items-center bg-slate-50 border rounded-lg p-0.5">
-                                <button type="button" onclick="previewDocument('Facture', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-slate-600 text-xs px-1.5" title="Générer / Voir la Facture">
+                                <button type="button" onclick="generateAndSaveDocument('Facture', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-slate-600 text-xs px-1.5" title="Générer / Voir la Facture">
                                     <i class="fa-solid fa-eye"></i>
                                 </button>
                                 <button type="button" onclick="openEmailModal('Facture', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-lkdm-accent text-xs px-1.5 border-l" title="Envoyer la Facture">
@@ -1528,7 +1532,7 @@
                             </div>
                             <!-- Groupe Quittance -->
                             <div class="flex items-center bg-emerald-50/50 border border-emerald-200 rounded-lg p-0.5">
-                                <button type="button" onclick="previewDocument('Quittance', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-emerald-700 text-xs px-1.5" title="Générer / Voir la Quittance">
+                                <button type="button" onclick="generateAndSaveDocument('Quittance', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-emerald-700 text-xs px-1.5" title="Générer / Voir la Quittance">
                                     <i class="fa-solid fa-eye"></i>
                                 </button>
                                 <button type="button" onclick="openEmailModal('Quittance', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-emerald-700 text-xs px-1.5 border-l border-emerald-200" title="Envoyer la Quittance">
@@ -1537,7 +1541,7 @@
                             </div>
                             <!-- Groupe Rapport -->
                             <div class="flex items-center bg-blue-50/50 border border-blue-200 rounded-lg p-0.5">
-                                <button type="button" onclick="previewDocument('Rapport', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-blue-700 text-xs px-1.5" title="Générer / Voir le Rapport">
+                                <button type="button" onclick="generateAndSaveDocument('Rapport', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-blue-700 text-xs px-1.5" title="Générer / Voir le Rapport">
                                     <i class="fa-solid fa-eye"></i>
                                 </button>
                                 <button type="button" onclick="openEmailModal('Rapport', '${missionCode}', '${clientEmail}', '${clientName}')" class="p-1 hover:bg-white rounded text-blue-700 text-xs px-1.5 border-l border-blue-200" title="Envoyer le Rapport">
