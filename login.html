@@ -141,8 +141,9 @@
             const email = document.getElementById('forgot-email').value.trim();
             if (!email) return;
 
+            // Redirection vers reset_password.html lors du clic sur le lien de l'e-mail
             const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email, {
-                redirectTo: window.location.origin + '/settings.html',
+                redirectTo: window.location.origin + '/reset_password.html',
             });
 
             if (error) {
