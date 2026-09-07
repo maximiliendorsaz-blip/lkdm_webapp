@@ -1565,39 +1565,63 @@
         }
 
         async function generateAndSaveDocument(docType, missionCode, clientEmail, clientName) {
-            console.log("Génération demandée pour la mission :", missionCode);
+            console.log("Génération demandée pour la mission (code ou ID) :", missionCode);
 
-            // 1. Recherche directe et propre dans la liste globale des missions déjà chargée
-            const mission = (window.globalMissionsData || []).find(m => 
-                String(m.mission_code || '').trim() === String(missionCode || '').trim() || 
+            // 1. Recherche directe dans la liste globale des missions en mémoire
+            let mission = (window.globalMissionsData || []).find(m => 
+                String(m.mission_code || '').trim().toLowerCase() === String(missionCode || '').trim().toLowerCase() || 
                 String(m.id) === String(missionCode)
-            ) || {};
+            );
 
-            // 2. Récupération directe du client associé (via l'objet joint `mission.client` ou `globalClientsData`)
-            const client = mission.client || mission.profiles || (window.globalClientsData || []).find(c => 
-                String(c.id) === String(mission.client_id) || 
-                (c.full_name && c.full_name.toLowerCase() === (clientName || '').toLowerCase())
-            ) || {};
+            // Secours : si non trouvée en mémoire, on interroge directement Supabase avec vos colonnes exactes
+            if (!mission && window.supabaseClient) {
+                const { data: dbMission, error: mErr } = await window.supabaseClient
+                    .from('missions')
+                    .select('*')
+                    .or(`mission_code.eq.${missionCode},id.eq.${missionCode}`)
+                    .maybeSingle();
 
-            // 3. Extraction fidèle et sécurisée des données (plus de "NaN" ni de "Adresse non renseignée")
-            const address = client.address || client.rue || client.street || 'Adresse non renseignée';
-            const npa = client.npa || client.zip || '';
-            const city = client.city || client.ville || '';
-            const description = mission.exact_description || mission.description || 'Intervention Koup de Main';
+                if (!mErr && dbMission) {
+                    mission = dbMission;
+                }
+            }
+            mission = mission || {};
+
+            // 2. Recherche du client dans globalClientsData via client_id
+            let client = (window.globalClientsData || []).find(c => 
+                String(c.id) === String(mission.client_id)
+            );
+
+            // Secours : si non trouvé en mémoire, on va le chercher dans la table profiles
+            if (!client && mission.client_id && window.supabaseClient) {
+                const { data: dbClient, error: cErr } = await window.supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', mission.client_id)
+                    .maybeSingle();
+
+                if (!cErr && dbClient) {
+                    client = dbClient;
+                }
+            }
+            client = client || {};
+
+            // 3. Extraction exacte basée sur vos colonnes (address, npa, city, real_hours, total_amount, travel_expenses, exact_description)
+            const address = client.address || 'Adresse non renseignée';
+            const npa = client.npa || '';
+            const city = client.city || '';
+            const description = mission.exact_description || 'Intervention Koup de Main';
             
-            // Heures
-            const realH = parseFloat(mission.real_hours);
-            const estH = parseFloat(mission.estimated_hours);
-            const hoursVal = !isNaN(realH) && realH > 0 ? realH : (!isNaN(estH) && estH > 0 ? estH : 2.0);
+            // Heures effectives (colonne real_hours)
+            const hoursVal = Number(mission.real_hours) > 0 ? Number(mission.real_hours) : 2.0;
             const hoursStr = `${hoursVal} h`;
             
-            // Montants (Prestation + Frais de déplacement)
-            const dbTotal = parseFloat(mission.total_amount);
-            const baseAmount = !isNaN(dbTotal) && dbTotal > 0 ? dbTotal : (hoursVal * 35.00);
+            // Montants (colonne total_amount et travel_expenses)
+            const baseAmount = mission.total_amount !== null && mission.total_amount !== undefined 
+                ? Number(mission.total_amount) 
+                : (hoursVal * 35.00);
 
-            const travelFee = parseFloat(mission.travel_expenses || mission.travel_fee);
-            const travelExpenses = !isNaN(travelFee) ? travelFee : 0;
-
+            const travelExpenses = Number(mission.travel_expenses || 0);
             const totalAmountVal = baseAmount + travelExpenses;
             
             const amount = totalAmountVal.toFixed(2);
@@ -1606,7 +1630,7 @@
             const subtotal = amount;
             const currentDate = new Date().toLocaleDateString('fr-CH');
             
-            const finalClientName = client.full_name || client.name || clientName || 'Client LKDM';
+            const finalClientName = client.full_name || clientName || 'Client LKDM';
             const finalMissionCode = mission.mission_code || missionCode || 'M2026_X';
             const finalClientEmail = client.email || clientEmail || '';
 
@@ -1741,21 +1765,21 @@
                 </div>`;
             }
 
-            // Enregistrement sécurisé dans Supabase (sans déclencher d'erreur 400)
+            // Enregistrement automatique dans la table documents (sans colonnes superflues pour éviter le 400)
             try {
                 await window.supabaseClient
                     .from('documents')
                     .insert([{
                         title: docTitle,
                         doc_type: docType,
-                        client_id: client.id || mission.client_id || null,
+                        client_id: mission.client_id || null,
                         mission_id: mission.id || null
                     }]);
             } catch (err) {
-                console.error("Erreur enregistrement DB :", err);
+                console.error("Erreur enregistrement DB documents :", err);
             }
 
-            // Affichage dans la modale
+            // Affichage de la modale de prévisualisation
             const container = document.getElementById('document-preview-container');
             if (container) container.innerHTML = templateHtml;
 
