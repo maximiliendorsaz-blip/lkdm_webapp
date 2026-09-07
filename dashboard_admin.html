@@ -1570,7 +1570,7 @@
                 String(m.mission_code) === String(missionCode) || String(m.id) === String(missionCode)
             );
 
-            // Si non trouvée en local, recherche de secours directe dans Supabase
+            // Si non trouvée en local, recherche directe dans Supabase
             if (!mission && window.supabaseClient) {
                 const { data: dbMission } = await window.supabaseClient
                     .from('missions')
@@ -1581,7 +1581,7 @@
             }
             mission = mission || {};
 
-            // 2. Recherche du client associé (local ou Supabase)
+            // 2. Recherche du client associé
             let client = (window.globalClientsData || []).find(c => 
                 String(c.id) === String(mission.client_id) || (c.full_name && c.full_name === clientName)
             );
@@ -1596,18 +1596,21 @@
             }
             client = client || {};
 
-            // 3. Extraction des données dynamiques de la DB
+            // 3. Extraction fidèle des données de la mission (Heures réelles/estimées et montant total)
             const address = client.address || client.rue || 'Adresse non renseignée';
             const npa = client.npa || client.zip || '1950';
             const city = client.city || client.ville || 'Sion';
             const description = mission.exact_description || mission.description || 'Intervention Koup de Main';
             
-            // Heures
+            // Priorité absolue aux heures enregistrées dans la DB (real_hours puis estimated_hours)
             const hoursVal = Number(mission.real_hours) || Number(mission.estimated_hours) || 2.0;
             const hoursStr = `${hoursVal} h`;
             
-            // Calculs financiers précis (Prestation + Frais de déplacement 'travel_expenses')
-            const baseAmount = Number(mission.total_amount) || (hoursVal * 35.00);
+            // Priorité absolue au montant total de la mission en DB, sinon calcul basé sur 35.-/h
+            const baseAmount = mission.total_amount !== null && mission.total_amount !== undefined 
+                ? Number(mission.total_amount) 
+                : (hoursVal * 35.00);
+
             const travelExpenses = Number(mission.travel_expenses || mission.travel_fee || 0);
             const totalAmountVal = baseAmount + travelExpenses;
             
@@ -1624,7 +1627,6 @@
             let docTitle = `${docType} - ${finalMissionCode} - ${finalClientName}`;
 
             if (docType === 'Facture') {
-                // Construction dynamique des lignes du tableau (Prestation + Déplacement si existant)
                 let tableRowsHtml = `
                     <tr>
                         <td class="p-4 text-slate-700">${description}</td>
@@ -1709,11 +1711,11 @@
                             <p class="text-xs text-slate-500">1950 Sion, Valais</p>
                         </div>
                     </div>
-                    <p class="text-xs text-slate-600 mb-8 leading-relaxed">Nous confirmons par la présente la réception du paiement intégral pour la mission <strong>${finalMissionCode}</strong> (frais de déplacement inclus).</p>
+                    <p class="text-xs text-slate-600 mb-8 leading-relaxed">Nous confirmons par la présente la réception du paiement intégral pour la mission <strong>${finalMissionCode}</strong>.</p>
                     <div class="bg-emerald-50/60 p-6 rounded-2xl border border-emerald-200 text-xs mb-10 space-y-3">
                         <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Client / Bénéficiaire :</span><span class="font-bold text-slate-800 text-sm">${finalClientName}</span></div>
                         <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Référence Mission :</span><span class="font-semibold text-emerald-800">${finalMissionCode}</span></div>
-                        <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Montant acquitté total :</span><span class="font-bold text-emerald-800 text-base">CHF ${amount}</span></div>
+                        <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Montant acquitté :</span><span class="font-bold text-emerald-800 text-base">CHF ${amount}</span></div>
                         <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Date de règlement :</span><span class="font-semibold text-slate-800">${currentDate}</span></div>
                         <div class="flex justify-between"><span class="text-slate-500">Moyen de règlement :</span><span class="font-semibold text-slate-800">Facture / TWINT</span></div>
                     </div>
@@ -1767,7 +1769,7 @@
                 console.error("Erreur enregistrement DB :", err);
             }
 
-            // Affichage dans la modale de prévisualisation
+            // Affichage de la modale
             const container = document.getElementById('document-preview-container');
             if (container) container.innerHTML = templateHtml;
 
