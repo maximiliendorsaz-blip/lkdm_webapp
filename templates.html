@@ -36,7 +36,7 @@
         <span class="text-xs font-bold text-slate-500 uppercase">Aperçu Document officiel LKDM</span>
         <div class="flex gap-3">
             <button onclick="window.print()" class="px-4 py-2 bg-lkdm-accent text-white rounded-xl text-xs font-medium shadow-sm hover:bg-[#b53838]">
-                <i class="fa-solid fa-file-pdf mr-1"></i> Télécharger en PDF / Imprimer
+                Télécharger en PDF / Imprimer
             </button>
         </div>
     </div>
@@ -74,6 +74,7 @@
                 </div>
             </div>
 
+            <!-- Tableau des prestations corrigé (lignes séparées proprement) -->
             <table class="w-full mb-10 border-collapse text-xs">
                 <thead>
                     <tr class="bg-lkdm-text text-white text-left">
@@ -84,28 +85,35 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     <tr>
-                        <td class="p-4 text-slate-700" id="fac-desc">Intervention Koup de Main</td>
-                        <td class="p-4 text-center font-medium" id="fac-hours">2.0 h</td>
-                        <td class="p-4 text-right font-bold text-lkdm-text" id="fac-amount">CHF 70.00</td><br>
-                        <td class="p-4 text-slate-700" id="fac-desc">Déplacement</td>
-                        <td class="p-4 text-center font-medium" id="fac-hours">20 km</td>
-                        <td class="p-4 text-right font-bold text-lkdm-text" id="fac-amount">CHF 15.00</td>                        
+                        <td class="p-4 text-slate-700">Intervention Koup de Main</td>
+                        <td class="p-4 text-center font-medium">2.0 h</td>
+                        <td class="p-4 text-right font-bold text-lkdm-text">CHF 70.00</td>
+                    </tr>
+                    <tr>
+                        <td class="p-4 text-slate-700">Déplacement</td>
+                        <td class="p-4 text-center font-medium">20 km</td>
+                        <td class="p-4 text-right font-bold text-lkdm-text">CHF 15.00</td>
                     </tr>
                 </tbody>
             </table>
 
+            <!-- Bloc totaux parfaitement structuré -->
             <div class="flex justify-end mb-16">
-                <div class="w-72 space-y-2 text-xs bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                <div class="w-80 space-y-2.5 text-xs bg-slate-50 p-5 rounded-2xl border border-slate-200">
                     <div class="flex justify-between py-1 border-b border-slate-200">
                         <span class="text-slate-500">Sous-total</span>
-                        <span class="font-semibold" id="fac-subtotal">CHF 85.00</span><br>
+                        <span class="font-semibold">CHF 85.00</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-slate-200">
                         <span class="text-slate-500">TVA 0%</span>
-                        <span class="font-semibold" id="fac-subtotal">CHF 0.00</span>
+                        <span class="font-semibold">CHF 0.00</span>
                     </div>
                     <div class="flex justify-between py-1.5 text-sm font-bold text-lkdm-text">
                         <span>Total à payer</span>
-                        <span id="fac-total">CHF 85.00</span><br>
-                        <span>IBAN : CH94 8080 8003 6095 4058 7</span>
+                        <span>CHF 85.00</span>
+                    </div>
+                    <div class="pt-2 border-t border-slate-200 text-[11px] font-semibold text-slate-600">
+                        IBAN : CH94 8080 8003 6095 4058 7
                     </div>
                 </div>
             </div>
@@ -148,7 +156,7 @@
                     <span class="text-slate-500">Montant acquitté :</span>
                     <span class="font-bold text-emerald-800 text-base" id="qui-amount">CHF 85.00</span>
                 </div>
-                <div class="flex justify-between">
+                <div class="flex justify-between border-b border-emerald-200 pb-2">
                     <span class="text-slate-500">Date de règlement :</span>
                     <span class="font-semibold text-slate-800" id="qui-date">07.09.2026</span>
                 </div>
