@@ -208,6 +208,7 @@
             const phone = document.getElementById('pub-phone').value.trim();
             const firstname = document.getElementById('pub-firstname').value.trim();
             const lastname = document.getElementById('pub-lastname').value.trim();
+            const fullName = `${firstname} ${lastname}`.trim();
         
             try {
                 let profileId = null;
@@ -223,6 +224,7 @@
                     const { data: newProfile, error: profileError } = await window.supabaseClient
                         .from('profiles')
                         .insert([{
+                            full_name: fullName,
                             first_name: firstname,
                             last_name: lastname,
                             email: email,
