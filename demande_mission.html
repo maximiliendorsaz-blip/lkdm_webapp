@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Configuration centralisée LKDM -->
+    <script src="config.js"></script>
     <!-- Configuration Supabase -->
     <script src="supabase-config.js"></script>
 </head>
@@ -30,7 +32,7 @@
     <main class="flex-1 max-w-2xl w-full mx-auto px-4 py-12">
         <div class="bg-white p-8 md:p-10 rounded-3xl border border-slate-200/80 shadow-xl space-y-8">
             
-            <div class="text-space space-y-2">
+            <div class="space-y-2">
                 <span class="text-xs font-semibold uppercase tracking-wider text-lkdm-secondary">Service d'aide valaisan</span>
                 <h1 class="text-2xl md:text-3xl font-bold text-lkdm-text">Demander un Koup de Main</h1>
                 <p class="text-xs text-slate-500">Remplissez ce formulaire pour soumettre votre besoin. Notre équipe valaisanne vous contactera rapidement.</p>
@@ -74,14 +76,14 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-600 mb-1">NPA *</label>
-                            <input type="text" id="pub-npa" required placeholder="1950" oninput="syncPublicLocation()" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-lkdm-accent">
+                            <input type="text" id="pub-npa" required placeholder="1950" oninput="syncValaisLocation('npa')" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-lkdm-accent">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-slate-600 mb-1">Localité *</label>
-                            <input type="text" id="pub-city" required placeholder="Sion" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-lkdm-accent">
+                            <input type="text" id="pub-city" required placeholder="Sion" oninput="syncValaisLocation('city')" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-lkdm-accent">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-600 mb-1">Date de naissance *</label>
@@ -99,21 +101,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-slate-600 mb-1">Langue *</label>
-                            <select id="pub-lang" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2.5 text-xs">
-                                <option value="Français">Français</option>
-                                <option value="Allemand">Allemand</option>
-                                <option value="Anglais">Anglais</option>
-                            </select>
+                            <select id="pub-lang" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2.5 text-xs"></select>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-600 mb-1">Type d'origine *</label>
-                            <select id="pub-srctype" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2.5 text-xs">
-                                <option value="Bouche à oreille">Bouche à oreille</option>
-                                <option value="Réseaux sociaux">Réseaux sociaux</option>
-                                <option value="Recherche Google">Recherche Google</option>
-                                <option value="Proche / Famille">Proche / Famille</option>
-                                <option value="Autre">Autre</option>
-                            </select>
+                            <select id="pub-srctype" required class="w-full bg-lkdm-bg border border-slate-200 rounded-xl px-3 py-2.5 text-xs"></select>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-600 mb-1">Origine précise *</label>
@@ -128,7 +120,7 @@
 
                     <div>
                         <label class="block text-xs font-bold text-slate-600 mb-1">Description exacte de la mission *</label>
-                        <textarea id="pub-desc" required rows="3" placeholder="Décrivez précisément ce dont vous avez besoin (ex: aide au jardinage, courses, compagnie...)" class="w-full bg-lkdm-bg border border-slate-200 rounded-xl p-3 text-xs focus:outline-none focus:border-lkdm-accent"></textarea>
+                        <textarea id="pub-desc" required rows="3" placeholder="Décrivez précisément ce dont vous avez besoin..." class="w-full bg-lkdm-bg border border-slate-200 rounded-xl p-3 text-xs focus:outline-none focus:border-lkdm-accent"></textarea>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -154,13 +146,50 @@
     </main>
 
     <script>
-        // Synchronisation automatique de la ville selon le NPA (ex: 1950 -> Sion, 3960 -> Sierre, 1920 -> Martigny)
-        function syncPublicLocation() {
-            const npa = document.getElementById('pub-npa').value.trim();
-            const cityInput = document.getElementById('pub-city');
-            if (npa === '1950') cityInput.value = 'Sion';
-            else if (npa === '3960') cityInput.value = 'Sierre';
-            else if (npa === '1920') cityInput.value = 'Martigny';
+        // Initialisation automatique des listes déroulantes basées sur config.js au chargement
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!window.LKDM_CONFIG) return;
+
+            // Remplissage Langues
+            const langSelect = document.getElementById('pub-lang');
+            if (langSelect) {
+                langSelect.innerHTML = window.LKDM_CONFIG.languages.map(l => `<option value="${l}">${l}</option>`).join('');
+            }
+
+            // Remplissage Type d'origine
+            const srcTypeSelect = document.getElementById('pub-srctype');
+            if (srcTypeSelect) {
+                srcTypeSelect.innerHTML = window.LKDM_CONFIG.prospectSourceTypes.map(st => `<option value="${st}">${st}</option>`).join('');
+            }
+
+            // Initialisation des suggestions d'origine (via config)
+            if (typeof window.LKDM_CONFIG.initProspectSourceInput === 'function') {
+                window.LKDM_CONFIG.initProspectSourceInput('pub-src', 'pub-sources-suggestions');
+            }
+        });
+
+        // Synchronisation bidirectionnelle NPA <=> Localité via config.js (valaisZipMap)
+        function syncValaisLocation(field) {
+            const zipMap = window.LKDM_CONFIG?.valaisZipMap;
+            if (!zipMap) return;
+
+            if (field === 'npa') {
+                const npaVal = document.getElementById('pub-npa').value.trim();
+                const cityInput = document.getElementById('pub-city');
+                if (zipMap[npaVal]) {
+                    cityInput.value = zipMap[npaVal];
+                }
+            } else if (field === 'city') {
+                const cityVal = document.getElementById('pub-city').value.trim();
+                const npaInput = document.getElementById('pub-npa').value;
+                // Recherche inverse dans la map
+                for (const [key, value] of Object.entries(zipMap)) {
+                    if (value.toLowerCase() === cityVal.toLowerCase()) {
+                        npaInput.value = key;
+                        break;
+                    }
+                }
+            }
         }
 
         async function submitPublicMissionRequest(e) {
@@ -178,18 +207,16 @@
             const lastname = document.getElementById('pub-lastname').value.trim();
 
             try {
-                // 1. Vérifier si un profil client existe déjà avec cet email dans la table profiles
                 let profileId = null;
-                const { data: existingProfiles, error: searchError } = await window.supabaseClient
+                const { data: existingProfile } = await window.supabaseClient
                     .from('profiles')
                     .select('id')
                     .eq('email', email)
                     .maybeSingle();
 
-                if (existingProfiles) {
-                    profileId = existingProfiles.id;
+                if (existingProfile) {
+                    profileId = existingProfile.id;
                 } else {
-                    // Création du profil client s'il n'existe pas
                     const { data: newProfile, error: profileError } = await window.supabaseClient
                         .from('profiles')
                         .insert([{
@@ -214,33 +241,28 @@
                     profileId = newProfile.id;
                 }
 
-                // 2. Générer un code de mission unique (ex: M2026_X)
                 const { count } = await window.supabaseClient.from('missions').select('*', { count: 'exact', head: true });
                 const nextNum = (count || 0) + 1;
                 const missionCode = `M2026_${nextNum}`;
 
-                // 3. Enregistrer la mission dans la table missions avec le statut "Nouveau"
                 const { error: missionError } = await window.supabaseClient
                     .from('missions')
                     .insert([{
                         mission_code: missionCode,
                         client_id: profileId,
-                        description: document.getElementById('pub-desc').value.trim(),
-                        language: document.getElementById('pub-lang').value,
-                        periods: document.getElementById('pub-periods').value.trim(),
+                        exact_description: document.getElementById('pub-desc').value.trim(),
+                        mission_language: document.getElementById('pub-lang').value,
+                        mission_periods: document.getElementById('pub-periods').value.trim(),
                         estimated_hours: Number(document.getElementById('pub-est-hours').value),
-                        matching_status: 'Nouveau',
-                        payment_type: 'Facture'
+                        matching_status: 'Nouveau'
                     }]);
 
                 if (missionError) throw missionError;
 
-                // Affichage du succès
                 alertBox.className = "p-4 rounded-xl text-xs font-medium border bg-emerald-50 text-emerald-700 border-emerald-200";
                 alertBox.innerText = "Votre demande a été transmise avec succès ! Notre équipe vous contactera très rapidement.";
                 alertBox.classList.remove('hidden');
                 
-                // Réinitialiser le formulaire
                 e.target.reset();
                 btn.innerText = "Demande envoyée avec succès";
 
