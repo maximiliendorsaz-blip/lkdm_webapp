@@ -223,8 +223,8 @@
                     const { data: newProfile, error: profileError } = await window.supabaseClient
                         .from('profiles')
                         .insert([{
-                            firstname: firstname,
-                            lastname: lastname,
+                            first_name: firstname,
+                            last_name: lastname,
                             email: email,
                             phone: phone,
                             address: document.getElementById('pub-address').value.trim(),
