@@ -1565,17 +1565,26 @@
         }
 
         async function generateAndSaveDocument(docType, missionCode, clientEmail, clientName) {
-            // 1. Recherche de la mission (par code ou par ID) dans les données globales
+            // 1. Recherche robuste de la mission
             let mission = (window.globalMissionsData || []).find(m => 
                 String(m.mission_code) === String(missionCode) || String(m.id) === String(missionCode)
-            ) || {};
+            );
 
-            // 2. Récupération directe du client depuis l'objet joint (mission.client) ou les tableaux globaux
-            let client = mission.client || (window.globalClientsData || []).find(c => 
+            if (!mission && window.supabaseClient) {
+                const { data: dbMission } = await window.supabaseClient
+                    .from('missions')
+                    .select('*')
+                    .or(`mission_code.eq.${missionCode},id.eq.${missionCode}`)
+                    .maybeSingle();
+                if (dbMission) mission = dbMission;
+            }
+            mission = mission || {};
+
+            // 2. Recherche robuste du client (via mission.client, mission.profiles ou globalClientsData)
+            let client = mission.client || mission.profiles || (window.globalClientsData || []).find(c => 
                 String(c.id) === String(mission.client_id) || (c.full_name && c.full_name === clientName)
             ) || {};
-            
-            // Si le client n'est toujours pas trouvé, recherche de secours dans Supabase
+
             if (!client.id && mission.client_id && window.supabaseClient) {
                 const { data: dbClient } = await window.supabaseClient
                     .from('profiles')
@@ -1585,24 +1594,25 @@
                 if (dbClient) client = dbClient;
             }
 
-            // 3. Extraction exacte des valeurs de la mission et du profil client
-            const address = client.address || client.rue || 'Adresse non renseignée';
+            // 3. Extraction sécurisée avec protections contre les NaN et undefined
+            const address = client.address || client.rue || client.street || 'Adresse non renseignée';
             const npa = client.npa || client.zip || '';
             const city = client.city || client.ville || '';
-            
-            // Description exacte de la mission
             const description = mission.exact_description || mission.description || 'Intervention Koup de Main';
             
-            // Heures effectives ou estimées de la mission
-            const hoursVal = Number(mission.real_hours) !== 0 ? Number(mission.real_hours) : (Number(mission.estimated_hours) || 2.0);
+            // Sécurisation stricte des heures (évite le NaN h)
+            const realH = parseFloat(mission.real_hours);
+            const estH = parseFloat(mission.estimated_hours);
+            const hoursVal = !isNaN(realH) && realH > 0 ? realH : (!isNaN(estH) && estH > 0 ? estH : 2.0);
             const hoursStr = `${hoursVal} h`;
             
-            // Montant total et frais de déplacement
-            const baseAmount = mission.total_amount !== null && mission.total_amount !== undefined 
-                ? Number(mission.total_amount) 
-                : (hoursVal * 35.00);
+            // Sécurisation stricte du montant et des frais de déplacement (évite le CHF NaN)
+            const dbTotal = parseFloat(mission.total_amount);
+            const baseAmount = !isNaN(dbTotal) ? dbTotal : (hoursVal * 35.00);
 
-            const travelExpenses = Number(mission.travel_expenses || mission.travel_fee || 0);
+            const travelFee = parseFloat(mission.travel_expenses || mission.travel_fee);
+            const travelExpenses = !isNaN(travelFee) ? travelFee : 0;
+
             const totalAmountVal = baseAmount + travelExpenses;
             
             const amount = totalAmountVal.toFixed(2);
@@ -1610,6 +1620,7 @@
             const travelExpensesStr = travelExpenses.toFixed(2);
             const subtotal = amount;
             const currentDate = new Date().toLocaleDateString('fr-CH');
+            
             const finalClientName = client.full_name || client.name || clientName || 'Client LKDM';
             const finalMissionCode = mission.mission_code || missionCode || 'M2026_X';
             const finalClientEmail = client.email || clientEmail || '';
