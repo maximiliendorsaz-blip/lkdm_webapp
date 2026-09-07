@@ -1565,58 +1565,70 @@
         }
 
         async function generateAndSaveDocument(docType, missionCode, clientEmail, clientName) {
-            console.log("Génération demandée pour la mission (code ou ID) :", missionCode);
+            console.log("=== DÉBUT GÉNÉRATION DIRECTE DEPUIS SUPABASE ===");
+            console.log("Paramètres reçus -> Type:", docType, "| Code/ID Mission:", missionCode);
 
-            // 1. Recherche directe dans la liste globale des missions en mémoire
-            let mission = (window.globalMissionsData || []).find(m => 
-                String(m.mission_code || '').trim().toLowerCase() === String(missionCode || '').trim().toLowerCase() || 
-                String(m.id) === String(missionCode)
-            );
+            if (!window.supabaseClient) {
+                alert("Erreur critique : Le client Supabase n'est pas initialisé.");
+                return;
+            }
 
-            // Secours : si non trouvée en mémoire, on interroge directement Supabase avec vos colonnes exactes
-            if (!mission && window.supabaseClient) {
-                const { data: dbMission, error: mErr } = await window.supabaseClient
+            // 1. Récupération directe de la mission dans Supabase par son code ou son ID
+            let mission = null;
+            const { data: mByCode, error: errCode } = await window.supabaseClient
+                .from('missions')
+                .select('*')
+                .eq('mission_code', missionCode)
+                .maybeSingle();
+
+            if (mByCode) {
+                mission = mByCode;
+            } else {
+                // Tentative par ID si le code échoue
+                const { data: mById, error: errId } = await window.supabaseClient
                     .from('missions')
                     .select('*')
-                    .or(`mission_code.eq.${missionCode},id.eq.${missionCode}`)
+                    .eq('id', missionCode)
                     .maybeSingle();
-
-                if (!mErr && dbMission) {
-                    mission = dbMission;
-                }
+                if (mById) mission = mById;
             }
-            mission = mission || {};
 
-            // 2. Recherche du client dans globalClientsData via client_id
-            let client = (window.globalClientsData || []).find(c => 
-                String(c.id) === String(mission.client_id)
-            );
+            if (!mission) {
+                alert("Impossible de trouver cette mission dans la base de données Supabase.");
+                console.error("Mission introuvable pour le code/ID :", missionCode);
+                return;
+            }
 
-            // Secours : si non trouvé en mémoire, on va le chercher dans la table profiles
-            if (!client && mission.client_id && window.supabaseClient) {
-                const { data: dbClient, error: cErr } = await window.supabaseClient
+            console.log("Mission trouvée en DB :", mission);
+
+            // 2. Récupération directe du client associé dans la table 'profiles' via client_id
+            let client = {};
+            if (mission.client_id) {
+                const { data: dbClient, error: errClient } = await window.supabaseClient
                     .from('profiles')
                     .select('*')
                     .eq('id', mission.client_id)
                     .maybeSingle();
 
-                if (!cErr && dbClient) {
+                if (!errClient && dbClient) {
                     client = dbClient;
+                    console.log("Client trouvé en DB :", client);
+                } else {
+                    console.warn("Client non trouvé pour l'ID :", mission.client_id);
                 }
             }
-            client = client || {};
 
-            // 3. Extraction exacte basée sur vos colonnes (address, npa, city, real_hours, total_amount, travel_expenses, exact_description)
+            // 3. Extraction et conversion des valeurs numériques
             const address = client.address || 'Adresse non renseignée';
             const npa = client.npa || '';
             const city = client.city || '';
             const description = mission.exact_description || 'Intervention Koup de Main';
             
-            // Heures effectives (colonne real_hours)
-            const hoursVal = Number(mission.real_hours) > 0 ? Number(mission.real_hours) : 2.0;
+            // Gestion des heures (real_hours ou estimated_hours)
+            const hoursVal = Number(mission.real_hours) > 0 ? Number(mission.real_hours) : (Number(mission.estimated_hours) || 2.0);
             const hoursStr = `${hoursVal} h`;
             
-            // Montants (colonne total_amount et travel_expenses)
+            // Gestion des montants et frais de déplacement
             const baseAmount = mission.total_amount !== null && mission.total_amount !== undefined 
                 ? Number(mission.total_amount) 
                 : (hoursVal * 35.00);
@@ -1633,6 +1645,8 @@
             const finalClientName = client.full_name || clientName || 'Client LKDM';
             const finalMissionCode = mission.mission_code || missionCode || 'M2026_X';
             const finalClientEmail = client.email || clientEmail || '';
+
+            console.log("Données injectées -> Adresse:", address, "| Heures:", hoursStr, "| Total:", amount);
 
             let templateHtml = "";
             let docTitle = `${docType} - ${finalMissionCode} - ${finalClientName}`;
@@ -1765,7 +1779,7 @@
                 </div>`;
             }
 
-            // Enregistrement automatique dans la table documents (sans colonnes superflues pour éviter le 400)
+            // Enregistrement automatique dans Supabase
             try {
                 await window.supabaseClient
                     .from('documents')
@@ -1779,7 +1793,7 @@
                 console.error("Erreur enregistrement DB documents :", err);
             }
 
-            // Affichage de la modale de prévisualisation
+            // Affichage dans la modale
             const container = document.getElementById('document-preview-container');
             if (container) container.innerHTML = templateHtml;
 
