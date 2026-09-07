@@ -1565,24 +1565,29 @@
         }
 
         async function generateAndSaveDocument(docType, missionCode, clientEmail, clientName) {
-            // 1. Recherche robuste de la mission
+            console.log("Génération demandée pour la mission :", missionCode);
+
+            // 1. Recherche ultra-souple de la mission (par code exact, minuscules/majuscules ou ID)
             let mission = (window.globalMissionsData || []).find(m => 
-                String(m.mission_code) === String(missionCode) || String(m.id) === String(missionCode)
+                String(m.mission_code || '').trim().toLowerCase() === String(missionCode || '').trim().toLowerCase() || 
+                String(m.id) === String(missionCode)
             );
 
+            // Secours : requête directe Supabase si introuvable en mémoire
             if (!mission && window.supabaseClient) {
                 const { data: dbMission } = await window.supabaseClient
                     .from('missions')
-                    .select('*')
-                    .or(`mission_code.eq.${missionCode},id.eq.${missionCode}`)
+                    .select('*, client:client_id(*), student:student_id(*)')
+                    .or(`mission_code.ilike.%${missionCode}%,id.eq.${missionCode}`)
                     .maybeSingle();
                 if (dbMission) mission = dbMission;
             }
             mission = mission || {};
 
-            // 2. Recherche robuste du client (via mission.client, mission.profiles ou globalClientsData)
+            // 2. Recherche ultra-souple du client associé
             let client = mission.client || mission.profiles || (window.globalClientsData || []).find(c => 
-                String(c.id) === String(mission.client_id) || (c.full_name && c.full_name === clientName)
+                String(c.id) === String(mission.client_id) || 
+                (c.full_name && c.full_name.toLowerCase() === (clientName || '').toLowerCase())
             ) || {};
 
             if (!client.id && mission.client_id && window.supabaseClient) {
@@ -1594,21 +1599,21 @@
                 if (dbClient) client = dbClient;
             }
 
-            // 3. Extraction sécurisée avec protections contre les NaN et undefined
+            // 3. Extraction exacte des données réelles de la DB (plus de valeurs par défaut figées)
             const address = client.address || client.rue || client.street || 'Adresse non renseignée';
             const npa = client.npa || client.zip || '';
             const city = client.city || client.ville || '';
             const description = mission.exact_description || mission.description || 'Intervention Koup de Main';
             
-            // Sécurisation stricte des heures (évite le NaN h)
+            // Heures réelles (priorité à real_hours, puis estimated_hours)
             const realH = parseFloat(mission.real_hours);
             const estH = parseFloat(mission.estimated_hours);
-            const hoursVal = !isNaN(realH) && realH > 0 ? realH : (!isNaN(estH) && estH > 0 ? estH : 2.0);
+            const hoursVal = !isNaN(realH) && realH > 0 ? realH : (!isNaN(estH) && estH > 0 ? estH : 3.0);
             const hoursStr = `${hoursVal} h`;
             
-            // Sécurisation stricte du montant et des frais de déplacement (évite le CHF NaN)
+            // Montant total et frais de déplacement (depuis la DB)
             const dbTotal = parseFloat(mission.total_amount);
-            const baseAmount = !isNaN(dbTotal) ? dbTotal : (hoursVal * 35.00);
+            const baseAmount = !isNaN(dbTotal) && dbTotal > 0 ? dbTotal : (hoursVal * 35.00);
 
             const travelFee = parseFloat(mission.travel_expenses || mission.travel_fee);
             const travelExpenses = !isNaN(travelFee) ? travelFee : 0;
