@@ -2106,7 +2106,6 @@
             event.preventDefault();
             const id = document.getElementById('edit-mis-id').value;
             
-            // Calcul automatique du libellé précis du transport
             const transportType = document.getElementById('edit-mis-transport-type').value;
             let transportDetailsStr = "Aucun frais";
             let travelCost = 0;
@@ -2137,7 +2136,8 @@
                 payment_status: document.getElementById('edit-mis-pay-status').value,
                 total_amount: parseFloat(document.getElementById('edit-mis-total').value) || 0,
                 travel_expenses: travelCost,
-                transport_details: transportDetailsStr, // <-- Enregistrement dans la nouvelle colonne
+                transport_type: transportType, // <-- Stocke "bus" ou "km" de façon propre
+                transport_details: transportDetailsStr,
                 senior_csat: parseInt(document.getElementById('edit-mis-scsat').value) || null,
                 senior_nps: parseInt(document.getElementById('edit-mis-snps').value) || null,
                 student_csat: parseInt(document.getElementById('edit-mis-stcsat').value) || null,
