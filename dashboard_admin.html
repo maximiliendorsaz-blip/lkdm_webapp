@@ -2025,9 +2025,16 @@
             }
             const diffMinutes = Math.floor(diffMs / 60000); 
             let realH = diffMinutes <= 60 ? 1.0 : Math.ceil((diffMinutes / 60) * 2) / 2; 
+            
             document.getElementById('edit-mis-real').value = realH;
-            document.getElementById('edit-mis-total').value = (realH * 35).toFixed(2);
-            document.getElementById('edit-mis-comm').value = (realH * 10).toFixed(2);
+            
+            // Mise à jour sécurisée sans 'edit-mis-comm'
+            const travel = parseFloat(document.getElementById('edit-mis-travel')?.value) || 0;
+            const total = (realH * 35.00) + travel;
+            
+            if(document.getElementById('edit-mis-total')) {
+                document.getElementById('edit-mis-total').value = total.toFixed(2);
+            }
         }
 
         function openEditMissionModal(id) {
@@ -2828,6 +2835,11 @@
             document.getElementById('edit-mis-travel').value = travelCost.toFixed(2);
             document.getElementById('edit-mis-total').value = total.toFixed(2);
         }
+        function loadActivityLogs() { /* optionnel */ }
+        async function logAdminAction(action, target, details) {
+            console.log(`Action loggée: ${action} - ${target} - ${details}`);
+        }
+        
     </script>
 </body>
 </html>
