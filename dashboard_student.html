@@ -711,7 +711,8 @@
                 feedback: document.getElementById('fb-feedback').value,
                 real_hours: realHours,
                 travel_expenses: travelCost,
-                transport_details: transportDetailsStr, // <-- Enregistrement dans la colonne
+                transport_type: transportType,          // Enregistre "none", "km" ou "bus"
+                transport_details: transportDetailsStr,   // Enregistre le libellé précis pour la facture
                 total_amount: totalAmount,
                 lkdm_commission: realHours * 10
             };
