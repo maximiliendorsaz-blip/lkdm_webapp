@@ -2098,6 +2098,7 @@
         async function submitEditMission(event) {
             event.preventDefault();
             const id = document.getElementById('edit-mis-id').value;
+            
             const payload = {
                 mission_code: document.getElementById('edit-mis-code').value,
                 client_id: document.getElementById('edit-mis-client').value,
@@ -2114,7 +2115,7 @@
                 payment_type: document.getElementById('edit-mis-payment').value,
                 payment_status: document.getElementById('edit-mis-pay-status').value,
                 total_amount: parseFloat(document.getElementById('edit-mis-total').value) || 0,
-                lkdm_commission: parseFloat(document.getElementById('edit-mis-comm').value) || 0,
+                travel_expenses: parseFloat(document.getElementById('edit-mis-travel').value) || 0,
                 senior_csat: parseInt(document.getElementById('edit-mis-scsat').value) || null,
                 senior_nps: parseInt(document.getElementById('edit-mis-snps').value) || null,
                 student_csat: parseInt(document.getElementById('edit-mis-stcsat').value) || null,
@@ -2122,6 +2123,7 @@
                 dar_summary: document.getElementById('edit-mis-dar').value,
                 feedback: document.getElementById('edit-mis-feedback').value
             };
+
             const { error } = await window.supabaseClient.from('missions').update(payload).eq('id', id);
             if (error) {
                 alert("Erreur : " + error.message);
