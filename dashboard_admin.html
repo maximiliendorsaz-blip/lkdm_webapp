@@ -2030,7 +2030,7 @@
             document.getElementById('edit-mis-comm').value = (realH * 10).toFixed(2);
         }
 
-        async function openEditMissionModal(id) {
+        function openEditMissionModal(id) {
             const m = globalMissionsData.find(x => x.id == id);
             if (!m) return;
 
@@ -2061,10 +2061,21 @@
             document.getElementById('edit-mis-end').disabled = true;
             document.getElementById('edit-mis-est-hours').disabled = true;
             
+            // Gestion des frais de transport et de paiement
             document.getElementById('edit-mis-payment').value = m.payment_type || 'Facture';
             document.getElementById('edit-mis-pay-status').value = m.payment_status || 'Facture non envoyée';
             document.getElementById('edit-mis-total').value = m.total_amount || '';
-            document.getElementById('edit-mis-comm').value = m.lkdm_commission || '';
+            document.getElementById('edit-mis-travel').value = m.travel_expenses || '';
+
+            // Sélection du type de transport si enregistré
+            if (m.travel_expenses > 0) {
+                // Par défaut si des frais existent, on peut les positionner ou laisser l'admin choisir
+                document.getElementById('edit-mis-transport-type').value = 'km'; 
+                document.getElementById('edit-mis-km-count').value = (m.travel_expenses / 0.75) || 0;
+            } else {
+                document.getElementById('edit-mis-transport-type').value = 'none';
+            }
+            toggleAdminTransportFields();
 
             document.getElementById('edit-mis-scsat').value = m.senior_csat || '';
             document.getElementById('edit-mis-snps').value = m.senior_nps || '';
