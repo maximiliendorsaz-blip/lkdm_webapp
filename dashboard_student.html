@@ -681,88 +681,50 @@
 
         async function submitFeedback(event) {
             event.preventDefault();
-            const btn = document.getElementById('btn-submit-fb');
-            btn.innerText = "Envoi et upload en cours...";
-            btn.disabled = true;
-
             const id = document.getElementById('fb-mission-id').value;
-            const m = dbMissions.find(x => x.id == id);
-            const fileInput = document.getElementById('fb-photos');
-            const busReceiptInput = document.getElementById('fb-bus-receipt');
-            const transportType = document.getElementById('fb-transport-type').value;
-
-            if (transportType === 'bus' && (!busReceiptInput.files || busReceiptInput.files.length === 0)) {
-                alert("Veuillez joindre la quittance / le ticket de bus.");
-                btn.innerText = "Valider la fin de mission";
-                btn.disabled = false;
-                return;
-            }
-
-            let photoUrls = [];
             
-            if (fileInput.files && fileInput.files.length > 0) {
-                for (let file of fileInput.files) {
-                    const fileName = `fb_${Date.now()}_${file.name}`;
-                    const { error: uploadErr } = await window.supabaseClient.storage.from('lkdm_docs').upload(fileName, file);
-                    if (!uploadErr) {
-                        const { data: { publicUrl } } = window.supabaseClient.storage.from('lkdm_docs').getPublicUrl(fileName);
-                        photoUrls.push(publicUrl);
-                    }
-                }
-            }
+            const transportType = document.getElementById('fb-transport-type').value;
+            let transportDetailsStr = "Aucun frais";
+            let travelCost = 0;
 
-            let travelExpensesVal = 0;
             if (transportType === 'km') {
                 const km = parseFloat(document.getElementById('fb-km-count').value) || 0;
-                travelExpensesVal = km * 0.75;
-            } else if (transportType === 'bus' && busReceiptInput.files.length > 0) {
-                const busFile = busReceiptInput.files[0];
-                const busFileName = `receipt_bus_${Date.now()}_${busFile.name}`;
-                const { error: busUploadErr } = await window.supabaseClient.storage.from('lkdm_docs').upload(busFileName, busFile);
-                if (!busUploadErr) {
-                    const { data: { publicUrl: busUrl } } = window.supabaseClient.storage.from('lkdm_docs').getPublicUrl(busFileName);
-                    photoUrls.push("Quittance Bus: " + busUrl);
-                }
-                travelExpensesVal = parseFloat(document.getElementById('fb-bus-price').value) || 0;
-            }
-
-            let darText = document.getElementById('fb-dar').value;
-            if (photoUrls.length > 0) {
-                darText += "\n\n--- PIÈCES JOINTES & PHOTOS ---\n" + photoUrls.join("\n");
+                travelCost = km * 0.75;
+                transportDetailsStr = `Voiture - ${km} km à 0.75 CHF/km`;
+            } else if (transportType === 'bus') {
+                travelCost = parseFloat(document.getElementById('fb-bus-price').value) || 0;
+                transportDetailsStr = `Bus - Billet (Forfait)`;
             }
 
             const realHours = parseFloat(document.getElementById('fb-real-hours').value) || 0;
-            const totalAmountVal = (realHours * 35) + travelExpensesVal;
+            const laborCost = realHours * 35.00;
+            const totalAmount = laborCost + travelCost;
 
             const payload = {
-                end_time: new Date().toISOString(),
-                senior_csat: document.getElementById('fb-scsat').value,
-                senior_nps: document.getElementById('fb-snps').value,
-                student_csat: document.getElementById('fb-stcsat').value,
-                student_nps: document.getElementById('fb-stnps').value,
-                dar_summary: darText,
+                matching_status: 'À facturer',
+                payment_type: document.getElementById('fb-payment-type').value,
+                senior_csat: parseInt(document.getElementById('fb-scsat').value) || null,
+                senior_nps: parseInt(document.getElementById('fb-snps').value) || null,
+                student_csat: parseInt(document.getElementById('fb-stcsat').value) || null,
+                student_nps: parseInt(document.getElementById('fb-stnps').value) || null,
+                dar_summary: document.getElementById('fb-dar').value,
                 feedback: document.getElementById('fb-feedback').value,
                 real_hours: realHours,
-                payment_type: document.getElementById('fb-payment-type').value,
-                travel_expenses: travelExpensesVal,
-                total_amount: totalAmountVal,
-                lkdm_commission: realHours * 10,
-                matching_status: 'Mission effectuée'
+                travel_expenses: travelCost,
+                transport_details: transportDetailsStr, // <-- Enregistrement dans la colonne
+                total_amount: totalAmount,
+                lkdm_commission: realHours * 10
             };
 
             const { error } = await window.supabaseClient.from('missions').update(payload).eq('id', id);
-            btn.innerText = "Valider la fin de mission";
-            btn.disabled = false;
-
-            if (error) { alert("Erreur: " + error.message); return; }
-
-            closeModalCustom('modal-feedback');
-            await loadStudentData();
-
-            alert("👁️ INFO LKDM : Avant de proposer un nouveau rendez-vous, observez bien l'environnement du client ! Y a-t-il d'autres besoins non exprimés (jardin à tailler, vitres sales, nettoyages) ?");
-            openRebookingModal(m.client_id);
+            if (error) {
+                alert("Erreur lors de la clôture : " + error.message);
+            } else {
+                alert("Mission clôturée avec succès !");
+                closeModal('modal-feedback');
+                loadSupabaseOverview();
+            }
         }
-
         function openRebookingModal(clientId) {
             document.getElementById('rb-client-id').value = clientId;
             document.getElementById('rb-form-container').classList.add('hidden');
