@@ -763,7 +763,7 @@
                             </select>
                         </div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">Montant total (CHF)</label><input type="number" step="0.05" id="edit-mis-total" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-emerald-700"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Frais déplacement (CHF)</label><input type="number" step="0.05" id="edit-mis-travel" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-500"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Date de règlement</label><input type="date" id="edit-mis-pay-date" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                     </div>
                 </div>
 
@@ -1587,6 +1587,16 @@
             });
         }
 
+        async function validatePayment(missionId) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            await window.supabaseClient.from('missions').update({ 
+                payment_status: 'Payé',
+                payment_date: todayStr 
+            }).eq('id', missionId);
+            alert(`[Paiement Validé] Facture marquée comme payée à la date du ${todayStr}.`);
+            loadSupabaseOverview();
+        }
+
         async function generateAndSaveDocument(docType, missionCode, clientEmail, clientName) {
             console.log("=== DÉBUT GÉNÉRATION DIRECTE DEPUIS SUPABASE ===");
             console.log("Paramètres reçus -> Type:", docType, "| Code/ID Mission:", missionCode);
@@ -1667,6 +1677,11 @@
             const subtotal = amount;
             
             const currentDate = new Date().toLocaleDateString('fr-CH');
+
+            // Remplace la ligne de calcul de la date de règlement dans la quittance
+            const paymentDateFormatted = mission.payment_date 
+                ? new Date(mission.payment_date).toLocaleDateString('fr-CH') 
+                : currentDate;
             
             // Date et heure d'intervention formatée pour le rapport
             const missionDateTimeStr = mission.mission_date ? formatDisplayDateTime(mission.mission_date) : currentDate;
@@ -1785,8 +1800,7 @@
                         <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Client / Bénéficiaire :</span><span class="font-bold text-slate-800 text-sm">${finalClientName}</span></div>
                         <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Référence Mission :</span><span class="font-semibold text-emerald-800">${finalMissionCode}</span></div>
                         <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Montant acquitté :</span><span class="font-bold text-emerald-800 text-base">CHF ${amount}</span></div>
-                        <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Date de règlement :</span><span class="font-semibold text-slate-800">${currentDate}</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">Moyen de règlement :</span><span class="font-semibold text-slate-800">${paymentType}</span></div>
+                        <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Date de règlement :</span><span class="font-semibold text-slate-800">${paymentDateFormatted}</span></div>                        <div class="flex justify-between"><span class="text-slate-500">Moyen de règlement :</span><span class="font-semibold text-slate-800">${paymentType}</span></div>
                     </div>
                     <div class="flex justify-between items-end mt-32 pt-10 border-t">
                         <div class="text-xs text-slate-400"><p>Document officiel émis par Le Koup de Main.</p></div>
@@ -2076,6 +2090,7 @@
             document.getElementById('edit-mis-periods').value = m.mission_periods || '';
             document.getElementById('edit-mis-date').value = formatToDatetimeLocal(m.mission_date);
             document.getElementById('edit-mis-desc').value = m.exact_description || '';
+            document.getElementById('edit-mis-pay-date').value = m.payment_date ? m.payment_date.split('T')[0] : '';
 
             document.getElementById('edit-mis-start').value = formatToDatetimeLocal(m.start_time);
             document.getElementById('edit-mis-end').value = formatToDatetimeLocal(m.end_time);
@@ -2163,7 +2178,8 @@
                 student_csat: parseInt(document.getElementById('edit-mis-stcsat').value) || null,
                 student_nps: parseInt(document.getElementById('edit-mis-stnps').value) || null,
                 dar_summary: document.getElementById('edit-mis-dar').value,
-                feedback: document.getElementById('edit-mis-feedback').value
+                feedback: document.getElementById('edit-mis-feedback').value,
+                payment_date: document.getElementById('edit-mis-pay-date').value || null,
             };
 
             const { data, error } = await window.supabaseClient
