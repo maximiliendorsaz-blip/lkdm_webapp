@@ -2071,7 +2071,7 @@
             }
         }
 
-        function openEditMissionModal(id) {
+        async function openEditMissionModal(id) {
             const m = globalMissionsData.find(x => x.id == id);
             if (!m) return;
 
@@ -2090,7 +2090,6 @@
             document.getElementById('edit-mis-periods').value = m.mission_periods || '';
             document.getElementById('edit-mis-date').value = formatToDatetimeLocal(m.mission_date);
             document.getElementById('edit-mis-desc').value = m.exact_description || '';
-            document.getElementById('edit-mis-pay-date').value = m.payment_date ? m.payment_date.split('T')[0] : '';
 
             document.getElementById('edit-mis-start').value = formatToDatetimeLocal(m.start_time);
             document.getElementById('edit-mis-end').value = formatToDatetimeLocal(m.end_time);
@@ -2103,21 +2102,33 @@
             document.getElementById('edit-mis-end').disabled = true;
             document.getElementById('edit-mis-est-hours').disabled = true;
             
-            // Gestion des frais de transport et de paiement
             document.getElementById('edit-mis-payment').value = m.payment_type || 'Facture';
             document.getElementById('edit-mis-pay-status').value = m.payment_status || 'Facture non envoyée';
             document.getElementById('edit-mis-total').value = m.total_amount || '';
             document.getElementById('edit-mis-travel').value = m.travel_expenses || '';
-
-            // Sélection du type de transport si enregistré
-            if (m.travel_expenses > 0) {
-                // Par défaut si des frais existent, on peut les positionner ou laisser l'admin choisir
-                document.getElementById('edit-mis-transport-type').value = 'km'; 
-                document.getElementById('edit-mis-km-count').value = (m.travel_expenses / 0.75) || 0;
-            } else {
-                document.getElementById('edit-mis-transport-type').value = 'none';
+            
+            // Sécurisation optionnelle si le champ HTML n'est pas encore présent
+            const payDateInput = document.getElementById('edit-mis-pay-date');
+            if (payDateInput) {
+                payDateInput.value = m.payment_date ? m.payment_date.split('T')[0] : '';
             }
-            toggleAdminTransportFields();
+
+            const tType = m.transport_type || (m.travel_expenses > 0 ? 'km' : 'none');
+            const transportTypeSelect = document.getElementById('edit-mis-transport-type');
+            if (transportTypeSelect) {
+                transportTypeSelect.value = tType;
+                if (tType === 'bus') {
+                    document.getElementById('edit-mis-bus-price').value = m.travel_expenses || 0;
+                    document.getElementById('edit-mis-km-count').value = 0;
+                } else if (tType === 'km') {
+                    document.getElementById('edit-mis-km-count').value = (m.travel_expenses || 0) / 0.75;
+                    document.getElementById('edit-mis-bus-price').value = 0;
+                } else {
+                    document.getElementById('edit-mis-km-count').value = 0;
+                    document.getElementById('edit-mis-bus-price').value = 0;
+                }
+                toggleAdminTransportFields();
+            }
 
             document.getElementById('edit-mis-scsat').value = m.senior_csat || '';
             document.getElementById('edit-mis-snps').value = m.senior_nps || '';
