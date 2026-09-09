@@ -3327,7 +3327,7 @@
                     return d.getMonth() + 1 === parseInt(month) && d.getFullYear() === parseInt(year);
                 });
 
-                const hourlyRate = 35.00;
+                const hourlyRate = 22.00;
                 let totalHours = 0;
                 let tableRowsHtml = '';
 
@@ -3359,7 +3359,6 @@
                 const docTitle = `Certificat de salaire - ${monthName} ${year} - ${student.full_name}`;
 
                 // 3. Construction du HTML du Certificat de Salaire
-                const hourlyRate = 22.00;
                 const grossSalary = totalHours * hourlyRate;
                 
                 // Calculs des charges et suppléments basés sur votre modèle
