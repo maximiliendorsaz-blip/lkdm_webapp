@@ -3034,7 +3034,7 @@
             const btnSend = document.getElementById('btn-proceed-to-email');
             const originalText = btnSend ? btnSend.innerHTML : '';
             if (btnSend) {
-                btnSend.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Préparation...';
+                btnSend.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Envoi en cours...';
                 btnSend.disabled = true;
             }
 
@@ -3074,23 +3074,25 @@
                     file_url: pdfUrl
                 }]);
 
-                // 3. Préparation et ouverture de l'application mail avec le lien direct inclus
-                const subject = encodeURIComponent(`Le Koup de Main - ${docType} (${missionCode})`);
-                const body = encodeURIComponent(
-                    `Bonjour ${clientName},\n\n` +
-                    `Veuillez trouver ci-dessous le lien pour consulter et télécharger votre ${docType.toLowerCase()} (${missionCode}) émise par Le Koup de Main :\n\n` +
-                    `${pdfUrl}\n\n` +
-                    `Bien cordialement,\n` +
-                    `L'équipe Le Koup de Main`
-                );
+                // 3. Préparation des paramètres pour EmailJS
+                const templateParams = {
+                    to_email: recipient,
+                    to_name: clientName || 'Client',
+                    doc_type: docType,
+                    mission_code: missionCode,
+                    pdf_url: pdfUrl // <--- Transmet le lien direct du PDF au template EmailJS
+                };
 
-                // Ouvre l'application de messagerie avec le texte et le lien prêts à l'envoi
-                window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
+                // 4. Envoi de l'e-mail via EmailJS (connecté à Infomaniak / hello@lekoupdemain.ch)
+                // Remplacez 'YOUR_SERVICE_ID' et 'YOUR_TEMPLATE_ID' par vos identifiants EmailJS
+                await emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams);
+
+                alert(`Succès : La ${docType} a été envoyée à ${recipient} avec son lien de téléchargement depuis hello@lekoupdemain.ch !`);
                 closeModal('modal-view-document');
 
             } catch (err) {
-                console.error("Erreur lors de la préparation du lien PDF :", err);
-                alert("Erreur : " + err.message);
+                console.error("Erreur lors de l'envoi de l'e-mail :", err);
+                alert("Erreur lors de l'envoi : " + err.message);
             } finally {
                 if (btnSend) {
                     btnSend.innerHTML = originalText;
