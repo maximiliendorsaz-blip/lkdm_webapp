@@ -2876,36 +2876,49 @@
         }
 
         function toggleAdminTransportFields() {
-            const type = document.getElementById('edit-mis-transport-type').value;
+            const typeSelect = document.getElementById('edit-mis-transport-type');
+            if (!typeSelect) return;
+            const type = typeSelect.value;
+            
             const kmContainer = document.getElementById('edit-container-km');
             const busContainer = document.getElementById('edit-container-bus');
 
-            kmContainer.classList.add('hidden');
-            busContainer.classList.add('hidden');
+            if (kmContainer) kmContainer.classList.add('hidden');
+            if (busContainer) busContainer.classList.add('hidden');
 
-            if (type === 'km') kmContainer.classList.remove('hidden');
-            if (type === 'bus') busContainer.classList.remove('hidden');
+            if (type === 'km' && kmContainer) kmContainer.classList.remove('hidden');
+            if (type === 'bus' && busContainer) busContainer.classList.remove('hidden');
+            
             recalcAdminTotal();
         }
 
         function recalcAdminTotal() {
-            const hours = parseFloat(document.getElementById('edit-mis-real').value) || 0;
-            const transportType = document.getElementById('edit-mis-transport-type').value;
+            const realInput = document.getElementById('edit-mis-real');
+            const hours = realInput ? (parseFloat(realInput.value) || 0) : 0;
+            
+            const typeSelect = document.getElementById('edit-mis-transport-type');
+            const transportType = typeSelect ? typeSelect.value : 'none';
             
             let travelCost = 0;
             if (transportType === 'km') {
-                const km = parseFloat(document.getElementById('edit-mis-km-count').value) || 0;
+                const kmInput = document.getElementById('edit-mis-km-count');
+                const km = kmInput ? (parseFloat(kmInput.value) || 0) : 0;
                 travelCost = km * 0.75;
             } else if (transportType === 'bus') {
-                travelCost = parseFloat(document.getElementById('edit-mis-bus-price').value) || 0;
+                const busInput = document.getElementById('edit-mis-bus-price');
+                travelCost = busInput ? (parseFloat(busInput.value) || 0) : 0;
             }
 
             const laborCost = hours * 35.00;
             const total = laborCost + travelCost;
 
-            document.getElementById('edit-mis-travel').value = travelCost.toFixed(2);
-            document.getElementById('edit-mis-total').value = total.toFixed(2);
+            const travelField = document.getElementById('edit-mis-travel');
+            if (travelField) travelField.value = travelCost.toFixed(2);
+
+            const totalField = document.getElementById('edit-mis-total');
+            if (totalField) totalField.value = total.toFixed(2);
         }
+        
         function loadActivityLogs() { /* optionnel */ }
         async function logAdminAction(action, target, details) {
             console.log(`Action loggée: ${action} - ${target} - ${details}`);
