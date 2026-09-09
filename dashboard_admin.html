@@ -2076,38 +2076,44 @@
             if (!m) return;
 
             const cliSelect = document.getElementById('edit-mis-client');
-            cliSelect.innerHTML = '<option value="">-- Sélectionner un client --</option>';
-            globalClientsData.forEach(c => cliSelect.innerHTML += `<option value="${c.id}" ${m.client_id === c.id ? 'selected' : ''}>${c.full_name}</option>`);
+            if (cliSelect) {
+                cliSelect.innerHTML = '<option value="">-- Sélectionner un client --</option>';
+                globalClientsData.forEach(c => cliSelect.innerHTML += `<option value="${c.id}" ${m.client_id === c.id ? 'selected' : ''}>${c.full_name}</option>`);
+            }
 
             const stuSelect = document.getElementById('edit-mis-student');
-            stuSelect.innerHTML = '<option value="">-- Aucun / À attribuer --</option>';
-            globalStudentsData.forEach(s => stuSelect.innerHTML += `<option value="${s.id}" ${m.student_id === s.id ? 'selected' : ''}>${s.full_name}</option>`);
+            if (stuSelect) {
+                stuSelect.innerHTML = '<option value="">-- Aucun / À attribuer --</option>';
+                globalStudentsData.forEach(s => stuSelect.innerHTML += `<option value="${s.id}" ${m.student_id === s.id ? 'selected' : ''}>${s.full_name}</option>`);
+            }
 
-            document.getElementById('edit-mis-id').value = m.id;
-            document.getElementById('edit-mis-code').value = m.mission_code || '';
-            document.getElementById('edit-mis-matching-status').value = m.matching_status || 'Nouveau';
-            document.getElementById('edit-mis-lang').value = m.mission_language || 'Français';
-            document.getElementById('edit-mis-periods').value = m.mission_periods || '';
-            document.getElementById('edit-mis-date').value = formatToDatetimeLocal(m.mission_date);
-            document.getElementById('edit-mis-desc').value = m.exact_description || '';
+            if (document.getElementById('edit-mis-id')) document.getElementById('edit-mis-id').value = m.id;
+            if (document.getElementById('edit-mis-code')) document.getElementById('edit-mis-code').value = m.mission_code || '';
+            if (document.getElementById('edit-mis-matching-status')) document.getElementById('edit-mis-matching-status').value = m.matching_status || 'Nouveau';
+            if (document.getElementById('edit-mis-lang')) document.getElementById('edit-mis-lang').value = m.mission_language || 'Français';
+            if (document.getElementById('edit-mis-periods')) document.getElementById('edit-mis-periods').value = m.mission_periods || '';
+            if (document.getElementById('edit-mis-date')) document.getElementById('edit-mis-date').value = formatToDatetimeLocal(m.mission_date);
+            if (document.getElementById('edit-mis-desc')) document.getElementById('edit-mis-desc').value = m.exact_description || '';
 
-            document.getElementById('edit-mis-start').value = formatToDatetimeLocal(m.start_time);
-            document.getElementById('edit-mis-end').value = formatToDatetimeLocal(m.end_time);
-            document.getElementById('edit-mis-est-hours').value = m.estimated_hours || '';
+            if (document.getElementById('edit-mis-start')) document.getElementById('edit-mis-start').value = formatToDatetimeLocal(m.start_time);
+            if (document.getElementById('edit-mis-end')) document.getElementById('edit-mis-end').value = formatToDatetimeLocal(m.end_time);
+            if (document.getElementById('edit-mis-est-hours')) document.getElementById('edit-mis-est-hours').value = m.estimated_hours || '';
             
-            if (m.start_time && m.end_time) autoCalcRealHours();
-            else document.getElementById('edit-mis-real').value = m.real_hours || '';
+            if (m.start_time && m.end_time) {
+                autoCalcRealHours();
+            } else if (document.getElementById('edit-mis-real')) {
+                document.getElementById('edit-mis-real').value = m.real_hours || '';
+            }
 
-            document.getElementById('edit-mis-start').disabled = true;
-            document.getElementById('edit-mis-end').disabled = true;
-            document.getElementById('edit-mis-est-hours').disabled = true;
+            if (document.getElementById('edit-mis-start')) document.getElementById('edit-mis-start').disabled = true;
+            if (document.getElementById('edit-mis-end')) document.getElementById('edit-mis-end').disabled = true;
+            if (document.getElementById('edit-mis-est-hours')) document.getElementById('edit-mis-est-hours').disabled = true;
             
-            document.getElementById('edit-mis-payment').value = m.payment_type || 'Facture';
-            document.getElementById('edit-mis-pay-status').value = m.payment_status || 'Facture non envoyée';
-            document.getElementById('edit-mis-total').value = m.total_amount || '';
-            document.getElementById('edit-mis-travel').value = m.travel_expenses || '';
+            if (document.getElementById('edit-mis-payment')) document.getElementById('edit-mis-payment').value = m.payment_type || 'Facture';
+            if (document.getElementById('edit-mis-pay-status')) document.getElementById('edit-mis-pay-status').value = m.payment_status || 'Facture non envoyée';
+            if (document.getElementById('edit-mis-total')) document.getElementById('edit-mis-total').value = m.total_amount || '';
+            if (document.getElementById('edit-mis-travel')) document.getElementById('edit-mis-travel').value = m.travel_expenses || '';
             
-            // Sécurisation optionnelle si le champ HTML n'est pas encore présent
             const payDateInput = document.getElementById('edit-mis-pay-date');
             if (payDateInput) {
                 payDateInput.value = m.payment_date ? m.payment_date.split('T')[0] : '';
@@ -2118,32 +2124,35 @@
             if (transportTypeSelect) {
                 transportTypeSelect.value = tType;
                 if (tType === 'bus') {
-                    document.getElementById('edit-mis-bus-price').value = m.travel_expenses || 0;
-                    document.getElementById('edit-mis-km-count').value = 0;
+                    if (document.getElementById('edit-mis-bus-price')) document.getElementById('edit-mis-bus-price').value = m.travel_expenses || 0;
+                    if (document.getElementById('edit-mis-km-count')) document.getElementById('edit-mis-km-count').value = 0;
                 } else if (tType === 'km') {
-                    document.getElementById('edit-mis-km-count').value = (m.travel_expenses || 0) / 0.75;
-                    document.getElementById('edit-mis-bus-price').value = 0;
+                    if (document.getElementById('edit-mis-km-count')) document.getElementById('edit-mis-km-count').value = (m.travel_expenses || 0) / 0.75;
+                    if (document.getElementById('edit-mis-bus-price')) document.getElementById('edit-mis-bus-price').value = 0;
                 } else {
-                    document.getElementById('edit-mis-km-count').value = 0;
-                    document.getElementById('edit-mis-bus-price').value = 0;
+                    if (document.getElementById('edit-mis-km-count')) document.getElementById('edit-mis-km-count').value = 0;
+                    if (document.getElementById('edit-mis-bus-price')) document.getElementById('edit-mis-bus-price').value = 0;
                 }
                 toggleAdminTransportFields();
             }
 
-            document.getElementById('edit-mis-scsat').value = m.senior_csat || '';
-            document.getElementById('edit-mis-snps').value = m.senior_nps || '';
-            document.getElementById('edit-mis-stcsat').value = m.student_csat || '';
-            document.getElementById('edit-mis-stnps').value = m.student_nps || '';
-            document.getElementById('edit-mis-dar').value = m.dar_summary || '';
-            document.getElementById('edit-mis-feedback').value = m.feedback || '';
+            if (document.getElementById('edit-mis-scsat')) document.getElementById('edit-mis-scsat').value = m.senior_csat || '';
+            if (document.getElementById('edit-mis-snps')) document.getElementById('edit-mis-snps').value = m.senior_nps || '';
+            if (document.getElementById('edit-mis-stcsat')) document.getElementById('edit-mis-stcsat').value = m.student_csat || '';
+            if (document.getElementById('edit-mis-stnps')) document.getElementById('edit-mis-stnps').value = m.student_nps || '';
+            if (document.getElementById('edit-mis-dar')) document.getElementById('edit-mis-dar').value = m.dar_summary || '';
+            if (document.getElementById('edit-mis-feedback')) document.getElementById('edit-mis-feedback').value = m.feedback || '';
 
-            const missionDocs = globalDocumentsData.filter(d => d.mission_id == m.id);
-            document.getElementById('mission-docs-list').innerHTML = missionDocs.length ? missionDocs.map(d => `
-                <div onclick="openEditDocModal('${d.id}')" class="bg-white p-2 rounded border flex justify-between items-center cursor-pointer hover:border-lkdm-accent">
-                    <span><strong>[${d.doc_type}]</strong> ${d.title}</span>
-                    <span class="text-lkdm-accent font-bold hover:underline">Modifier / Voir</span>
-                </div>
-            `).join('') : '<p class="text-slate-400">Aucun document lié.</p>';
+            const missionDocsList = document.getElementById('mission-docs-list');
+            if (missionDocsList) {
+                const missionDocs = globalDocumentsData.filter(d => d.mission_id == m.id);
+                missionDocsList.innerHTML = missionDocs.length ? missionDocs.map(d => `
+                    <div onclick="openEditDocModal('${d.id}')" class="bg-white p-2 rounded border flex justify-between items-center cursor-pointer hover:border-lkdm-accent">
+                        <span><strong>[${d.doc_type}]</strong> ${d.title}</span>
+                        <span class="text-lkdm-accent font-bold hover:underline">Modifier / Voir</span>
+                    </div>
+                `).join('') : '<p class="text-slate-400">Aucun document lié.</p>';
+            }
 
             openModal('modal-edit-mission');
         }
