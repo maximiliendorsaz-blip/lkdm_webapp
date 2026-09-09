@@ -3009,6 +3009,17 @@
                 btnSave.disabled = false;
             }
         }
+
+        function openEmailModal(docType, missionCode, clientEmail, clientName) {
+            const recipient = clientEmail || prompt("Entrez l'adresse e-mail du client :", "");
+            if (!recipient) return;
+
+            const subject = encodeURIComponent(`Le Koup de Main - ${docType} ${missionCode}`);
+            const body = encodeURIComponent(`Bonjour ${clientName},\n\nVeuillez trouver ci-joint votre document (${docType}) concernant la mission ${missionCode}.\n\nBien cordialement,\nL'équipe Le Koup de Main`);
+
+            // Ouvre le client mail par défaut (Outlook, Apple Mail, etc.) avec le message pré-rempli
+            window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
+        }
     </script>
 </body>
 </html>
