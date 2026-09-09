@@ -219,7 +219,7 @@
     <!-- Modale Détails Mission Client -->
     <div id="customer-mission-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-300 relative p-6 space-y-4">
-            <button onclick="closeCustomerMissionModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
+            <button onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-times"></i></button>
             <h3 class="text-xl font-bold text-lkdm-text" id="modal-mis-title">Détails de la mission</h3>
             
             <div class="space-y-3 text-sm bg-slate-50 p-4 rounded-2xl border">
@@ -241,7 +241,7 @@
             </div>
 
             <div class="flex justify-end pt-2">
-                <button type="button" onclick="closeCustomerMissionModal()" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium text-slate-700 hover:bg-slate-200">Fermer</button>
+                <button type="button" onclick="closeModal()" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium text-slate-700 hover:bg-slate-200">Fermer</button>
             </div>
         </div>
     </div>
@@ -430,10 +430,12 @@
             setTimeout(() => modal.classList.remove('opacity-0'), 10);
         }
 
-        function closeCustomerMissionModal() {
-            const modal = document.getElementById('customer-mission-modal');
-            modal.classList.add('opacity-0');
-            setTimeout(() => modal.classList.add('hidden'), 300);
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('active'); // Si vous utilisez une classe active
+                modal.style.display = 'none';    // Force la fermeture immédiate
+            }
         }
 
         async function submitCustomerOrder(e) {
