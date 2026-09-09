@@ -25,7 +25,7 @@
     <script type="text/javascript">
        (function(){
           emailjs.init({
-            publicKey: "VOTRE_PUBLIC_KEY_EMAILJS", // Remplacez par votre clé publique EmailJS
+            publicKey: "o1j7Mfr5oH2LGYL--", // Remplacez par votre clé publique EmailJS
           });
        })();
     </script>
@@ -3085,8 +3085,7 @@
                     pdf_url: pdfUrl // Passé au template EmailJS pour générer la pièce jointe
                 };
 
-                // Remplacez 'YOUR_SERVICE_ID' et 'YOUR_TEMPLATE_ID' par vos identifiants EmailJS
-                await emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams);
+                await emailjs.send('service_df3932r', 'template_lzssyec', templateParams);
 
                 alert(`Succès : La ${docType} a été envoyée en pièce jointe à ${recipient} directement depuis hello@lekoupdemain.ch !`);
                 closeModal('modal-view-document');
