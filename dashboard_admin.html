@@ -2937,24 +2937,76 @@
             }
 
             const { docType, missionId, clientId, title } = currentDocumentContext;
+            const previewContainer = document.getElementById('document-preview-container');
+
+            if (!previewContainer || !previewContainer.firstElementChild) {
+                alert("Aucun contenu à exporter en PDF.");
+                return;
+            }
+
+            // Indique à l'utilisateur que l'opération est en cours
+            const btnSave = event.target;
+            const originalText = btnSave.innerHTML;
+            btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Génération du PDF...';
+            btnSave.disabled = true;
 
             try {
+                // 1. Génération du PDF via html2pdf
+                const element = previewContainer.firstElementChild;
+                const opt = {
+                    margin:       5,
+                    filename:     `${title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, useCORS: true },
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                const pdfBlob = await html2pdf().from(element).set(opt).outputPdf('blob');
+                const fileName = `pdf_${Date.now()}_${Math.random().toString(36).substring(7)}.pdf`;
+
+                // 2. Upload dans le storage Supabase 'lkdm_docs'
+                const { error: uploadError } = await window.supabaseClient.storage
+                    .from('lkdm_docs')
+                    .upload(fileName, pdfBlob, {
+                        contentType: 'application/pdf',
+                        upsert: false
+                    });
+
+                if (uploadError) throw uploadError;
+
+                // 3. Récupération de l'URL publique
+                const { data: publicUrlData } = window.supabaseClient.storage
+                    .from('lkdm_docs')
+                    .getPublicUrl(fileName);
+
+                const publicUrl = publicUrlData ? publicUrlData.publicUrl : null;
+
+                if (!publicUrl) {
+                    throw new Error("Impossible de récupérer l'URL publique du PDF généré.");
+                }
+
+                // 4. Insertion dans la table 'documents' avec l'URL garantie
                 const payload = {
                     title: title,
                     doc_type: docType,
                     client_id: clientId || null,
-                    mission_id: missionId || null
+                    mission_id: missionId || null,
+                    file_url: publicUrl // Garantit qu'un lien valide est présent
                 };
 
-                const { error } = await window.supabaseClient.from('documents').insert([payload]);
-                if (error) throw error;
+                const { error: dbError } = await window.supabaseClient.from('documents').insert([payload]);
+                if (dbError) throw dbError;
 
-                alert("Document enregistré avec succès dans la base de données !");
+                alert("Succès : Le fichier PDF a été généré, stocké et enregistré dans la DB !");
                 closeModal('modal-view-document');
-                loadSupabaseOverview(); // Recharge les tableaux pour afficher le nouveau document
+                loadSupabaseOverview();
+
             } catch (err) {
-                console.error("Erreur lors de l'enregistrement du document :", err);
+                console.error("Erreur lors de la génération/stockage du PDF :", err);
                 alert("Erreur : " + err.message);
+            } finally {
+                btnSave.innerHTML = originalText;
+                btnSave.disabled = false;
             }
         }
     </script>
