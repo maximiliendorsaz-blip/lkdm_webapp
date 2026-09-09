@@ -3010,15 +3010,60 @@
             }
         }
 
-        function openEmailModal(docType, missionCode, clientEmail, clientName) {
+        async function openEmailModal(docType, missionCode, clientEmail, clientName) {
             const recipient = clientEmail || prompt("Entrez l'adresse e-mail du client :", "");
-            if (!recipient) return;
+            if (!recipient) {
+                alert("Aucune adresse e-mail valide fournie.");
+                return;
+            }
 
-            const subject = encodeURIComponent(`Le Koup de Main - ${docType} ${missionCode}`);
-            const body = encodeURIComponent(`Bonjour ${clientName},\n\nVeuillez trouver ci-joint votre document (${docType}) concernant la mission ${missionCode}.\n\nBien cordialement,\nL'équipe Le Koup de Main`);
+            if (!confirm(`Voulez-vous envoyer la ${docType} directement à ${recipient} depuis hello@lekoupdemain.ch ?`)) {
+                return;
+            }
 
-            // Ouvre le client mail par défaut (Outlook, Apple Mail, etc.) avec le message pré-rempli
-            window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
+            try {
+                // Optionnel : Récupération du lien du dernier PDF généré ou de la mission
+                const emailPayload = {
+                    sender: "hello@lekoupdemain.ch",
+                    to: recipient,
+                    subject: `Le Koup de Main - ${docType} (${missionCode})`,
+                    message: `Bonjour ${clientName},\n\nVeuillez trouver ci-joint votre ${docType.toLowerCase()} concernant la mission ${missionCode}.\n\nBien cordialement,\nL'équipe Le Koup de Main`,
+                    doc_type: docType,
+                    mission_code: missionCode
+                };
+
+                // Exemple d'appel à une Edge Function Supabase ou un webhook (Make/Zapier/EmailJS)
+                /* 
+                const { error } = await window.supabaseClient.functions.invoke('send-email', {
+                    body: emailPayload
+                });
+                if (error) throw error;
+                */
+
+                // Simulation / Intégration par Webhook direct (ex: Make.com / Zapier)
+                const webhookUrl = "VOTRE_URL_DE_WEBHOOK_MAKE_OU_ZAPIER"; // Remplacez par votre webhook si vous en utilisez un
+                
+                if (webhookUrl && webhookUrl !== "VOTRE_URL_DE_WEBHOOK_MAKE_OU_ZAPIER") {
+                    await fetch(webhookUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(emailPayload)
+                    });
+                } else {
+                    // Fallback intelligent si aucun service backend n'est encore branché pour l'envoi SMTP direct :
+                    console.warn("Aucun service d'API mail configuré. Utilisation du client mail par défaut en secours.");
+                    const subject = encodeURIComponent(`Le Koup de Main - ${docType} ${missionCode}`);
+                    const body = encodeURIComponent(emailPayload.message);
+                    window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
+                    return;
+                }
+
+                alert(`Succès : La ${docType} a été envoyée à ${recipient} via hello@lekoupdemain.ch !`);
+
+            } catch (err) {
+                console.error("Erreur lors de l'envoi de l'e-mail :", err.message);
+                alert("Erreur lors de l'envoi de l'e-mail : " + err.message);
+            }
         }
     </script>
 </body>
