@@ -21,6 +21,14 @@
     <script src="config.js"></script>
     <!-- html2pdf -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="text/javascript">
+       (function(){
+          emailjs.init({
+            publicKey: "VOTRE_PUBLIC_KEY_EMAILJS", // Remplacez par votre clé publique EmailJS
+          });
+       })();
+    </script>
     <style>
         #admin-map { z-index: 10 !important; }
         html, body { max-width: 100%; overflow-x: hidden; }
@@ -3023,8 +3031,16 @@
                 return;
             }
 
+            // Bouton de chargement visuel
+            const btnSend = document.getElementById('btn-proceed-to-email');
+            const originalText = btnSend ? btnSend.innerHTML : '';
+            if (btnSend) {
+                btnSend.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Envoi en cours...';
+                btnSend.disabled = true;
+            }
+
             try {
-                // 1. Génération et téléchargement immédiat du PDF sur votre poste
+                // 1. Génération et upload automatique du PDF dans le Storage Supabase ('lkdm_docs')
                 const element = previewContainer.firstElementChild;
                 const fileName = `${docType}_${missionCode}.pdf`;
                 
@@ -3036,26 +3052,53 @@
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
 
-                // Déclenche le téléchargement du PDF sur l'ordinateur de l'admin
-                await html2pdf().from(element).set(opt).save();
+                const pdfBlob = await html2pdf().from(element).set(opt).outputPdf('blob');
+                const storageFileName = `pdf_${Date.now()}_${Math.random().toString(36).substring(7)}.pdf`;
 
-                // 2. Préparation et ouverture de l'application mail par défaut
-                const subject = encodeURIComponent(`Le Koup de Main - ${docType} (${missionCode})`);
-                const body = encodeURIComponent(
-                    `Bonjour ${clientName},\n\n` +
-                    `Veuillez trouver ci-joint votre ${docType.toLowerCase()} (${missionCode}) émise par Le Koup de Main.\n\n` +
-                    `---\n` +
-                    `[Note pour vous : Le fichier "${fileName}" vient d'être téléchargé sur votre ordinateur. Pensez simplement à le glisser-déposer en pièce jointe dans cet e-mail avant de l'envoyer depuis hello@lekoupdemain.ch]\n\n` +
-                    `Bien cordialement,\n` +
-                    `L'équipe Le Koup de Main`
-                );
+                const { error: uploadError } = await window.supabaseClient.storage
+                    .from('lkdm_docs')
+                    .upload(storageFileName, pdfBlob, { contentType: 'application/pdf', upsert: false });
 
-                // Ouvre l'application mail (Outlook, Apple Mail, etc.)
-                window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
+                if (uploadError) throw uploadError;
+
+                const { data: publicUrlData } = window.supabaseClient.storage
+                    .from('lkdm_docs')
+                    .getPublicUrl(storageFileName);
+
+                const pdfUrl = publicUrlData ? publicUrlData.publicUrl : null;
+                if (!pdfUrl) throw new Error("Impossible d'obtenir l'URL publique du PDF pour la pièce jointe.");
+
+                // 2. Enregistrement de l'archive dans la table 'documents'
+                await window.supabaseClient.from('documents').insert([{
+                    title: `${docType} - ${missionCode} - ${clientName}`,
+                    doc_type: docType,
+                    file_url: pdfUrl
+                }]);
+
+                // 3. Envoi direct de l'e-mail via EmailJS (depuis hello@lekoupdemain.ch avec la pièce jointe)
+                const templateParams = {
+                    to_email: recipient,
+                    to_name: clientName,
+                    doc_type: docType,
+                    mission_code: missionCode,
+                    message: `Bonjour ${clientName},\n\nVeuillez trouver ci-joint votre ${docType.toLowerCase()} (${missionCode}) émise par Le Koup de Main.\n\nBien cordialement,\nL'équipe Le Koup de Main`,
+                    pdf_url: pdfUrl // Passé au template EmailJS pour générer la pièce jointe
+                };
+
+                // Remplacez 'YOUR_SERVICE_ID' et 'YOUR_TEMPLATE_ID' par vos identifiants EmailJS
+                await emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams);
+
+                alert(`Succès : La ${docType} a été envoyée en pièce jointe à ${recipient} directement depuis hello@lekoupdemain.ch !`);
+                closeModal('modal-view-document');
 
             } catch (err) {
-                console.error("Erreur lors de la préparation de l'e-mail avec PDF :", err);
-                alert("Erreur : " + err.message);
+                console.error("Erreur lors de l'envoi de l'e-mail :", err);
+                alert("Erreur lors de l'envoi : " + err.message);
+            } finally {
+                if (btnSend) {
+                    btnSend.innerHTML = originalText;
+                    btnSend.disabled = false;
+                }
             }
         }
     </script>
