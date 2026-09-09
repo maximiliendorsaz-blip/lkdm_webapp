@@ -1598,7 +1598,7 @@
 
             // 1. Récupération directe de la mission dans Supabase par son code ou son ID
             let mission = null;
-            const { data: mByCode, error: errCode } = await window.supabaseClient
+            const { data: mByCode } = await window.supabaseClient
                 .from('missions')
                 .select('*')
                 .eq('mission_code', missionCode)
@@ -1607,8 +1607,7 @@
             if (mByCode) {
                 mission = mByCode;
             } else {
-                // Tentative par ID si le code échoue
-                const { data: mById, error: errId } = await window.supabaseClient
+                const { data: mById } = await window.supabaseClient
                     .from('missions')
                     .select('*')
                     .eq('id', missionCode)
@@ -1622,40 +1621,43 @@
                 return;
             }
 
-            console.log("Mission trouvée en DB :", mission);
-
-            // 2. Récupération directe du client associé dans la table 'profiles' via client_id
+            // 2. Récupération du client associé dans la table 'profiles'
             let client = {};
             if (mission.client_id) {
-                const { data: dbClient, error: errClient } = await window.supabaseClient
+                const { data: dbClient } = await window.supabaseClient
                     .from('profiles')
                     .select('*')
                     .eq('id', mission.client_id)
                     .maybeSingle();
-
-                if (!errClient && dbClient) {
-                    client = dbClient;
-                    console.log("Client trouvé en DB :", client);
-                } else {
-                    console.warn("Client non trouvé pour l'ID :", mission.client_id);
-                }
+                if (dbClient) client = dbClient;
             }
 
-            // 3. Extraction et conversion des valeurs numériques
+            // 3. Récupération de l'étudiant assigné (pour le rapport)
+            let student = {};
+            if (mission.student_id) {
+                const { data: dbStudent } = await window.supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', mission.student_id)
+                    .maybeSingle();
+                if (dbStudent) student = dbStudent;
+            }
+
+            // 4. Extraction et conversion des valeurs
             const address = client.address || 'Adresse non renseignée';
             const npa = client.npa || '';
             const city = client.city || '';
             const description = mission.exact_description || 'Intervention Koup de Main';
             
-            // Gestion des heures (real_hours ou estimated_hours)
+            const paymentType = mission.payment_type || 'Facture';
+            
+            // Heures
             const hoursVal = Number(mission.real_hours) > 0 ? Number(mission.real_hours) : (Number(mission.estimated_hours) || 2.0);
             const hoursStr = `${hoursVal} h`;
             
-            // Gestion des montants et frais de déplacement
-            const baseAmount = mission.total_amount !== null && mission.total_amount !== undefined 
-                ? Number(mission.total_amount) 
-                : (hoursVal * 35.00);
-
+            // Calculs financiers
+            const hourlyRate = 35.00;
+            const baseAmount = hoursVal * hourlyRate;
             const travelExpenses = Number(mission.travel_expenses || 0);
             const totalAmountVal = baseAmount + travelExpenses;
             
@@ -1663,31 +1665,50 @@
             const baseAmountStr = baseAmount.toFixed(2);
             const travelExpensesStr = travelExpenses.toFixed(2);
             const subtotal = amount;
+            
             const currentDate = new Date().toLocaleDateString('fr-CH');
             
+            // Date et heure d'intervention formatée pour le rapport
+            const missionDateTimeStr = mission.mission_date ? formatDisplayDateTime(mission.mission_date) : currentDate;
+            
             const finalClientName = client.full_name || clientName || 'Client LKDM';
+            const finalStudentName = student.full_name || 'Non attribué';
             const finalMissionCode = mission.mission_code || missionCode || 'M2026_X';
             const finalClientEmail = client.email || clientEmail || '';
-
-            console.log("Données injectées -> Adresse:", address, "| Heures:", hoursStr, "| Total:", amount);
 
             let templateHtml = "";
             let docTitle = `${docType} - ${finalMissionCode} - ${finalClientName}`;
 
             if (docType === 'Facture') {
+                // Ligne de prestation : xx heures de mission * 35.00
                 let tableRowsHtml = `
                     <tr>
                         <td class="p-4 text-slate-700">${description}</td>
-                        <td class="p-4 text-center font-medium">${hoursStr}</td>
+                        <td class="p-4 text-center font-medium">${hoursVal} h × ${hourlyRate.toFixed(2)} CHF</td>
                         <td class="p-4 text-right font-bold text-lkdm-text">CHF ${baseAmountStr}</td>
                     </tr>
                 `;
 
+                // Gestion dynamique des frais de déplacement (forfait bus vs km)
                 if (travelExpenses > 0) {
+                    let transportUnit = "1 forfait";
+                    let transportDesc = mission.transport_details ? `Frais de déplacement (${mission.transport_details})` : "Frais de déplacement";
+
+                    const tType = (mission.transport_type || "").toLowerCase();
+                    if (tType === 'bus' || (mission.transport_details || "").toLowerCase().includes('bus')) {
+                        transportUnit = "forfait";
+                        transportDesc = "Frais de déplacement (Bus)";
+                    } else if (tType === 'km' || (mission.transport_details || "").toLowerCase().includes('km') || (mission.transport_details || "").toLowerCase().includes('voiture')) {
+                        // Extrait le nombre de km ou le calcule à partir des frais (0.75 CHF / km)
+                        const kmNum = Math.round(travelExpenses / 0.75);
+                        transportUnit = `${kmNum} kms`;
+                        transportDesc = "Frais de déplacement (Voiture)";
+                    }
+
                     tableRowsHtml += `
                         <tr>
-                            <td class="p-4 text-slate-700">Frais de déplacement</td>
-                            <td class="p-4 text-center font-medium">1 forfait</td>
+                            <td class="p-4 text-slate-700">${transportDesc}</td>
+                            <td class="p-4 text-center font-medium">${transportUnit}</td>
                             <td class="p-4 text-right font-bold text-lkdm-text">CHF ${travelExpensesStr}</td>
                         </tr>
                     `;
@@ -1718,6 +1739,7 @@
                         <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-1.5">
                             <p class="font-bold text-xs uppercase tracking-wider text-lkdm-secondary mb-2">Détails :</p>
                             <div class="flex justify-between"><span class="text-slate-500">Date :</span><span class="font-semibold">${currentDate}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-500">Mode de paiement :</span><span class="font-semibold text-lkdm-accent">${paymentType}</span></div>
                             <div class="flex justify-between"><span class="text-slate-500">Échéance :</span><span class="font-semibold">10 jours</span></div>
                         </div>
                     </div>
@@ -1787,8 +1809,8 @@
                     </div>
                     <div class="grid grid-cols-2 gap-4 text-xs mb-8 bg-slate-50 p-6 rounded-2xl border border-slate-200">
                         <div class="space-y-1"><p class="text-slate-500 uppercase font-bold text-[10px]">Bénéficiaire</p><p class="font-bold text-slate-800 text-sm">${finalClientName}</p></div>
-                        <div class="space-y-1"><p class="text-slate-500 uppercase font-bold text-[10px]">Étudiant Intervenant</p><p class="font-bold text-slate-800 text-sm">Attribué à l'étudiant</p></div>
-                        <div class="space-y-1 pt-3 border-t border-slate-200"><p class="text-slate-500 uppercase font-bold text-[10px]">Date et heure</p><p class="font-semibold text-slate-700">${currentDate}</p></div>
+                        <div class="space-y-1"><p class="text-slate-500 uppercase font-bold text-[10px]">Étudiant Intervenant</p><p class="font-bold text-slate-800 text-sm">${finalStudentName}</p></div>
+                        <div class="space-y-1 pt-3 border-t border-slate-200"><p class="text-slate-500 uppercase font-bold text-[10px]">Date et heure</p><p class="font-semibold text-slate-700">${missionDateTimeStr}</p></div>
                         <div class="space-y-1 pt-3 border-t border-slate-200"><p class="text-slate-500 uppercase font-bold text-[10px]">Durée effective</p><p class="font-semibold text-slate-700">${hoursStr}</p></div>
                     </div>
                     <div class="space-y-3 mb-10 text-xs">
