@@ -930,7 +930,7 @@
                             </select>
                         </div>
                     </div>
-                    <button type="button" onclick="generateAndSaveSalaryCertificate(currentStudentId)" class="w-full py-2.5 bg-lkdm-accent text-white rounded-xl text-xs font-medium shadow-sm hover:bg-[#b53838] transition flex items-center justify-center gap-1.5">
+                    <button type="button" onclick="generateAndSaveSalaryCertificate(document.getElementById('edit-stu-id').value)" class="w-full py-2.5 bg-lkdm-accent text-white rounded-xl text-xs font-medium shadow-sm hover:bg-[#b53838] transition flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-file-invoice-dollar"></i> Générer et stocker le certificat
                     </button>
                 </div>
@@ -3286,8 +3286,16 @@
             });
         }
         async function generateAndSaveSalaryCertificate(studentId) {
-            if (!studentId || !window.supabaseClient) {
-                alert("Erreur : Étudiant non identifié ou client Supabase manquant.");
+            // Récupère l'ID depuis le paramètre ou directement depuis le champ caché de la modale ouverte
+            const activeStudentId = studentId || document.getElementById('edit-stu-id').value;
+
+            if (!activeStudentId) {
+                alert("Erreur : Aucun étudiant n'est actuellement sélectionné.");
+                return;
+            }
+
+            if (!window.supabaseClient) {
+                alert("Erreur : Le client Supabase n'est pas initialisé.");
                 return;
             }
 
@@ -3300,27 +3308,25 @@
                 const { data: student, error: studentError } = await window.supabaseClient
                     .from('profiles')
                     .select('*')
-                    .eq('id', studentId)
+                    .eq('id', activeStudentId)
                     .single();
 
                 if (studentError || !student) throw new Error("Impossible de trouver l'étudiant dans la base de données.");
 
-                // 2. Récupération des missions de cet étudiant pour le mois/année sélectionnés
-                // On filtre sur les missions où student_id correspond
+                // 2. Récupération des missions de cet étudiant
                 const { data: missions, error: missionsError } = await window.supabaseClient
                     .from('missions')
                     .select('*')
-                    .eq('student_id', studentId);
+                    .eq('student_id', activeStudentId);
 
                 if (missionsError) throw missionsError;
 
-                // Filtrage programmatique par mois et année sur la date de mission ou de paiement
+                // Filtrage par mois et année
                 const filteredMissions = (missions || []).filter(m => {
                     const d = new Date(m.mission_date || m.created_at);
                     return d.getMonth() + 1 === parseInt(month) && d.getFullYear() === parseInt(year);
                 });
 
-                // Calculs financiers (35.00 CHF / heure par défaut ou selon vos règles)
                 const hourlyRate = 35.00;
                 let totalHours = 0;
                 let tableRowsHtml = '';
@@ -3367,6 +3373,8 @@
                         <p><span class="text-slate-500">Nom & Prénom :</span> <strong class="text-slate-800">${student.full_name}</strong></p>
                         <p><span class="text-slate-500">E-mail :</span> ${student.email || 'N/A'}</p>
                         <p><span class="text-slate-500">Adresse :</span> ${student.address || 'Non renseignée'}, ${student.npa || ''} ${student.city || ''}</p>
+                        <p><span class="text-slate-500">N° AVS :</span> ${student.avs || 'Non renseigné'}</p>
+                        <p><span class="text-slate-500">IBAN :</span> ${student.iban || 'Non renseigné'}</p>
                     </div>
 
                     <table class="w-full mb-8 border-collapse text-xs">
@@ -3396,7 +3404,6 @@
                 </div>`;
 
                 // 4. Génération du PDF via html2pdf et upload dans Storage Supabase
-                // Création d'un conteneur temporaire invisible pour la conversion
                 const tempContainer = document.createElement('div');
                 tempContainer.innerHTML = certificateHtml;
                 document.body.appendChild(tempContainer);
@@ -3431,7 +3438,8 @@
                 const { error: dbError } = await window.supabaseClient.from('documents').insert([{
                     title: docTitle,
                     doc_type: 'Certificat de salaire',
-                    mission_id: filteredMissions.length > 0 ? filteredMissions[0].id : null, // Associe à la première mission du mois ou null
+                    mission_id: filteredMissions.length > 0 ? filteredMissions[0].id : null,
+                    client_id: null, // S'il y a un champ client_id ou student_id dans votre table documents, adaptez ici
                     file_url: pdfUrl
                 }]);
 
@@ -3439,7 +3447,10 @@
 
                 alert(`Succès : Le certificat de salaire de ${monthName} ${year} pour ${student.full_name} a été généré, stocké et enregistré dans la base de données !`);
                 
-                if (typeof loadSupabaseOverview === 'function') loadSupabaseOverview();
+                // Recharge l'aperçu des documents de l'étudiant dans la modale si la fonction existe
+                if (typeof openEditStudent === 'function') {
+                    // Optionnel : actualise la liste des documents de l'étudiant
+                }
 
             } catch (err) {
                 console.error("Erreur génération certificat de salaire :", err);
