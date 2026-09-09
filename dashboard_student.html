@@ -778,7 +778,15 @@
         function renderUpcoming() {
             const container = document.getElementById('dash-upcoming-list');
             container.innerHTML = '';
-            const myMissions = dbMissions.filter(m => m.student_id === currentStudentId && (!m.end_time || m.matching_status === 'En cours'));
+            
+            const myMissions = dbMissions.filter(m => {
+                if (m.student_id !== currentStudentId) return false;
+                
+                const status = (m.matching_status || "").toLowerCase();
+                const isFinished = m.end_time || status === 'À facturer' || status === 'En attente de paiement' || status === 'Mission effectuée';
+                
+                return !isFinished;
+            });
 
             if (myMissions.length === 0) {
                 container.innerHTML = `<p class="text-xs text-slate-400">Aucun engagement validé pour le moment.</p>`;
