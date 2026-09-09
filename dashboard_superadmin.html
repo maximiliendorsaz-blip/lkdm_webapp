@@ -3359,7 +3359,7 @@
                     tableRowsHtml = `<tr><td colspan="3" class="p-4 text-center text-slate-400">Aucune mission enregistrée pour cette période.</td></tr>`;
                 }
 
-                const docTitle = `Certificat de salaire - ${monthName} ${year} - ${student.full_name}`;
+                const docTitle = `Décompte de salaire - ${monthName} ${year} - ${student.full_name}`;
 
                 // 3. Construction du HTML du Certificat de Salaire
                 const grossSalary = totalHours * hourlyRate;
@@ -3447,7 +3447,7 @@
 
                 const opt = {
                     margin: 5,
-                    filename: `Certificat_Salaire_${month}_${year}_${student.full_name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
+                    filename: `Décompte_Salaire_${month}_${year}_${student.full_name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
                     image: { type: 'jpeg', quality: 0.98 },
                     html2canvas: { scale: 2, useCORS: true },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -3483,7 +3483,7 @@
 
                 if (dbError) throw dbError;
 
-                alert(`Succès : Le certificat de salaire de ${monthName} ${year} pour ${student.full_name} a été généré, stocké et enregistré dans la base de données !`);
+                alert(`Succès : Le décompte de salaire de ${monthName} ${year} pour ${student.full_name} a été généré, stocké et enregistré dans la base de données !`);
                 
                 // Recharge l'aperçu des documents de l'étudiant dans la modale si la fonction existe
                 if (typeof openEditStudent === 'function') {
