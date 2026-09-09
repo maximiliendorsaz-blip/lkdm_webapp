@@ -583,12 +583,13 @@
             setTimeout(() => modal.classList.remove('opacity-0'), 10);
         }
 
-        function closeModal() {
-            const modal = document.getElementById('mission-modal');
-            modal.classList.add('opacity-0');
-            setTimeout(() => modal.classList.add('hidden'), 300);
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('active'); // Si vous utilisez une classe active
+                modal.style.display = 'none';    // Force la fermeture immédiate
+            }
         }
-
         async function acceptMission(id) {
             if (!currentStudentId) return;
             const { error } = await window.supabaseClient.from('missions').update({ student_id: currentStudentId, matching_status: 'Confirmé' }).eq('id', id);
