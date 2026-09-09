@@ -19,6 +19,16 @@
     <script src="supabase-config.js"></script>
     <!-- Configuration Centralisée LKDM -->
     <script src="config.js"></script>
+    <!-- html2pdf -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="text/javascript">
+       (function(){
+          emailjs.init({
+            publicKey: "o1j7Mfr5oH2LGYL--", // Remplacez par votre clé publique EmailJS
+          });
+       })();
+    </script>
     <style>
         #admin-map { z-index: 10 !important; }
         html, body { max-width: 100%; overflow-x: hidden; }
@@ -39,7 +49,7 @@
     <!-- Top Navigation Bar (Mobile Only) -->
     <header class="bg-white text-lkdm-text lg:hidden flex items-center justify-between p-4 sticky top-0 z-50 shadow-sm border-b border-slate-200">
         <div class="flex items-center gap-2">
-            <span class="font-bold text-lg tracking-tight">LKDM Admin</span>
+            <span class="font-bold text-lg tracking-tight">LKDM Super Admin</span>
         </div>
         <button id="mobileMenuBtn" onclick="toggleMobileMenu()" class="text-lkdm-text hover:text-lkdm-accent focus:outline-none">
             <i class="fa-solid fa-bars text-2xl"></i>
@@ -99,7 +109,6 @@
                    <button onclick="switchTab('events')" id="nav-events" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
                         <i class="fa-solid fa-calendar-star w-5 text-center"></i> Événements
                     </button>
-                    <!-- Lien vers le Journal d'Activité -->
                     <a href="admin_logs.html" class="w-full flex items-center gap-3 px-4 py-3 rounded-[50px] text-sm font-medium transition text-lkdm-secondary hover:bg-lkdm-bg hover:text-lkdm-text">
                         <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i> Journal d'activité
                     </a>
@@ -398,7 +407,7 @@
             </div>
         </div>
 
-        <!-- TAB 9: ÉVÉNEMENTS & 24H CLIENT (MAINTENANT À L'INTÉRIEUR DU MAIN) -->
+        <!-- TAB 9: ÉVÉNEMENTS -->
         <div id="tab-events" class="tab-content space-y-6">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
@@ -431,8 +440,8 @@
                 </div>
             </div>
         </div>
-
-        <!-- TAB 10: JOURNAL D'ACTIVITÉ / LOGS (MAINTENANT À L'INTÉRIEUR DU MAIN) -->
+    </div>
+            <!-- TAB 10: JOURNAL D'ACTIVITÉ / LOGS (MAINTENANT À L'INTÉRIEUR DU MAIN) -->
         <div id="tab-logs" class="tab-content space-y-6">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
@@ -788,7 +797,30 @@
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">Début (exact)</label><input type="datetime-local" id="edit-mis-start" onchange="autoCalcRealHours()" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-xs transition-colors"></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">Fin (exacte)</label><input type="datetime-local" id="edit-mis-end" onchange="autoCalcRealHours()" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-xs transition-colors"></div>
                         <div><label class="block text-xs font-bold text-slate-600 mb-1">Temps estimé (h)</label><input type="number" step="0.25" id="edit-mis-est-hours" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs transition-colors"></div>
-                        <div><label class="block text-xs font-bold text-lkdm-accent mb-1">Temps réel (h) - Auto</label><input type="number" step="0.25" id="edit-mis-real" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-500 cursor-not-allowed"></div>
+                        <div><label class="block text-xs font-bold text-lkdm-accent mb-1">Temps réel (h)</label><input type="number" step="0.25" id="edit-mis-real" oninput="recalcAdminTotal()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-lkdm-text"></div>
+                    </div>
+                </div>
+
+                <!-- BLOC FRAIS DE DÉPLACEMENT & TRANSPORT (Ajouté) -->
+                <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-200 space-y-4">
+                    <h4 class="font-bold text-xs uppercase text-emerald-900">Frais de déplacement & Transport</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Type de transport</label>
+                            <select id="edit-mis-transport-type" onchange="toggleAdminTransportFields()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                                <option value="none">Aucun frais</option>
+                                <option value="km">Voiture (Kilomètres)</option>
+                                <option value="bus">Bus (Billet)</option>
+                            </select>
+                        </div>
+                        <div id="edit-container-km" class="hidden">
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Nombre de km (0.75 CHF / km)</label>
+                            <input type="number" id="edit-mis-km-count" min="0" step="1" value="0" oninput="recalcAdminTotal()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                        </div>
+                        <div id="edit-container-bus" class="hidden">
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Prix du billet de bus (CHF)</label>
+                            <input type="number" id="edit-mis-bus-price" min="0" step="0.05" value="0" oninput="recalcAdminTotal()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                        </div>
                     </div>
                 </div>
 
@@ -804,8 +836,8 @@
                                 <option value="Payé">Payé</option>
                             </select>
                         </div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Montant total (CHF)</label><input type="number" step="0.05" id="edit-mis-total" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
-                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Commission LKDM (CHF)</label><input type="number" step="0.05" id="edit-mis-comm" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Montant total (CHF)</label><input type="number" step="0.05" id="edit-mis-total" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-emerald-700"></div>
+                        <div><label class="block text-xs font-bold text-slate-600 mb-1">Date de règlement</label><input type="date" id="edit-mis-pay-date" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"></div>
                     </div>
                 </div>
 
@@ -1149,6 +1181,29 @@
             </div>
         </form>
     </div>
+</div>
+<!-- MODALE DE VISUALISATION DES DOCUMENTS -->
+<div id="modal-view-document" class="hidden fixed inset-0 z-[250] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 relative my-8">
+        <button onclick="closeModal('modal-view-document')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200">
+            <i class="fa-solid fa-times"></i>
+        </button>
+        <div id="document-preview-container" class="mb-6 max-h-[70vh] overflow-y-auto p-2">
+            <!-- Le contenu du document généré s'insère ici dynamiquement -->
+        </div>
+        <div class="flex justify-between items-center border-t pt-4">
+            <button type="button" onclick="saveCurrentPreviewToDB()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs font-medium shadow-sm transition flex items-center gap-1.5">
+                <i class="fa-solid fa-database"></i> Enregistrer dans la DB
+            </button>
+            <div class="flex gap-2">
+                <button type="button" onclick="closeModal('modal-view-document')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Fermer</button>
+                <button type="button" id="btn-proceed-to-email" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm hover:bg-[#b53838]">
+                    <i class="fa-solid fa-paper-plane mr-1.5"></i> Envoyer par e-mail
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 </div>
 
     <!-- SCRIPTS JAVASCRIPT PRINCIPAUX -->
@@ -1601,9 +1656,9 @@
                         <td class="p-3 font-medium text-slate-600">${payType}</td>
                         <td class="p-3">${paymentBadge}</td>
                         <td class="p-3 text-right space-x-1">
-                            <button onclick="generateDoc('${m.id}', 'Facture')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Générer Facture"><i class="fa-solid fa-file-invoice"></i></button>
-                            <button onclick="generateDoc('${m.id}', 'Quittance')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Générer Quittance"><i class="fa-solid fa-receipt"></i></button>
-                            <button onclick="generateDoc('${m.id}', 'Rapport')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Rapport"><i class="fa-solid fa-flag-checkered"></i></button>
+                            <button onclick="generateAndSaveDocument('Facture', '${m.mission_code}', '${m.client ? m.client.email : ''}', '${clientName}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Générer Facture"><i class="fa-solid fa-file-invoice"></i></button>
+                            <button onclick="generateAndSaveDocument('Quittance', '${m.mission_code}', '${m.client ? m.client.email : ''}', '${clientName}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px]" title="Générer Quittance"><i class="fa-solid fa-receipt"></i></button>
+                            <button onclick="generateAndSaveDocument('Rapport', '${m.mission_code}', '${m.client ? m.client.email : ''}', '${clientName}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded text-[10px]" title="Générer Rapport"><i class="fa-solid fa-flag-checkered"></i></button>
                             <button onclick="sendBillingEmail('${m.id}', '${clientName}')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-bold"><i class="fa-solid fa-paper-plane"></i> Envoyer</button>
                             <button onclick="validatePayment('${m.id}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold"><i class="fa-solid fa-check"></i> Valider</button>
                         </td>
@@ -1612,8 +1667,276 @@
             });
         }
 
-        function generateDoc(missionId, docType) {
-            alert(`[Génération 1-clic] ${docType} générée avec succès.`);
+        async function validatePayment(missionId) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            await window.supabaseClient.from('missions').update({ 
+                payment_status: 'Payé',
+                payment_date: todayStr 
+            }).eq('id', missionId);
+            alert(`[Paiement Validé] Facture marquée comme payée à la date du ${todayStr}.`);
+            loadSupabaseOverview();
+        }
+
+        async function generateAndSaveDocument(docType, missionCode, clientEmail, clientName) {
+            console.log("=== DÉBUT GÉNÉRATION DIRECTE DEPUIS SUPABASE ===");
+            console.log("Paramètres reçus -> Type:", docType, "| Code/ID Mission:", missionCode);
+
+            if (!window.supabaseClient) {
+                alert("Erreur critique : Le client Supabase n'est pas initialisé.");
+                return;
+            }
+
+            // 1. Récupération directe de la mission dans Supabase par son code ou son ID
+            let mission = null;
+            const { data: mByCode } = await window.supabaseClient
+                .from('missions')
+                .select('*')
+                .eq('mission_code', missionCode)
+                .maybeSingle();
+
+            if (mByCode) {
+                mission = mByCode;
+            } else {
+                const { data: mById } = await window.supabaseClient
+                    .from('missions')
+                    .select('*')
+                    .eq('id', missionCode)
+                    .maybeSingle();
+                if (mById) mission = mById;
+            }
+
+            if (!mission) {
+                alert("Impossible de trouver cette mission dans la base de données Supabase.");
+                console.error("Mission introuvable pour le code/ID :", missionCode);
+                return;
+            }
+
+            // 2. Récupération du client associé dans la table 'profiles'
+            let client = {};
+            if (mission.client_id) {
+                const { data: dbClient } = await window.supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', mission.client_id)
+                    .maybeSingle();
+                if (dbClient) client = dbClient;
+            }
+
+            // 3. Récupération de l'étudiant assigné (pour le rapport)
+            let student = {};
+            if (mission.student_id) {
+                const { data: dbStudent } = await window.supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', mission.student_id)
+                    .maybeSingle();
+                if (dbStudent) student = dbStudent;
+            }
+
+            // 4. Extraction et conversion des valeurs
+            const address = client.address || 'Adresse non renseignée';
+            const npa = client.npa || '';
+            const city = client.city || '';
+            const description = mission.exact_description || 'Intervention Koup de Main';
+            
+            const paymentType = mission.payment_type || 'Facture';
+            
+            // Heures
+            const hoursVal = Number(mission.real_hours) > 0 ? Number(mission.real_hours) : (Number(mission.estimated_hours) || 2.0);
+            const hoursStr = `${hoursVal} h`;
+            
+            // Calculs financiers
+            const hourlyRate = 35.00;
+            const baseAmount = hoursVal * hourlyRate;
+            const travelExpenses = Number(mission.travel_expenses || 0);
+            const totalAmountVal = baseAmount + travelExpenses;
+            
+            const amount = totalAmountVal.toFixed(2);
+            const baseAmountStr = baseAmount.toFixed(2);
+            const travelExpensesStr = travelExpenses.toFixed(2);
+            const subtotal = amount;
+            
+            const currentDate = new Date().toLocaleDateString('fr-CH');
+
+            // Remplace la ligne de calcul de la date de règlement dans la quittance
+            const paymentDateFormatted = mission.payment_date 
+                ? new Date(mission.payment_date).toLocaleDateString('fr-CH') 
+                : currentDate;
+            
+            // Date et heure d'intervention formatée pour le rapport
+            const missionDateTimeStr = mission.mission_date ? formatDisplayDateTime(mission.mission_date) : currentDate;
+            
+            const finalClientName = client.full_name || clientName || 'Client LKDM';
+            const finalStudentName = student.full_name || 'Non attribué';
+            const finalMissionCode = mission.mission_code || missionCode || 'M2026_X';
+            const finalClientEmail = client.email || clientEmail || '';
+
+            let templateHtml = "";
+            let docTitle = `${docType} - ${finalMissionCode} - ${finalClientName}`;
+
+            if (docType === 'Facture') {
+                // Ligne de prestation : xx heures de mission * 35.00
+                let tableRowsHtml = `
+                    <tr>
+                        <td class="p-4 text-slate-700">${description}</td>
+                        <td class="p-4 text-center font-medium">${hoursVal} h × ${hourlyRate.toFixed(2)} CHF</td>
+                        <td class="p-4 text-right font-bold text-lkdm-text">CHF ${baseAmountStr}</td>
+                    </tr>
+                `;
+
+                // Gestion dynamique des frais de déplacement (forfait bus vs km)
+                if (travelExpenses > 0) {
+                    let transportUnit = "1 forfait";
+                    let transportDesc = mission.transport_details ? `Frais de déplacement (${mission.transport_details})` : "Frais de déplacement";
+
+                    const tType = (mission.transport_type || "").toLowerCase();
+                    if (tType === 'bus' || (mission.transport_details || "").toLowerCase().includes('bus')) {
+                        transportUnit = "forfait";
+                        transportDesc = "Frais de déplacement (Bus)";
+                    } else if (tType === 'km' || (mission.transport_details || "").toLowerCase().includes('km') || (mission.transport_details || "").toLowerCase().includes('voiture')) {
+                        // Extrait le nombre de km ou le calcule à partir des frais (0.75 CHF / km)
+                        const kmNum = Math.round(travelExpenses / 0.75);
+                        transportUnit = `${kmNum} kms`;
+                        transportDesc = "Frais de déplacement (Voiture)";
+                    }
+
+                    tableRowsHtml += `
+                        <tr>
+                            <td class="p-4 text-slate-700">${transportDesc}</td>
+                            <td class="p-4 text-center font-medium">${transportUnit}</td>
+                            <td class="p-4 text-right font-bold text-lkdm-text">CHF ${travelExpensesStr}</td>
+                        </tr>
+                    `;
+                }
+
+                templateHtml = `
+                <div class="bg-white p-12 max-w-[210mm] mx-auto text-slate-800 text-sm shadow-xl rounded-2xl border border-slate-200" style="width: 100%; box-sizing: border-box;">
+                    <div class="flex justify-between items-start border-b-2 border-lkdm-accent pb-8 mb-8">
+                        <div>
+                            <h1 class="text-3xl font-bold text-lkdm-text tracking-tight">FACTURE</h1>
+                            <p class="text-xs font-semibold text-lkdm-secondary mt-1">Réf: FAC-${finalMissionCode}</p>
+                        </div>
+                        <div class="text-right">
+                            <h2 class="font-bold text-lg text-lkdm-text">Le Koup de Main (LKDM)</h2>
+                            <p class="text-xs text-slate-500">Eleveight Société Coopérative</p>
+                            <p class="text-xs text-slate-500">Technopôle 1, 3960 Sierre, Valais</p>
+                            <p class="text-xs text-slate-500">hello@lekoupdemain.ch</p>
+                            <p class="text-xs text-slate-500">+41 77 280 76 97</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-8 mb-10 text-xs">
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                            <p class="font-bold text-xs uppercase tracking-wider text-lkdm-secondary mb-2">Facturé à :</p>
+                            <p class="font-bold text-slate-800 text-sm">${finalClientName}</p>
+                            <p class="text-slate-600 mt-1">${address}</p>
+                            <p class="text-slate-600"><span>${npa}</span> <span>${city}</span></p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-1.5">
+                            <p class="font-bold text-xs uppercase tracking-wider text-lkdm-secondary mb-2">Détails :</p>
+                            <div class="flex justify-between"><span class="text-slate-500">Date :</span><span class="font-semibold">${currentDate}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-500">Échéance :</span><span class="font-semibold">10 jours</span></div>
+                        </div>
+                    </div>
+                    <table class="w-full mb-10 border-collapse text-xs">
+                        <thead>
+                            <tr style="background-color: #1E293B; color: #ffffff;" class="text-left">
+                                <th class="p-3.5 rounded-l-xl">Description de la prestation</th>
+                                <th class="p-3.5 text-center">Nombres d'unités</th>
+                                <th class="p-3.5 text-right rounded-r-xl">Total (CHF)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            ${tableRowsHtml}
+                        </tbody>
+                    </table>
+                    <div class="flex justify-end mb-16">
+                        <div class="w-80 space-y-2.5 text-xs bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                            <div class="flex justify-between py-1 border-b border-slate-200"><span class="text-slate-500">Sous-total</span><span class="font-semibold">CHF ${subtotal}</span></div>
+                            <div class="flex justify-between py-1 border-b border-slate-200"><span class="text-slate-500">TVA 0%</span><span class="font-semibold">CHF 0.00</span></div>
+                            <div class="flex justify-between py-1.5 text-sm font-bold text-lkdm-text"><span>Total à payer</span><span>CHF ${amount}</span></div>
+                            <div class="pt-2 border-t border-slate-200 text-[11px] font-semibold text-slate-600">IBAN : CH94 8080 8003 6095 4058 7</div>
+                        </div>
+                    </div>
+                    <div class="border-t pt-8 text-center text-[11px] text-slate-400 space-y-1">
+                        <p>Merci de votre confiance. Veuillez effectuer le règlement dans les délais.</p>
+                        <p>Le Koup de Main c/o Eleveight Société Coopérative • www.lekoupdemain.ch</p>
+                    </div>
+                </div>`;
+            } else if (docType === 'Quittance') {
+                templateHtml = `
+                <div class="bg-white p-12 max-w-[210mm] mx-auto text-slate-800 text-sm shadow-xl rounded-2xl border border-slate-200" style="width: 100%; box-sizing: border-box;">
+                    <div class="flex justify-between items-start border-b-2 border-emerald-600 pb-8 mb-8">
+                        <div>
+                            <h1 class="text-3xl font-bold text-emerald-700 tracking-tight">QUITTANCE DE PAIEMENT</h1>
+                            <p class="text-xs font-semibold text-emerald-600 mt-1">Reçu N° : QUI-${finalMissionCode}</p>
+                        </div>
+                        <div class="text-right">
+                            <h2 class="font-bold text-lg text-lkdm-text">Le Koup de Main</h2>
+                            <p class="text-xs text-slate-500">Technopôle 1, 3960 Sierre, Valais</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-600 mb-8 leading-relaxed">Nous confirmons par la présente la réception du paiement intégral pour la mission <strong>${finalMissionCode}</strong>.</p>
+                    <div class="bg-emerald-50/60 p-6 rounded-2xl border border-emerald-200 text-xs mb-10 space-y-3">
+                        <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Client / Bénéficiaire :</span><span class="font-bold text-slate-800 text-sm">${finalClientName}</span></div>
+                        <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Référence Mission :</span><span class="font-semibold text-emerald-800">${finalMissionCode}</span></div>
+                        <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Montant acquitté :</span><span class="font-bold text-emerald-800 text-base">CHF ${amount}</span></div>
+                        <div class="flex justify-between border-b border-emerald-200 pb-2"><span class="text-slate-500">Date de règlement :</span><span class="font-semibold text-slate-800">${paymentDateFormatted}</span></div>                        <div class="flex justify-between"><span class="text-slate-500">Moyen de règlement :</span><span class="font-semibold text-slate-800">${paymentType}</span></div>
+                    </div>
+                    <div class="flex justify-between items-end mt-32 pt-10 border-t">
+                        <div class="text-xs text-slate-400"><p>Document officiel émis par Le Koup de Main.</p></div>
+                    </div>
+                </div>`;
+            } else if (docType === 'Rapport') {
+                templateHtml = `
+                <div class="bg-white p-12 max-w-[210mm] mx-auto text-slate-800 text-sm shadow-xl rounded-2xl border border-slate-200" style="width: 100%; box-sizing: border-box;">
+                    <div class="flex justify-between items-start border-b-2 border-lkdm-text pb-8 mb-8">
+                        <div>
+                            <h1 class="text-3xl font-bold text-lkdm-text tracking-tight">RAPPORT DE MISSION</h1>
+                            <p class="text-xs font-semibold text-lkdm-secondary mt-1">Fiche d'intervention : ${finalMissionCode}</p>
+                        </div>
+                        <div class="text-right">
+                            <h2 class="font-bold text-lg text-lkdm-text">Le Koup de Main</h2>
+                            <p class="text-xs text-slate-500">Suivi des interventions</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 text-xs mb-8 bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                        <div class="space-y-1"><p class="text-slate-500 uppercase font-bold text-[10px]">Bénéficiaire</p><p class="font-bold text-slate-800 text-sm">${finalClientName}</p></div>
+                        <div class="space-y-1"><p class="text-slate-500 uppercase font-bold text-[10px]">Étudiant Intervenant</p><p class="font-bold text-slate-800 text-sm">${finalStudentName}</p></div>
+                        <div class="space-y-1 pt-3 border-t border-slate-200"><p class="text-slate-500 uppercase font-bold text-[10px]">Date et heure</p><p class="font-semibold text-slate-700">${missionDateTimeStr}</p></div>
+                        <div class="space-y-1 pt-3 border-t border-slate-200"><p class="text-slate-500 uppercase font-bold text-[10px]">Durée effective</p><p class="font-semibold text-slate-700">${hoursStr}</p></div>
+                    </div>
+                    <div class="space-y-3 mb-10 text-xs">
+                        <p class="font-bold text-slate-600 uppercase tracking-wider">Description exacte de l'intervention :</p>
+                        <div class="p-5 bg-white border border-slate-200 rounded-2xl text-slate-700 min-h-[140px] leading-relaxed">${description}</div>
+                    </div>
+                    <div class="bg-blue-50/50 p-5 rounded-2xl border border-blue-200 flex justify-between items-center text-xs mb-20">
+                        <div><p class="font-bold text-blue-900">Validation du Koup de Main</p><p class="text-blue-700">Mission menée à bien et validée.</p></div>
+                        <span class="px-3 py-1 bg-blue-600 text-white rounded-full font-bold text-[11px]">Effectué & Validé</span>
+                    </div>
+                </div>`;
+            }
+
+            // Mémorisation du contexte pour le bouton d'enregistrement manuel dans la DB
+            currentDocumentContext = {
+                docType: docType,
+                missionId: mission.id || null,
+                clientId: mission.client_id || null,
+                title: docTitle
+            };
+
+            // Affichage dans la modale
+            const container = document.getElementById('document-preview-container');
+            if (container) container.innerHTML = templateHtml;
+
+            const btnSend = document.getElementById('btn-proceed-to-email');
+            if (btnSend) {
+                btnSend.onclick = () => {
+                    closeModal('modal-view-document');
+                    openEmailModal(docType, finalMissionCode, finalClientEmail, finalClientName);
+                };
+            }
+
+            openModal('modal-view-document');
         }
 
         async function sendBillingEmail(missionId, clientName) {
@@ -1810,9 +2133,16 @@
             }
             const diffMinutes = Math.floor(diffMs / 60000); 
             let realH = diffMinutes <= 60 ? 1.0 : Math.ceil((diffMinutes / 60) * 2) / 2; 
+            
             document.getElementById('edit-mis-real').value = realH;
-            document.getElementById('edit-mis-total').value = (realH * 35).toFixed(2);
-            document.getElementById('edit-mis-comm').value = (realH * 10).toFixed(2);
+            
+            // Mise à jour sécurisée sans 'edit-mis-comm'
+            const travel = parseFloat(document.getElementById('edit-mis-travel')?.value) || 0;
+            const total = (realH * 35.00) + travel;
+            
+            if(document.getElementById('edit-mis-total')) {
+                document.getElementById('edit-mis-total').value = total.toFixed(2);
+            }
         }
 
         async function openEditMissionModal(id) {
@@ -1820,51 +2150,83 @@
             if (!m) return;
 
             const cliSelect = document.getElementById('edit-mis-client');
-            cliSelect.innerHTML = '<option value="">-- Sélectionner un client --</option>';
-            globalClientsData.forEach(c => cliSelect.innerHTML += `<option value="${c.id}" ${m.client_id === c.id ? 'selected' : ''}>${c.full_name}</option>`);
+            if (cliSelect) {
+                cliSelect.innerHTML = '<option value="">-- Sélectionner un client --</option>';
+                globalClientsData.forEach(c => cliSelect.innerHTML += `<option value="${c.id}" ${m.client_id === c.id ? 'selected' : ''}>${c.full_name}</option>`);
+            }
 
             const stuSelect = document.getElementById('edit-mis-student');
-            stuSelect.innerHTML = '<option value="">-- Aucun / À attribuer --</option>';
-            globalStudentsData.forEach(s => stuSelect.innerHTML += `<option value="${s.id}" ${m.student_id === s.id ? 'selected' : ''}>${s.full_name}</option>`);
+            if (stuSelect) {
+                stuSelect.innerHTML = '<option value="">-- Aucun / À attribuer --</option>';
+                globalStudentsData.forEach(s => stuSelect.innerHTML += `<option value="${s.id}" ${m.student_id === s.id ? 'selected' : ''}>${s.full_name}</option>`);
+            }
 
-            document.getElementById('edit-mis-id').value = m.id;
-            document.getElementById('edit-mis-code').value = m.mission_code || '';
-            document.getElementById('edit-mis-matching-status').value = m.matching_status || 'Nouveau';
-            document.getElementById('edit-mis-lang').value = m.mission_language || 'Français';
-            document.getElementById('edit-mis-periods').value = m.mission_periods || '';
-            document.getElementById('edit-mis-date').value = formatToDatetimeLocal(m.mission_date);
-            document.getElementById('edit-mis-desc').value = m.exact_description || '';
+            if (document.getElementById('edit-mis-id')) document.getElementById('edit-mis-id').value = m.id;
+            if (document.getElementById('edit-mis-code')) document.getElementById('edit-mis-code').value = m.mission_code || '';
+            if (document.getElementById('edit-mis-matching-status')) document.getElementById('edit-mis-matching-status').value = m.matching_status || 'Nouveau';
+            if (document.getElementById('edit-mis-lang')) document.getElementById('edit-mis-lang').value = m.mission_language || 'Français';
+            if (document.getElementById('edit-mis-periods')) document.getElementById('edit-mis-periods').value = m.mission_periods || '';
+            if (document.getElementById('edit-mis-date')) document.getElementById('edit-mis-date').value = formatToDatetimeLocal(m.mission_date);
+            if (document.getElementById('edit-mis-desc')) document.getElementById('edit-mis-desc').value = m.exact_description || '';
 
-            document.getElementById('edit-mis-start').value = formatToDatetimeLocal(m.start_time);
-            document.getElementById('edit-mis-end').value = formatToDatetimeLocal(m.end_time);
-            document.getElementById('edit-mis-est-hours').value = m.estimated_hours || '';
+            if (document.getElementById('edit-mis-start')) document.getElementById('edit-mis-start').value = formatToDatetimeLocal(m.start_time);
+            if (document.getElementById('edit-mis-end')) document.getElementById('edit-mis-end').value = formatToDatetimeLocal(m.end_time);
+            if (document.getElementById('edit-mis-est-hours')) document.getElementById('edit-mis-est-hours').value = m.estimated_hours || '';
             
-            if (m.start_time && m.end_time) autoCalcRealHours();
-            else document.getElementById('edit-mis-real').value = m.real_hours || '';
+            if (m.start_time && m.end_time) {
+                autoCalcRealHours();
+            } else if (document.getElementById('edit-mis-real')) {
+                document.getElementById('edit-mis-real').value = m.real_hours || '';
+            }
 
-            document.getElementById('edit-mis-start').disabled = true;
-            document.getElementById('edit-mis-end').disabled = true;
-            document.getElementById('edit-mis-est-hours').disabled = true;
+            if (document.getElementById('edit-mis-start')) document.getElementById('edit-mis-start').disabled = true;
+            if (document.getElementById('edit-mis-end')) document.getElementById('edit-mis-end').disabled = true;
+            if (document.getElementById('edit-mis-est-hours')) document.getElementById('edit-mis-est-hours').disabled = true;
             
-            document.getElementById('edit-mis-payment').value = m.payment_type || 'Facture';
-            document.getElementById('edit-mis-pay-status').value = m.payment_status || 'Facture non envoyée';
-            document.getElementById('edit-mis-total').value = m.total_amount || '';
-            document.getElementById('edit-mis-comm').value = m.lkdm_commission || '';
+            if (document.getElementById('edit-mis-payment')) document.getElementById('edit-mis-payment').value = m.payment_type || 'Facture';
+            if (document.getElementById('edit-mis-pay-status')) document.getElementById('edit-mis-pay-status').value = m.payment_status || 'Facture non envoyée';
+            if (document.getElementById('edit-mis-total')) document.getElementById('edit-mis-total').value = m.total_amount || '';
+            if (document.getElementById('edit-mis-travel')) document.getElementById('edit-mis-travel').value = m.travel_expenses || '';
+            
+            const payDateInput = document.getElementById('edit-mis-pay-date');
+            if (payDateInput) {
+                payDateInput.value = m.payment_date ? m.payment_date.split('T')[0] : '';
+            }
 
-            document.getElementById('edit-mis-scsat').value = m.senior_csat || '';
-            document.getElementById('edit-mis-snps').value = m.senior_nps || '';
-            document.getElementById('edit-mis-stcsat').value = m.student_csat || '';
-            document.getElementById('edit-mis-stnps').value = m.student_nps || '';
-            document.getElementById('edit-mis-dar').value = m.dar_summary || '';
-            document.getElementById('edit-mis-feedback').value = m.feedback || '';
+            const tType = m.transport_type || (m.travel_expenses > 0 ? 'km' : 'none');
+            const transportTypeSelect = document.getElementById('edit-mis-transport-type');
+            if (transportTypeSelect) {
+                transportTypeSelect.value = tType;
+                if (tType === 'bus') {
+                    if (document.getElementById('edit-mis-bus-price')) document.getElementById('edit-mis-bus-price').value = m.travel_expenses || 0;
+                    if (document.getElementById('edit-mis-km-count')) document.getElementById('edit-mis-km-count').value = 0;
+                } else if (tType === 'km') {
+                    if (document.getElementById('edit-mis-km-count')) document.getElementById('edit-mis-km-count').value = (m.travel_expenses || 0) / 0.75;
+                    if (document.getElementById('edit-mis-bus-price')) document.getElementById('edit-mis-bus-price').value = 0;
+                } else {
+                    if (document.getElementById('edit-mis-km-count')) document.getElementById('edit-mis-km-count').value = 0;
+                    if (document.getElementById('edit-mis-bus-price')) document.getElementById('edit-mis-bus-price').value = 0;
+                }
+                toggleAdminTransportFields();
+            }
 
-            const missionDocs = globalDocumentsData.filter(d => d.mission_id == m.id);
-            document.getElementById('mission-docs-list').innerHTML = missionDocs.length ? missionDocs.map(d => `
-                <div onclick="openEditDocModal('${d.id}')" class="bg-white p-2 rounded border flex justify-between items-center cursor-pointer hover:border-lkdm-accent">
-                    <span><strong>[${d.doc_type}]</strong> ${d.title}</span>
-                    <span class="text-lkdm-accent font-bold hover:underline">Modifier / Voir</span>
-                </div>
-            `).join('') : '<p class="text-slate-400">Aucun document lié.</p>';
+            if (document.getElementById('edit-mis-scsat')) document.getElementById('edit-mis-scsat').value = m.senior_csat || '';
+            if (document.getElementById('edit-mis-snps')) document.getElementById('edit-mis-snps').value = m.senior_nps || '';
+            if (document.getElementById('edit-mis-stcsat')) document.getElementById('edit-mis-stcsat').value = m.student_csat || '';
+            if (document.getElementById('edit-mis-stnps')) document.getElementById('edit-mis-stnps').value = m.student_nps || '';
+            if (document.getElementById('edit-mis-dar')) document.getElementById('edit-mis-dar').value = m.dar_summary || '';
+            if (document.getElementById('edit-mis-feedback')) document.getElementById('edit-mis-feedback').value = m.feedback || '';
+
+            const missionDocsList = document.getElementById('mission-docs-list');
+            if (missionDocsList) {
+                const missionDocs = globalDocumentsData.filter(d => d.mission_id == m.id);
+                missionDocsList.innerHTML = missionDocs.length ? missionDocs.map(d => `
+                    <div onclick="openEditDocModal('${d.id}')" class="bg-white p-2 rounded border flex justify-between items-center cursor-pointer hover:border-lkdm-accent">
+                        <span><strong>[${d.doc_type}]</strong> ${d.title}</span>
+                        <span class="text-lkdm-accent font-bold hover:underline">Modifier / Voir</span>
+                    </div>
+                `).join('') : '<p class="text-slate-400">Aucun document lié.</p>';
+            }
 
             openModal('modal-edit-mission');
         }
@@ -1872,9 +2234,23 @@
         async function submitEditMission(event) {
             event.preventDefault();
             const id = document.getElementById('edit-mis-id').value;
+            
+            const transportType = document.getElementById('edit-mis-transport-type').value;
+            let transportDetailsStr = "Aucun frais";
+            let travelCost = 0;
+
+            if (transportType === 'km') {
+                const km = parseFloat(document.getElementById('edit-mis-km-count').value) || 0;
+                travelCost = km * 0.75;
+                transportDetailsStr = `Voiture - ${km} km à 0.75 CHF/km`;
+            } else if (transportType === 'bus') {
+                travelCost = parseFloat(document.getElementById('edit-mis-bus-price').value) || 0;
+                transportDetailsStr = `Bus - Billet (Forfait)`;
+            }
+
             const payload = {
                 mission_code: document.getElementById('edit-mis-code').value,
-                client_id: document.getElementById('edit-mis-client').value,
+                client_id: document.getElementById('edit-mis-client').value || null,
                 student_id: document.getElementById('edit-mis-student').value || null,
                 matching_status: document.getElementById('edit-mis-matching-status').value,
                 mission_language: document.getElementById('edit-mis-lang').value,
@@ -1888,7 +2264,10 @@
                 payment_type: document.getElementById('edit-mis-payment').value,
                 payment_status: document.getElementById('edit-mis-pay-status').value,
                 total_amount: parseFloat(document.getElementById('edit-mis-total').value) || 0,
-                lkdm_commission: parseFloat(document.getElementById('edit-mis-comm').value) || 0,
+                payment_date: document.getElementById('edit-mis-pay-date').value ? document.getElementById('edit-mis-pay-date').value : null,
+                travel_expenses: travelCost,
+                transport_type: transportType,
+                transport_details: transportDetailsStr,
                 senior_csat: parseInt(document.getElementById('edit-mis-scsat').value) || null,
                 senior_nps: parseInt(document.getElementById('edit-mis-snps').value) || null,
                 student_csat: parseInt(document.getElementById('edit-mis-stcsat').value) || null,
@@ -1896,11 +2275,12 @@
                 dar_summary: document.getElementById('edit-mis-dar').value,
                 feedback: document.getElementById('edit-mis-feedback').value
             };
+
             const { error } = await window.supabaseClient.from('missions').update(payload).eq('id', id);
             if (error) {
-                alert("Erreur : " + error.message);
+                alert("Erreur lors de l'enregistrement : " + error.message);
             } else {
-                await logAdminAction('UPDATE_MISSION', payload.mission_code, 'Mise à jour complète des détails de la mission');
+                alert("Mission mise à jour avec succès !");
                 closeModal('modal-edit-mission');
                 loadSupabaseOverview();
             }
@@ -2413,28 +2793,6 @@
             }
         }
 
-        async function logAdminAction(actionType, targetName, details) {
-            try {
-                const { data: { user } } = await window.supabaseClient.auth.getUser();
-                if (!user) return;
-
-                const { data: adminProfile } = await window.supabaseClient
-                    .from('profiles')
-                    .select('full_name, email')
-                    .eq('id', user.id)
-                    .single();
-
-                await window.supabaseClient.from('activity_logs').insert({
-                    admin_id: user.id,
-                    admin_email: adminProfile ? adminProfile.email : user.email,
-                    action_type: actionType,
-                    target_name: targetName,
-                    details: details
-                });
-            } catch (err) {
-                console.error("Erreur lors de l'enregistrement du log :", err);
-            }
-        }
         async function submitEventForm(event) {
     event.preventDefault();
     const currentYear = new Date().getFullYear();
@@ -2498,94 +2856,6 @@
                             NPS: <span class="font-bold text-lkdm-text">${ev.nps_percent || '-'}%</span><br>
                             CSAT: <span class="font-bold text-lkdm-text">${ev.csat_score || '-'}/5</span>
                         </td>
-                    </tr>
-                `;
-            });
-        }
-        let globalLogsData = [];
-
-        async function loadActivityLogs() {
-            if (!window.supabaseClient) return;
-
-            const { data: logs, error } = await window.supabaseClient
-                .from('activity_logs')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(200);
-
-            if (error) {
-                console.error("Erreur chargement logs :", error);
-                return;
-            }
-
-            globalLogsData = logs || [];
-            populateLogFilters(globalLogsData);
-            renderFilteredLogs(globalLogsData);
-        }
-
-        function populateLogFilters(logs) {
-            const adminSelect = document.getElementById('log-filter-admin');
-            const typeSelect = document.getElementById('log-filter-type');
-            if (!adminSelect || !typeSelect) return;
-
-            const admins = [...new Set(logs.map(l => l.admin_email))].filter(Boolean);
-            const types = [...new Set(logs.map(l => l.action_type))].filter(Boolean);
-
-            adminSelect.innerHTML = '<option value="all">Tous les admins</option>' + admins.map(a => `<option value="${a}">${a}</option>`).join('');
-            typeSelect.innerHTML = '<option value="all">Tous les types</option>' + types.map(t => `<option value="${t}">${t}</option>`).join('');
-        }
-
-        function filterLogs() {
-            const startDate = document.getElementById('log-filter-start').value;
-            const endDate = document.getElementById('log-filter-end').value;
-            const adminFilter = document.getElementById('log-filter-admin').value;
-            const typeFilter = document.getElementById('log-filter-type').value;
-            const targetQuery = document.getElementById('log-filter-target').value.toLowerCase().trim();
-
-            let filtered = globalLogsData.filter(log => {
-                const logDate = log.created_at ? log.created_at.split('T')[0] : '';
-                if (startDate && logDate < startDate) return false;
-                if (endDate && logDate > endDate) return false;
-                if (adminFilter !== 'all' && log.admin_email !== adminFilter) return false;
-                if (typeFilter !== 'all' && log.action_type !== typeFilter) return false;
-                if (targetQuery && !((log.target_name || '').toLowerCase().includes(targetQuery) || (log.details || '').toLowerCase().includes(targetQuery))) return false;
-                return true;
-            });
-
-            renderFilteredLogs(filtered);
-        }
-
-        function renderFilteredLogs(logs) {
-            const tbody = document.getElementById('logs-table-body');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            if (!logs || logs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Aucun historique correspondant.</td></tr>`;
-                return;
-            }
-
-            logs.forEach(log => {
-                const dateFormatted = new Date(log.created_at).toLocaleString('fr-CH', {
-                    day: '2-digit', month: '2-digit', year: 'numeric',
-                    hour: '2-digit', minute: '2-digit'
-                });
-
-                let targetHtml = log.target_name || '-';
-                let clickAttr = '';
-                
-                if (log.target_name && log.target_name !== '-') {
-                    clickAttr = `onclick="inspectTarget('${log.target_name.replace(/'/g, "\\'")}')"`;
-                    targetHtml = `<span class="text-lkdm-accent font-bold hover:underline cursor-pointer" title="Cliquer pour inspecter">${log.target_name} <i class="fa-solid fa-arrow-up-right-from-square text-[10px] ml-0.5"></i></span>`;
-                }
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50/80 transition">
-                        <td class="p-4 font-medium text-slate-500 whitespace-nowrap">${dateFormatted}</td>
-                        <td class="p-4 font-bold text-lkdm-text">${log.admin_email || 'Inconnu'}</td>
-                        <td class="p-4"><span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full font-semibold text-[10px]">${log.action_type}</span></td>
-                        <td class="p-4 font-semibold text-lkdm-secondary" ${clickAttr}>${targetHtml}</td>
-                        <td class="p-4 text-slate-600">${log.details || '-'}</td>
                     </tr>
                 `;
             });
@@ -2677,6 +2947,311 @@
 
             closeModal('modal-edit-event');
             loadSupabaseOverview();
+        }
+
+        function toggleAdminTransportFields() {
+            const typeSelect = document.getElementById('edit-mis-transport-type');
+            if (!typeSelect) return;
+            const type = typeSelect.value;
+            
+            const kmContainer = document.getElementById('edit-container-km');
+            const busContainer = document.getElementById('edit-container-bus');
+
+            if (kmContainer) kmContainer.classList.add('hidden');
+            if (busContainer) busContainer.classList.add('hidden');
+
+            if (type === 'km' && kmContainer) kmContainer.classList.remove('hidden');
+            if (type === 'bus' && busContainer) busContainer.classList.remove('hidden');
+            
+            recalcAdminTotal();
+        }
+
+        function recalcAdminTotal() {
+            const realInput = document.getElementById('edit-mis-real');
+            const hours = realInput ? (parseFloat(realInput.value) || 0) : 0;
+            
+            const typeSelect = document.getElementById('edit-mis-transport-type');
+            const transportType = typeSelect ? typeSelect.value : 'none';
+            
+            let travelCost = 0;
+            if (transportType === 'km') {
+                const kmInput = document.getElementById('edit-mis-km-count');
+                const km = kmInput ? (parseFloat(kmInput.value) || 0) : 0;
+                travelCost = km * 0.75;
+            } else if (transportType === 'bus') {
+                const busInput = document.getElementById('edit-mis-bus-price');
+                travelCost = busInput ? (parseFloat(busInput.value) || 0) : 0;
+            }
+
+            const laborCost = hours * 35.00;
+            const total = laborCost + travelCost;
+
+            const travelField = document.getElementById('edit-mis-travel');
+            if (travelField) travelField.value = travelCost.toFixed(2);
+
+            const totalField = document.getElementById('edit-mis-total');
+            if (totalField) totalField.value = total.toFixed(2);
+        }
+        
+        function loadActivityLogs() { /* optionnel */ }
+        async function logAdminAction(action, target, details) {
+            console.log(`Action loggée: ${action} - ${target} - ${details}`);
+        }
+
+        // Variable globale temporaire pour stocker le contexte du document en cours de prévisualisation
+        let currentDocumentContext = null;
+
+        // Fonction pour déclencher l'enregistrement manuel depuis le bouton de la modale
+        async function saveCurrentPreviewToDB() {
+            if (!currentDocumentContext) {
+                alert("Aucun contexte de document actif.");
+                return;
+            }
+
+            const { docType, missionId, clientId, title } = currentDocumentContext;
+            const previewContainer = document.getElementById('document-preview-container');
+
+            if (!previewContainer || !previewContainer.firstElementChild) {
+                alert("Aucun contenu à exporter en PDF.");
+                return;
+            }
+
+            // Indique à l'utilisateur que l'opération est en cours
+            const btnSave = event.target;
+            const originalText = btnSave.innerHTML;
+            btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Génération du PDF...';
+            btnSave.disabled = true;
+
+            try {
+                // 1. Génération du PDF via html2pdf
+                const element = previewContainer.firstElementChild;
+                const opt = {
+                    margin:       5,
+                    filename:     `${title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, useCORS: true },
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                const pdfBlob = await html2pdf().from(element).set(opt).outputPdf('blob');
+                const fileName = `pdf_${Date.now()}_${Math.random().toString(36).substring(7)}.pdf`;
+
+                // 2. Upload dans le storage Supabase 'lkdm_docs'
+                const { error: uploadError } = await window.supabaseClient.storage
+                    .from('lkdm_docs')
+                    .upload(fileName, pdfBlob, {
+                        contentType: 'application/pdf',
+                        upsert: false
+                    });
+
+                if (uploadError) throw uploadError;
+
+                // 3. Récupération de l'URL publique
+                const { data: publicUrlData } = window.supabaseClient.storage
+                    .from('lkdm_docs')
+                    .getPublicUrl(fileName);
+
+                const publicUrl = publicUrlData ? publicUrlData.publicUrl : null;
+
+                if (!publicUrl) {
+                    throw new Error("Impossible de récupérer l'URL publique du PDF généré.");
+                }
+
+                // 4. Insertion dans la table 'documents' avec l'URL garantie
+                const payload = {
+                    title: title,
+                    doc_type: docType,
+                    client_id: clientId || null,
+                    mission_id: missionId || null,
+                    file_url: publicUrl // Garantit qu'un lien valide est présent
+                };
+
+                const { error: dbError } = await window.supabaseClient.from('documents').insert([payload]);
+                if (dbError) throw dbError;
+
+                alert("Succès : Le fichier PDF a été généré, stocké et enregistré dans la DB !");
+                closeModal('modal-view-document');
+                loadSupabaseOverview();
+
+            } catch (err) {
+                console.error("Erreur lors de la génération/stockage du PDF :", err);
+                alert("Erreur : " + err.message);
+            } finally {
+                btnSave.innerHTML = originalText;
+                btnSave.disabled = false;
+            }
+        }
+
+        async function openEmailModal(docType, missionCode, clientEmail, clientName) {
+            const recipient = clientEmail || prompt("Entrez l'adresse e-mail du client :", "");
+            if (!recipient) {
+                alert("Aucune adresse e-mail valide fournie.");
+                return;
+            }
+
+            const previewContainer = document.getElementById('document-preview-container');
+            if (!previewContainer || !previewContainer.firstElementChild) {
+                alert("Veuillez d'abord générer le document en prévisualisation.");
+                return;
+            }
+
+            const btnSend = document.getElementById('btn-proceed-to-email');
+            const originalText = btnSend ? btnSend.innerHTML : '';
+            if (btnSend) {
+                btnSend.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Envoi en cours...';
+                btnSend.disabled = true;
+            }
+
+            try {
+                // 1. Génération et upload automatique du PDF dans le Storage Supabase ('lkdm_docs')
+                const element = previewContainer.firstElementChild;
+                const fileName = `${docType}_${missionCode}.pdf`;
+                
+                const opt = {
+                    margin: 5,
+                    filename: fileName,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                const pdfBlob = await html2pdf().from(element).set(opt).outputPdf('blob');
+                const storageFileName = `pdf_${Date.now()}_${Math.random().toString(36).substring(7)}.pdf`;
+
+                const { error: uploadError } = await window.supabaseClient.storage
+                    .from('lkdm_docs')
+                    .upload(storageFileName, pdfBlob, { contentType: 'application/pdf', upsert: false });
+
+                if (uploadError) throw uploadError;
+
+                const { data: publicUrlData } = window.supabaseClient.storage
+                    .from('lkdm_docs')
+                    .getPublicUrl(storageFileName);
+
+                const pdfUrl = publicUrlData ? publicUrlData.publicUrl : null;
+                if (!pdfUrl) throw new Error("Impossible d'obtenir l'URL publique du PDF.");
+
+                // 2. Enregistrement de l'archive dans la table 'documents'
+                await window.supabaseClient.from('documents').insert([{
+                    title: `${docType} - ${missionCode} - ${clientName}`,
+                    doc_type: docType,
+                    file_url: pdfUrl
+                }]);
+
+                // 3. Préparation des paramètres pour EmailJS
+                const templateParams = {
+                    to_email: recipient,
+                    to_name: clientName || 'Client',
+                    doc_type: docType,
+                    mission_code: missionCode,
+                    pdf_url: pdfUrl // <--- Transmet le lien direct du PDF au template EmailJS
+                };
+
+                // 4. Envoi de l'e-mail via EmailJS (connecté à Infomaniak / hello@lekoupdemain.ch)
+                // Remplacez 'YOUR_SERVICE_ID' et 'YOUR_TEMPLATE_ID' par vos identifiants EmailJS
+                await emailjs.send('service_df3932r', 'template_lzssyec', templateParams);
+
+                alert(`Succès : La ${docType} a été envoyée à ${recipient} avec son lien de téléchargement depuis hello@lekoupdemain.ch !`);
+                closeModal('modal-view-document');
+
+            } catch (err) {
+                console.error("Erreur détaillée EmailJS :", err);
+                alert("Erreur lors de l'envoi : " + (err.text || err.message || JSON.stringify(err)));
+            } finally {
+                if (btnSend) {
+                    btnSend.innerHTML = originalText;
+                    btnSend.disabled = false;
+                }
+            }
+        }
+
+                let globalLogsData = [];
+
+        async function loadActivityLogs() {
+            if (!window.supabaseClient) return;
+
+            const { data: logs, error } = await window.supabaseClient
+                .from('activity_logs')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(200);
+
+            if (error) {
+                console.error("Erreur chargement logs :", error);
+                return;
+            }
+
+            globalLogsData = logs || [];
+            populateLogFilters(globalLogsData);
+            renderFilteredLogs(globalLogsData);
+        }
+
+        function populateLogFilters(logs) {
+            const adminSelect = document.getElementById('log-filter-admin');
+            const typeSelect = document.getElementById('log-filter-type');
+            if (!adminSelect || !typeSelect) return;
+
+            const admins = [...new Set(logs.map(l => l.admin_email))].filter(Boolean);
+            const types = [...new Set(logs.map(l => l.action_type))].filter(Boolean);
+
+            adminSelect.innerHTML = '<option value="all">Tous les admins</option>' + admins.map(a => `<option value="${a}">${a}</option>`).join('');
+            typeSelect.innerHTML = '<option value="all">Tous les types</option>' + types.map(t => `<option value="${t}">${t}</option>`).join('');
+        }
+
+        function filterLogs() {
+            const startDate = document.getElementById('log-filter-start').value;
+            const endDate = document.getElementById('log-filter-end').value;
+            const adminFilter = document.getElementById('log-filter-admin').value;
+            const typeFilter = document.getElementById('log-filter-type').value;
+            const targetQuery = document.getElementById('log-filter-target').value.toLowerCase().trim();
+
+            let filtered = globalLogsData.filter(log => {
+                const logDate = log.created_at ? log.created_at.split('T')[0] : '';
+                if (startDate && logDate < startDate) return false;
+                if (endDate && logDate > endDate) return false;
+                if (adminFilter !== 'all' && log.admin_email !== adminFilter) return false;
+                if (typeFilter !== 'all' && log.action_type !== typeFilter) return false;
+                if (targetQuery && !((log.target_name || '').toLowerCase().includes(targetQuery) || (log.details || '').toLowerCase().includes(targetQuery))) return false;
+                return true;
+            });
+
+            renderFilteredLogs(filtered);
+        }
+
+        function renderFilteredLogs(logs) {
+            const tbody = document.getElementById('logs-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (!logs || logs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Aucun historique correspondant.</td></tr>`;
+                return;
+            }
+
+            logs.forEach(log => {
+                const dateFormatted = new Date(log.created_at).toLocaleString('fr-CH', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+
+                let targetHtml = log.target_name || '-';
+                let clickAttr = '';
+                
+                if (log.target_name && log.target_name !== '-') {
+                    clickAttr = `onclick="inspectTarget('${log.target_name.replace(/'/g, "\\'")}')"`;
+                    targetHtml = `<span class="text-lkdm-accent font-bold hover:underline cursor-pointer" title="Cliquer pour inspecter">${log.target_name} <i class="fa-solid fa-arrow-up-right-from-square text-[10px] ml-0.5"></i></span>`;
+                }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="p-4 font-medium text-slate-500 whitespace-nowrap">${dateFormatted}</td>
+                        <td class="p-4 font-bold text-lkdm-text">${log.admin_email || 'Inconnu'}</td>
+                        <td class="p-4"><span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full font-semibold text-[10px]">${log.action_type}</span></td>
+                        <td class="p-4 font-semibold text-lkdm-secondary" ${clickAttr}>${targetHtml}</td>
+                        <td class="p-4 text-slate-600">${log.details || '-'}</td>
+                    </tr>
+                `;
+            });
         }
     </script>
 </body>
