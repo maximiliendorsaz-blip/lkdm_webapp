@@ -2181,6 +2181,7 @@
                 payment_type: document.getElementById('edit-mis-payment').value,
                 payment_status: document.getElementById('edit-mis-pay-status').value,
                 total_amount: parseFloat(document.getElementById('edit-mis-total').value) || 0,
+                payment_date: document.getElementById('edit-mis-pay-date').value ? document.getElementById('edit-mis-pay-date').value : null,
                 travel_expenses: travelCost,
                 transport_type: transportType,
                 transport_details: transportDetailsStr,
@@ -2189,18 +2190,12 @@
                 student_csat: parseInt(document.getElementById('edit-mis-stcsat').value) || null,
                 student_nps: parseInt(document.getElementById('edit-mis-stnps').value) || null,
                 dar_summary: document.getElementById('edit-mis-dar').value,
-                feedback: document.getElementById('edit-mis-feedback').value,
-                payment_date: document.getElementById('edit-mis-pay-date').value || null,
+                feedback: document.getElementById('edit-mis-feedback').value
             };
 
-            const { data, error } = await window.supabaseClient
-                .from('missions')
-                .update(payload)
-                .eq('id', id);
-
+            const { error } = await window.supabaseClient.from('missions').update(payload).eq('id', id);
             if (error) {
-                console.error("--- ERREUR SUPABASE DÉTAILLÉE ---", JSON.stringify(error, null, 2));
-                alert("Erreur Supabase 400 : " + error.message + " (Regardez la console F12 pour le détail)");
+                alert("Erreur lors de l'enregistrement : " + error.message);
             } else {
                 alert("Mission mise à jour avec succès !");
                 closeModal('modal-edit-mission');
