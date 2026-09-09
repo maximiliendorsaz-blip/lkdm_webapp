@@ -3091,8 +3091,8 @@
                 closeModal('modal-view-document');
 
             } catch (err) {
-                console.error("Erreur lors de l'envoi de l'e-mail :", err);
-                alert("Erreur lors de l'envoi : " + err.message);
+                console.error("Erreur détaillée EmailJS :", err);
+                alert("Erreur lors de l'envoi : " + (err.text || err.message || JSON.stringify(err)));
             } finally {
                 if (btnSend) {
                     btnSend.innerHTML = originalText;
