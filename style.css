@@ -67,24 +67,18 @@ html, body {
 
 /* S'assure que les modales prennent tout l'écran sur mobile sans être coupées */
 @media (max-width: 768px) {
-    .modal-content, [id^="modal-"] > div {
-        width: 95% !important;
-        max-width: 95% !important;
-        margin: 1rem auto !important;
-        padding: 1rem !important;
-        max-height: 85vh !important;
-        overflow-y: auto !important;
+    /* Empêche le fond de la page de bouger quand la modale est ouverte */
+    body.modal-open {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
     }
-}
 
-@media (max-width: 768px) {
-    /* Si vos modales utilisent un conteneur global centré */
     .modal-content, [id^="modal-"] > div {
         width: 100% !important;
         max-width: 100% !important;
         height: auto !important;
-        min-height: 50vh;
-        max-height: 90vh !important;
+        max-height: 85vh !important;
         margin: 0 !important;
         position: fixed !important;
         bottom: 0 !important;
@@ -92,16 +86,26 @@ html, body {
         right: 0 !important;
         border-bottom-left-radius: 0 !important;
         border-bottom-right-radius: 0 !important;
-        border-top-left-radius: 1.5rem !important;
-        border-top-right-radius: 1.5rem !important;
-        padding: 1.25rem !important;
+        border-top-left-radius: 1.25rem !important;
+        border-top-right-radius: 1.25rem !important;
+        padding: 1rem !important;
+        
+        /* Propriétés magiques pour le scroll fluide sur iOS et Android */
         overflow-y: auto !important;
-        box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.15) !important;
-        animation: slideUpMobile 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain; /* Empêche le "pull-to-refresh" intempestif du navigateur */
     }
-}
 
-@keyframes slideUpMobile {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+    /* Ajustement de la zone de prévisualisation PDF dans la modale sur mobile */
+    #document-preview-container {
+        width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    #document-preview-container > div {
+        transform: scale(0.85); /* Réduit légèrement l'échelle pour éviter que le document A4 ne déborde trop sur un petit écran */
+        transform-origin: top left;
+        margin-bottom: -15%; /* Compense l'effet de l'échelle */
+    }
 }
