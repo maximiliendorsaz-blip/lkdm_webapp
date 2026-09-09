@@ -394,7 +394,17 @@
         checkAuth();
         
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModalCustom(id) { document.getElementById(id).classList.add('hidden'); }
+        function closeModal(modalId) {
+                    if (modalId) {
+                        const modal = document.getElementById(modalId);
+                        if (modal) modal.classList.add('hidden');
+                    } else {
+                        // Ferme toutes les modales de l'application par sécurité si aucun ID n'est passé
+                        document.querySelectorAll('[id^="modal-"], #mission-modal').forEach(m => {
+                            m.classList.add('hidden');
+                        });
+                    }
+                }
         function toggleMobileMenu() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
 
         function showToast(msg) {
