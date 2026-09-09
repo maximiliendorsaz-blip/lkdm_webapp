@@ -244,6 +244,7 @@
 
     <div id="modal-feedback" class="hidden fixed inset-0 z-[400] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
             <h3 class="text-xl font-bold text-lkdm-text mb-4">Clôturer la mission</h3>
             <form onsubmit="submitFeedback(event)" class="space-y-5 text-sm">
                 <input type="hidden" id="fb-mission-id">
@@ -261,6 +262,7 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
                 <div class="bg-slate-50 p-4 rounded-xl border space-y-4">
                     <h4 class="font-bold text-lkdm-text border-b pb-2">Vos retours (Étudiant)</h4>
@@ -702,7 +704,7 @@ async function submitFeedback(event) {
             const totalAmount = laborCost + travelCost;
 
             const payload = {
-                matching_status: 'À facturer', // Statut mis à jour
+                matching_status: 'À facturer',
                 payment_type: document.getElementById('fb-payment-type').value,
                 senior_csat: parseInt(document.getElementById('fb-scsat').value) || null,
                 senior_nps: parseInt(document.getElementById('fb-snps').value) || null,
@@ -716,17 +718,75 @@ async function submitFeedback(event) {
                 transport_details: transportDetailsStr,   
                 total_amount: totalAmount,
                 lkdm_commission: realHours * 10,
-                end_time: new Date().toISOString() // Enregistre l'heure de fin pour masquer la mission des engagements en cours
+                end_time: new Date().toISOString()
             };
 
+            // 1. Mise à jour de la mission
             const { error } = await window.supabaseClient.from('missions').update(payload).eq('id', id);
             if (error) {
                 alert("Erreur lors de la clôture : " + error.message);
-            } else {
-                alert("Mission clôturée avec succès !");
-                closeModal('modal-feedback');
-                loadStudentData(); // Correction ici : appel de la fonction de chargement de l'espace étudiant
+                return;
             }
+
+            // 2. Gestion et upload des fichiers (Ticket de bus & Photos)
+            const missionObj = dbMissions.find(x => x.id == id);
+            const clientId = missionObj ? missionObj.client_id : null;
+
+            // Upload du Ticket de bus si présent
+            const busFileInput = document.getElementById('fb-bus-receipt');
+            if (busFileInput && busFileInput.files.length > 0) {
+                const file = busFileInput.files[0];
+                const fileName = `pdf_${Date.now()}_${Math.random().toString(36.substring(2, 7))}.${file.name.split('.').pop()}`;
+                
+                const { data: uploadData, error: uploadError } = await window.supabaseClient.storage
+                    .from('lkdm_docs')
+                    .upload(fileName, file);
+
+                if (!uploadError) {
+                    const { data: publicUrlData } = window.supabaseClient.storage.from('lkdm_docs').getPublicUrl(fileName);
+                    
+                    // Insertion dans la table documents
+                    await window.supabaseClient.from('documents').insert([{
+                        title: 'Ticket de bus',
+                        doc_type: 'Justificatif',
+                        file_url: publicUrlData.publicUrl,
+                        student_id: currentStudentId,
+                        client_id: clientId,
+                        mission_id: id
+                    }]);
+                }
+            }
+
+            // Upload des Photos de la mission si présentes
+            const photosInput = document.getElementById('fb-photos');
+            if (photosInput && photosInput.files.length > 0) {
+                for (let i = 0; i < photosInput.files.length; i++) {
+                    const file = photosInput.files[i];
+                    const fileName = `photo_${Date.now()}_${i}_${Math.random().toString(36).substring(2, 7)}.${file.name.split('.').pop()}`;
+                    
+                    const { data: uploadData, error: uploadError } = await window.supabaseClient.storage
+                        .from('lkdm_docs')
+                        .upload(fileName, file);
+
+                    if (!uploadError) {
+                        const { data: publicUrlData } = window.supabaseClient.storage.from('lkdm_docs').getPublicUrl(fileName);
+                        
+                        // Insertion dans la table documents
+                        await window.supabaseClient.from('documents').insert([{
+                            title: `Photos de la mission (${i + 1})`,
+                            doc_type: 'Photos mission',
+                            file_url: publicUrlData.publicUrl,
+                            student_id: currentStudentId,
+                            client_id: clientId,
+                            mission_id: id
+                        }]);
+                    }
+                }
+            }
+
+            alert("Mission clôturée avec succès et documents enregistrés !");
+            closeModal('modal-feedback');
+            loadStudentData();
         }
         function openRebookingModal(clientId) {
             document.getElementById('rb-client-id').value = clientId;
