@@ -3335,6 +3335,11 @@
                     const hrs = Number(m.real_hours) > 0 ? Number(m.real_hours) : (Number(m.estimated_hours) || 2.0);
                     totalHours += hrs;
                     const lineTotal = hrs * hourlyRate;
+
+                    const travelExp = Number(m.travel_expenses || 0);
+                    totalTravelExpenses += travelExp;
+                    const transportInfo = travelExp > 0 ? ` (+ Déplacements: CHF ${travelExp.toFixed(2)})` : '';
+                    
                     const mDate = m.mission_date ? new Date(m.mission_date).toLocaleDateString('fr-CH') : 'N/A';
 
                     tableRowsHtml += `
@@ -3354,11 +3359,28 @@
                 const docTitle = `Certificat de salaire - ${monthName} ${year} - ${student.full_name}`;
 
                 // 3. Construction du HTML du Certificat de Salaire
+                const hourlyRate = 22.00;
+                const grossSalary = totalHours * hourlyRate;
+                
+                // Calculs des charges et suppléments basés sur votre modèle
+                const vacancesAmount = grossSalary * 0.1064; // 8.33% vacances
+                const holidayAmount = grossSalary * 0.03;
+                const totalWithVacances = grossSalary + holidayAmount + vacancesAmount;
+                
+                const avsAmount = totalWithVacances * 0; 
+                const acAmount = totalWithVacances * 0;
+                const allocFamAmount = totalWithVacances * 0;
+                const totalDeductions = avsAmount + acAmount + allocFamAmount;
+                
+                const netSalary = totalWithVacances - totalDeductions;
+
+                const totalPayout = netSalary + totalTravelExpenses;
+
                 const certificateHtml = `
                 <div class="bg-white p-12 max-w-[210mm] mx-auto text-slate-800 text-sm shadow-xl rounded-2xl border border-slate-200" style="width: 100%; box-sizing: border-box;">
                     <div class="flex justify-between items-start border-b-2 border-lkdm-accent pb-8 mb-8">
                         <div>
-                            <h1 class="text-2xl font-bold text-lkdm-text tracking-tight">CERTIFICAT DE SALAIRE</h1>
+                            <h1 class="text-2xl font-bold text-lkdm-text tracking-tight">DÉCOMPTE DE SALAIRE</h1>
                             <p class="text-xs font-semibold text-lkdm-secondary mt-1">Période : ${monthName} ${year}</p>
                         </div>
                         <div class="text-right">
@@ -3371,17 +3393,17 @@
                     <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 mb-8 text-xs space-y-1">
                         <p class="font-bold text-slate-700 text-sm mb-2">Informations du collaborateur (Étudiant) :</p>
                         <p><span class="text-slate-500">Nom & Prénom :</span> <strong class="text-slate-800">${student.full_name}</strong></p>
-                        <p><span class="text-slate-500">E-mail :</span> ${student.email || 'N/A'}</p>
                         <p><span class="text-slate-500">Adresse :</span> ${student.address || 'Non renseignée'}, ${student.npa || ''} ${student.city || ''}</p>
                         <p><span class="text-slate-500">N° AVS :</span> ${student.avs || 'Non renseigné'}</p>
+                        <p><span class="text-slate-500">Date de naissance :</span> ${student.birth_date || 'Non renseignée'}</p>
                         <p><span class="text-slate-500">IBAN :</span> ${student.iban || 'Non renseigné'}</p>
                     </div>
 
-                    <table class="w-full mb-8 border-collapse text-xs">
+                    <table class="w-full mb-6 border-collapse text-xs">
                         <thead>
                             <tr style="background-color: #1E293B; color: #ffffff;" class="text-left">
-                                <th class="p-3 rounded-l-xl">Détail des interventions</th>
-                                <th class="p-3 text-center">Volume</th>
+                                <th class="p-3 rounded-l-xl">Date / Détail des interventions</th>
+                                <th class="p-3 text-center">Volume (Heures)</th>
                                 <th class="p-3 text-right rounded-r-xl">Montant (CHF)</th>
                             </tr>
                         </thead>
@@ -3390,15 +3412,28 @@
                         </tbody>
                     </table>
 
-                    <div class="flex justify-end mb-16">
-                        <div class="w-72 space-y-2 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                            <div class="flex justify-between py-1 border-b border-slate-200"><span class="text-slate-500">Total heures</span><span class="font-semibold">${totalHours} h</span></div>
-                            <div class="flex justify-between py-1.5 text-sm font-bold text-lkdm-text"><span>Salaire brut total</span><span>CHF ${grossSalary.toFixed(2)}</span></div>
+                    <div class="flex justify-end mb-8">
+                        <div class="w-80 space-y-2 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                            <div class="flex justify-between py-1 border-b border-slate-200"><span class="text-slate-500">Total Heures</span><span class="font-semibold">${totalHours} h</span></div>
+                            <div class="flex justify-between py-1 border-b border-slate-200"><span class="text-slate-500">Salaire brut (${hourlyRate.toFixed(2)} CHF/h)</span><span class="font-semibold">CHF ${grossSalary.toFixed(2)}</span></div>
+                            <div class="flex justify-between py-1 border-b border-slate-200"><span class="text-slate-500">Vacances (10.64%)</span><span class="font-semibold">CHF ${vacancesAmount.toFixed(2)}</span></div>
+                            <div class="flex justify-between py-1 border-b border-slate-200"><span class="text-slate-500">Fériés (3.00%)</span><span class="font-semibold">CHF ${holidayAmount.toFixed(2)}</span></div>
+                            <div class="flex justify-between py-1.5 text-xs font-bold text-slate-700 border-b border-slate-300"><span>SOUS-TOTAL</span><span>CHF ${totalWithVacances.toFixed(2)}</span></div>
+                            
+                            <div class="flex justify-between py-1 text-slate-500"><span>AVS/AI/APG (0%)</span><span>CHF ${avsAmount.toFixed(2)}</span></div>
+                            <div class="flex justify-between py-1 text-slate-500"><span>AC (0%)</span><span>CHF ${acAmount.toFixed(2)}</span></div>
+                            <div class="flex justify-between py-1 border-b border-slate-200 text-slate-500"><span>Alloc. Fam. (0%)</span><span>CHF ${allocFamAmount.toFixed(2)}</span></div>
+                            
+                            <div class="flex justify-between py-1 text-xs font-bold text-slate-700 border-b border-slate-300"><span>TOTAL DÉDUCTIONS</span><span>CHF ${totalDeductions.toFixed(2)}</span></div>
+                            <div class="flex justify-between py-2 text-sm font-bold text-lkdm-accent"><span>SALAIRE NET</span><span>CHF ${netSalary.toFixed(2)}</span></div>
+                            <div class="flex justify-between py-1 text-slate-500"><span>Frais de déplacement (Train/Voiture)</span><span>CHF ${totalTravelExpenses.toFixed(2)}</span></div>
+                            
+                            <div class="flex justify-between py-2 text-sm font-bold text-lkdm-accent border-t border-slate-300"><span>TOTAL À VERSER</span><span>CHF ${totalPayout.toFixed(2)}</span></div>    
                         </div>
                     </div>
 
                     <div class="border-t pt-8 text-center text-[11px] text-slate-400 space-y-1">
-                        <p>Document officiel établi par Le Koup de Main pour la période de paie de ${monthName} ${year}.</p>
+                        <p>Décompte officiel établi par Le Koup de Main pour la période de paie de ${monthName} ${year}.</p>
                         <p>Le Koup de Main c/o Eleveight Société Coopérative • www.lekoupdemain.ch</p>
                     </div>
                 </div>`;
@@ -3438,6 +3473,7 @@
                 const { error: dbError } = await window.supabaseClient.from('documents').insert([{
                     title: docTitle,
                     doc_type: 'Certificat de salaire',
+                    student_id: activeStudentId,
                     mission_id: filteredMissions.length > 0 ? filteredMissions[0].id : null,
                     client_id: null, // S'il y a un champ client_id ou student_id dans votre table documents, adaptez ici
                     file_url: pdfUrl
