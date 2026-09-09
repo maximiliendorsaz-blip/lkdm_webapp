@@ -736,7 +736,7 @@ async function submitFeedback(event) {
             const busFileInput = document.getElementById('fb-bus-receipt');
             if (busFileInput && busFileInput.files.length > 0) {
                 const file = busFileInput.files[0];
-                const fileName = `pdf_${Date.now()}_${Math.random().toString(36.substring(2, 7))}.${file.name.split('.').pop()}`;
+                const fileName = `pdf_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${file.name.split('.').pop()}`;
                 
                 const { data: uploadData, error: uploadError } = await window.supabaseClient.storage
                     .from('lkdm_docs')
