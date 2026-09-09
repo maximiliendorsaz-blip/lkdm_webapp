@@ -288,6 +288,9 @@
         <!-- TAB 4: ETUDIANTS -->
         <div id="tab-students" class="tab-content space-y-6">
             <h2 class="text-2xl font-bold text-lkdm-text">Étudiants</h2>
+            <button type="button" onclick="generateAllStudentsSalaryCertificates()" class="py-2.5 px-5 bg-lkdm-text text-white rounded-xl text-xs font-medium shadow-sm hover:bg-slate-800 transition flex items-center gap-2">
+                <i class="fa-solid fa-file-invoice-dollar"></i> Générer les certificats de salaire du mois (Tous)
+            </button>
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="students-grid"></div>
         </div>
 
@@ -3490,6 +3493,220 @@
             } catch (err) {
                 console.error("Erreur génération certificat de salaire :", err);
                 alert("Erreur : " + err.message);
+            }
+        }
+
+        async function generateAllStudentsSalaryCertificates() {
+            if (!window.supabaseClient) {
+                alert("Erreur : Le client Supabase n'est pas initialisé.");
+                return;
+            }
+
+            // Demande du mois et de l'année à l'administrateur
+            const monthInput = prompt("Entrez le mois (au format chiffres, ex: 04 pour Avril) :", "04");
+            if (!monthInput) return;
+            const yearInput = prompt("Entrez l'année (ex: 2026) :", "2026");
+            if (!yearInput) return;
+
+            const month = monthInput.padStart(2, '0');
+            const year = yearInput;
+            
+            // Dictionnaire pour les noms de mois
+            const monthsNames = {
+                "01": "Janvier", "02": "Février", "03": "Mars", "04": "Avril",
+                "05": "Mai", "06": "Juin", "07": "Juillet", "08": "Août",
+                "09": "Septembre", "10": "Octobre", "11": "Novembre", "12": "Décembre"
+            };
+            const monthName = monthsNames[month] || "Mois";
+
+            if (!confirm(`Voulez-vous générer et stocker les décomptes de salaire de TOUS les étudiants pour la période : ${monthName} ${year} ?`)) {
+                return;
+            }
+
+            try {
+                // 1. Récupération de tous les profils / étudiants
+                const { data: students, error: studentsError } = await window.supabaseClient
+                    .from('profiles')
+                    .select('*');
+
+                if (studentsError) throw studentsError;
+                if (!students || students.length === 0) {
+                    alert("Aucun étudiant trouvé dans la base de données.");
+                    return;
+                }
+
+                let successCount = 0;
+
+                // 2. Boucle sur chaque étudiant
+                for (const student of students) {
+                    // Récupération des missions de l'étudiant
+                    const { data: missions, error: missionsError } = await window.supabaseClient
+                        .from('missions')
+                        .select('*')
+                        .eq('student_id', student.id);
+
+                    if (missionsError) continue;
+
+                    // Filtrage par mois et année
+                    const filteredMissions = (missions || []).filter(m => {
+                        const dateField = m.mission_date || m.created_at;
+                        if (!dateField) return false;
+                        const d = new Date(dateField);
+                        return (d.getMonth() + 1) === parseInt(month) && d.getFullYear() === parseInt(year);
+                    });
+
+                    // Si l'étudiant n'a pas de mission ce mois-là, on passe au suivant
+                    if (filteredMissions.length === 0) continue;
+
+                    const hourlyRate = 35.00;
+                    let totalHours = 0;
+                    let totalTravelExpenses = 0;
+                    let tableRowsHtml = '';
+
+                    filteredMissions.forEach(m => {
+                        const hrs = Number(m.real_hours) > 0 ? Number(m.real_hours) : (Number(m.estimated_hours) || 2.0);
+                        totalHours += hrs;
+                        const lineTotal = hrs * hourlyRate;
+                        
+                        const travelExp = Number(m.travel_expenses || 0);
+                        totalTravelExpenses += travelExp;
+                        const transportInfo = travelExp > 0 ? ` (+ Déplacements: CHF ${travelExp.toFixed(2)})` : '';
+                        const mDate = m.mission_date ? new Date(m.mission_date).toLocaleDateString('fr-CH') : 'N/A';
+
+                        tableRowsHtml += `
+                            <tr>
+                                <td class="p-3 text-slate-700">${mDate} - Réf: ${m.mission_code || 'Mission'}${transportInfo}</td>
+                                <td class="p-3 text-center">${hrs} h</td>
+                                <td class="p-3 text-right font-semibold">CHF ${lineTotal.toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+
+                    const grossSalary = totalHours * hourlyRate;
+                    const vacancesAmount = grossSalary * 0.0833;
+                    const totalWithVacances = grossSalary + vacancesAmount;
+                    
+                    const avsAmount = totalWithVacances * 0.0530;
+                    const acAmount = totalWithVacances * 0.0110;
+                    const allocFamAmount = totalWithVacances * 0.00171;
+                    const totalDeductions = avsAmount + acAmount + allocFamAmount;
+                    
+                    const netSalary = totalWithVacances - totalDeductions;
+                    const totalPayout = netSalary + totalTravelExpenses;
+                    const docTitle = `Décompte de salaire - ${monthName} ${year} - ${student.full_name}`;
+
+                    // Construction du HTML
+                    const certificateHtml = `
+                    <div class="bg-white p-12 max-w-[210mm] mx-auto text-slate-800 text-sm shadow-xl rounded-2xl border border-slate-200" style="width: 100%; box-sizing: border-box;">
+                        <div class="flex justify-between items-start border-b-2 border-lkdm-accent pb-8 mb-8">
+                            <div>
+                                <h1 class="text-2xl font-bold text-lkdm-text tracking-tight">DÉCOMPTE DE SALAIRE & FRAIS</h1>
+                                <p class="text-xs font-semibold text-lkdm-secondary mt-1">Période : ${monthName} ${year}</p>
+                            </div>
+                            <div class="text-right">
+                                <h2 class="font-bold text-base text-lkdm-text">Le Koup de Main (LKDM)</h2>
+                                <p class="text-xs text-slate-500">Eleveight Société Coopérative</p>
+                                <p class="text-xs text-slate-500">Technopôle 1, 3960 Sierre, Valais</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 mb-8 text-xs space-y-1">
+                            <p class="font-bold text-slate-700 text-sm mb-2">Informations du collaborateur (Étudiant) :</p>
+                            <p><span class="text-slate-500">Nom & Prénom :</span> <strong class="text-slate-800">${student.full_name}</strong></p>
+                            <p><span class="text-slate-500">Adresse :</span> ${student.address || 'Non renseignée'}, ${student.npa || ''} ${student.city || ''}</p>
+                            <p><span class="text-slate-500">N° AVS :</span> ${student.avs || 'Non renseigné'}</p>
+                            <p><span class="text-slate-500">IBAN :</span> ${student.iban || 'Non renseigné'}</p>
+                        </div>
+
+                        <table class="w-full mb-6 border-collapse text-xs">
+                            <thead>
+                                <tr style="background-color: #1E293B; color: #ffffff;" class="text-left">
+                                    <th class="p-3 rounded-l-xl">Date / Détail des interventions</th>
+                                    <th class="p-3 text-center">Volume (Heures)</th>
+                                    <th class="p-3 text-right rounded-r-xl">Montant (CHF)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${tableRowsHtml}
+                            </tbody>
+                        </table>
+
+                        <div class="flex justify-end mb-8">
+                            <div class="w-80 space-y-2 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                                <div class="flex justify-between py-1 border-b border-slate-200"><span class="text-slate-500">Total Heures</span><span class="font-semibold">${totalHours} h</span></div>
+                                <div class="flex justify-between py-1 border-b border-slate-200"><span class="text-slate-500">Salaire brut (${hourlyRate.toFixed(2)} CHF/h)</span><span class="font-semibold">CHF ${grossSalary.toFixed(2)}</span></div>
+                                <div class="flex justify-between py-1 border-b border-slate-200"><span class="text-slate-500">Vacances (8.33%)</span><span class="font-semibold">CHF ${vacancesAmount.toFixed(2)}</span></div>
+                                <div class="flex justify-between py-1.5 text-xs font-bold text-slate-700 border-b border-slate-300"><span>SOUS-TOTAL</span><span>CHF ${totalWithVacances.toFixed(2)}</span></div>
+                                
+                                <div class="flex justify-between py-1 text-slate-500"><span>AVS/AI/APG (5.30%)</span><span>CHF ${avsAmount.toFixed(2)}</span></div>
+                                <div class="flex justify-between py-1 text-slate-500"><span>AC (1.10%)</span><span>CHF ${acAmount.toFixed(2)}</span></div>
+                                <div class="flex justify-between py-1 border-b border-slate-200 text-slate-500"><span>Alloc. Fam. (0.171%)</span><span>CHF ${allocFamAmount.toFixed(2)}</span></div>
+                                
+                                <div class="flex justify-between py-1 text-xs font-bold text-slate-700 border-b border-slate-300"><span>TOTAL DÉDUCTIONS</span><span>CHF ${totalDeductions.toFixed(2)}</span></div>
+                                <div class="flex justify-between py-1 text-xs font-bold text-slate-700 border-b border-slate-200"><span>SALAIRE NET</span><span>CHF ${netSalary.toFixed(2)}</span></div>
+                                
+                                <div class="flex justify-between py-1 text-slate-500"><span>Frais de déplacement (Train/Voiture)</span><span>CHF ${totalTravelExpenses.toFixed(2)}</span></div>
+                                
+                                <div class="flex justify-between py-2 text-sm font-bold text-lkdm-accent border-t border-slate-300"><span>TOTAL À VERSER</span><span>CHF ${totalPayout.toFixed(2)}</span></div>
+                            </div>
+                        </div>
+
+                        <div class="border-t pt-8 text-center text-[11px] text-slate-400 space-y-1">
+                            <p>Décompte officiel et remboursement de frais établis par Le Koup de Main pour la période de ${monthName} ${year}.</p>
+                            <p>Le Koup de Main c/o Eleveight Société Coopérative • www.lekoupdemain.ch</p>
+                        </div>
+                    </div>`;
+
+                    // Génération du PDF invisible et upload Storage Supabase
+                    const tempContainer = document.createElement('div');
+                    tempContainer.innerHTML = certificateHtml;
+                    document.body.appendChild(tempContainer);
+
+                    const opt = {
+                        margin: 5,
+                        filename: `Decompte_Salaire_${month}_${year}_${student.full_name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { scale: 2, useCORS: true },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    };
+
+                    const pdfBlob = await html2pdf().from(tempContainer.firstElementChild).set(opt).outputPdf('blob');
+                    document.body.removeChild(tempContainer);
+
+                    const storageFileName = `decompte_salaire_${Date.now()}_${Math.random().toString(36).substring(7)}.pdf`;
+
+                    const { error: uploadError } = await window.supabaseClient.storage
+                        .from('lkdm_docs')
+                        .upload(storageFileName, pdfBlob, { contentType: 'application/pdf', upsert: false });
+
+                    if (uploadError) continue;
+
+                    const { data: publicUrlData } = window.supabaseClient.storage
+                        .from('lkdm_docs')
+                        .getPublicUrl(storageFileName);
+
+                    const pdfUrl = publicUrlData ? publicUrlData.publicUrl : null;
+                    if (!pdfUrl) continue;
+
+                    // Enregistrement dans la table 'documents' lié à l'étudiant
+                    await window.supabaseClient.from('documents').insert([{
+                        title: docTitle,
+                        doc_type: 'Certificat de salaire',
+                        student_id: student.id,
+                        mission_id: filteredMissions[0].id,
+                        file_url: pdfUrl
+                    }]);
+
+                    successCount++;
+                }
+
+                alert(`Génération terminée avec succès !\n${successCount} décompte(s) de salaire pour ${monthName} ${year} ont été générés, stockés et liés à leurs étudiants respectifs dans Supabase.`);
+                
+                if (typeof loadSupabaseOverview === 'function') loadSupabaseOverview();
+
+            } catch (err) {
+                console.error("Erreur génération groupée :", err);
+                alert("Erreur lors de la génération en masse : " + err.message);
             }
         }
     </script>
