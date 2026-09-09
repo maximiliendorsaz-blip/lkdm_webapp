@@ -1108,7 +1108,7 @@
         </form>
     </div>
 </div>
-        <!-- MODALE DE VISUALISATION DES DOCUMENTS -->
+<!-- MODALE DE VISUALISATION DES DOCUMENTS -->
 <div id="modal-view-document" class="hidden fixed inset-0 z-[250] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 relative my-8">
         <button onclick="closeModal('modal-view-document')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200">
@@ -1117,13 +1117,19 @@
         <div id="document-preview-container" class="mb-6 max-h-[70vh] overflow-y-auto p-2">
             <!-- Le contenu du document généré s'insère ici dynamiquement -->
         </div>
-        <div class="flex justify-end gap-3 border-t pt-4">
-            <button type="button" onclick="closeModal('modal-view-document')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Fermer</button>
-            <button type="button" id="btn-proceed-to-email" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm hover:bg-[#b53838]">
-                <i class="fa-solid fa-paper-plane mr-1.5"></i> Envoyer par e-mail
+        <div class="flex justify-between items-center border-t pt-4">
+            <button type="button" onclick="saveCurrentPreviewToDB()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs font-medium shadow-sm transition flex items-center gap-1.5">
+                <i class="fa-solid fa-database"></i> Enregistrer dans la DB
             </button>
+            <div class="flex gap-2">
+                <button type="button" onclick="closeModal('modal-view-document')" class="px-5 py-2.5 bg-slate-100 rounded-full text-xs font-medium">Fermer</button>
+                <button type="button" id="btn-proceed-to-email" class="px-6 py-2.5 bg-lkdm-accent text-white rounded-full text-xs font-medium shadow-sm hover:bg-[#b53838]">
+                    <i class="fa-solid fa-paper-plane mr-1.5"></i> Envoyer par e-mail
+                </button>
+            </div>
         </div>
     </div>
+</div>
 </div>
 
     <!-- SCRIPTS JAVASCRIPT PRINCIPAUX -->
@@ -1791,8 +1797,8 @@
                             <p class="text-xs font-semibold text-emerald-600 mt-1">Reçu N° : QUI-${finalMissionCode}</p>
                         </div>
                         <div class="text-right">
-                            <h2 class="font-bold text-lg text-lkdm-text">Le Koup de Main (LKDM)</h2>
-                            <p class="text-xs text-slate-500">1950 Sion, Valais</p>
+                            <h2 class="font-bold text-lg text-lkdm-text">Le Koup de Main</h2>
+                            <p class="text-xs text-slate-500">Technopôle 1, 3960 Sierre, Valais</p>
                         </div>
                     </div>
                     <p class="text-xs text-slate-600 mb-8 leading-relaxed">Nous confirmons par la présente la réception du paiement intégral pour la mission <strong>${finalMissionCode}</strong>.</p>
@@ -1836,19 +1842,13 @@
                 </div>`;
             }
 
-            // Enregistrement automatique dans Supabase
-            try {
-                await window.supabaseClient
-                    .from('documents')
-                    .insert([{
-                        title: docTitle,
-                        doc_type: docType,
-                        client_id: mission.client_id || null,
-                        mission_id: mission.id || null
-                    }]);
-            } catch (err) {
-                console.error("Erreur enregistrement DB documents :", err);
-            }
+            // Mémorisation du contexte pour le bouton d'enregistrement manuel dans la DB
+            currentDocumentContext = {
+                docType: docType,
+                missionId: mission.id || null,
+                clientId: mission.client_id || null,
+                title: docTitle
+            };
 
             // Affichage dans la modale
             const container = document.getElementById('document-preview-container');
@@ -2923,7 +2923,38 @@
         async function logAdminAction(action, target, details) {
             console.log(`Action loggée: ${action} - ${target} - ${details}`);
         }
-        
+
+        // Variable globale temporaire pour stocker le contexte du document en cours de prévisualisation
+        let currentDocumentContext = null;
+
+        // Fonction pour déclencher l'enregistrement manuel depuis le bouton de la modale
+        async function saveCurrentPreviewToDB() {
+            if (!currentDocumentContext) {
+                alert("Aucun contexte de document actif.");
+                return;
+            }
+
+            const { docType, missionId, clientId, title } = currentDocumentContext;
+
+            try {
+                const payload = {
+                    title: title,
+                    doc_type: docType,
+                    client_id: clientId || null,
+                    mission_id: missionId || null
+                };
+
+                const { error } = await window.supabaseClient.from('documents').insert([payload]);
+                if (error) throw error;
+
+                alert("Document enregistré avec succès dans la base de données !");
+                closeModal('modal-view-document');
+                loadSupabaseOverview(); // Recharge les tableaux pour afficher le nouveau document
+            } catch (err) {
+                console.error("Erreur lors de l'enregistrement du document :", err);
+                alert("Erreur : " + err.message);
+            }
+        }
     </script>
 </body>
 </html>
