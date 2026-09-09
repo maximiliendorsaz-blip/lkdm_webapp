@@ -1310,7 +1310,13 @@
         }
 
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('active'); // Si vous utilisez une classe active
+                modal.style.display = 'none';    // Force la fermeture immédiate
+            }
+        }
         function toggleMobileMenu() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
 
         function populateDynamicDropdowns() {
