@@ -238,10 +238,12 @@
         </main>
     </div>
 
-    <div id="mission-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300" id="mission-modal-content"></div>
+    <!-- Modale de détail des missions -->
+    <div id="mission-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden relative" id="mission-modal-content"></div>
     </div>
 
+    <!-- Modale de feedback -->
     <div id="modal-feedback" class="hidden fixed inset-0 z-[400] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-6 my-8 relative max-h-[90vh] overflow-y-auto">
             <button type="button" onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition shadow-sm z-10"><i class="fa-solid fa-times"></i></button>
@@ -349,8 +351,10 @@
         </div>
     </div>
 
+    <!-- Modale de rebooking -->
     <div id="modal-rebooking" class="hidden fixed inset-0 z-[500] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 my-8 relative">
+            <button type="button" onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition shadow-sm z-10"><i class="fa-solid fa-times"></i></button>
             <h3 class="text-xl font-bold text-lkdm-text mb-4 text-center">Fidélisation Client</h3>
             <p class="text-sm text-center text-slate-600 mb-6">Le client souhaite-t-il déjà replanifier une nouvelle mission avec Le Koup de Main ?</p>
             
@@ -393,11 +397,13 @@
         checkAuth();
         
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        
         function closeModal() {
             document.getElementById('mission-modal').classList.add('hidden');
             document.getElementById('modal-feedback').classList.add('hidden');
             document.getElementById('modal-rebooking').classList.add('hidden');
         }
+
         function toggleMobileMenu() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
 
         function showToast(msg) {
@@ -410,14 +416,12 @@
         async function initStudentSpace() {
             if (!window.supabaseClient) return;
 
-            // 1. Récupérer l'utilisateur connecté via Supabase Auth
             const { data: { user }, error: authError } = await window.supabaseClient.auth.getUser();
             if (authError || !user) {
                 window.location.href = 'login.html';
                 return;
             }
 
-            // 2. Récupérer le profil correspondant exactement à l'ID connecté
             const { data: profile, error } = await window.supabaseClient
                 .from('profiles')
                 .select('*')
@@ -572,7 +576,7 @@
 
             content.innerHTML = `
                 <div class="p-6 border-b relative bg-slate-50">
-                    <button onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 shadow-sm"><i class="fa-solid fa-times"></i></button>
+                    <button onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 shadow-sm z-10"><i class="fa-solid fa-times"></i></button>
                     <h3 class="text-xl font-bold text-lkdm-text">${m.exact_description || m.mission_code}</h3>
                     <p class="text-xs text-lkdm-secondary mt-0.5"><i class="fa-regular fa-calendar mr-1"></i> ${formatDisplayDateTime(m.mission_date)} • ${m.mission_periods || 'Horaire flexible'}</p>
                 </div>
@@ -585,13 +589,8 @@
                 </div>
             `;
             modal.classList.remove('hidden');
-            modal.classList.remove('opacity-0');
         }
 
-        function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) modal.classList.add('hidden');
-        }
         async function acceptMission(id) {
             if (!currentStudentId) return;
             const { error } = await window.supabaseClient.from('missions').update({ student_id: currentStudentId, matching_status: 'Confirmé' }).eq('id', id);
@@ -628,12 +627,12 @@
             const hours = parseFloat(document.getElementById('fb-real-hours').value) || 0;
             const transportType = document.getElementById('fb-transport-type').value;
             
-            let laborCost = hours * 35; // 35 CHF / heure
+            let laborCost = hours * 35;
             let travelCost = 0;
             
             if (transportType === 'km') {
                 const km = parseFloat(document.getElementById('fb-km-count').value) || 0;
-                travelCost = km * 0.75; // 0.75 CHF par km
+                travelCost = km * 0.75;
             } else if (transportType === 'bus') {
                 travelCost = parseFloat(document.getElementById('fb-bus-price').value) || 0;
             }
@@ -682,7 +681,7 @@
             openModal('modal-feedback');
         }
 
-async function submitFeedback(event) {
+        async function submitFeedback(event) {
             event.preventDefault();
             const id = document.getElementById('fb-mission-id').value;
             
@@ -721,18 +720,15 @@ async function submitFeedback(event) {
                 end_time: new Date().toISOString()
             };
 
-            // 1. Mise à jour de la mission
             const { error } = await window.supabaseClient.from('missions').update(payload).eq('id', id);
             if (error) {
                 alert("Erreur lors de la clôture : " + error.message);
                 return;
             }
 
-            // 2. Gestion et upload des fichiers (Ticket de bus & Photos)
             const missionObj = dbMissions.find(x => x.id == id);
             const clientId = missionObj ? missionObj.client_id : null;
 
-            // Upload du Ticket de bus si présent
             const busFileInput = document.getElementById('fb-bus-receipt');
             if (busFileInput && busFileInput.files.length > 0) {
                 const file = busFileInput.files[0];
@@ -745,7 +741,6 @@ async function submitFeedback(event) {
                 if (!uploadError) {
                     const { data: publicUrlData } = window.supabaseClient.storage.from('lkdm_docs').getPublicUrl(fileName);
                     
-                    // Insertion dans la table documents
                     await window.supabaseClient.from('documents').insert([{
                         title: 'Ticket de bus',
                         doc_type: 'Justificatif',
@@ -757,7 +752,6 @@ async function submitFeedback(event) {
                 }
             }
 
-            // Upload des Photos de la mission si présentes
             const photosInput = document.getElementById('fb-photos');
             if (photosInput && photosInput.files.length > 0) {
                 for (let i = 0; i < photosInput.files.length; i++) {
@@ -771,7 +765,6 @@ async function submitFeedback(event) {
                     if (!uploadError) {
                         const { data: publicUrlData } = window.supabaseClient.storage.from('lkdm_docs').getPublicUrl(fileName);
                         
-                        // Insertion dans la table documents
                         await window.supabaseClient.from('documents').insert([{
                             title: `Photos de la mission (${i + 1})`,
                             doc_type: 'Photos mission',
@@ -785,9 +778,10 @@ async function submitFeedback(event) {
             }
 
             alert("Mission clôturée avec succès et documents enregistrés !");
-            closeModal('modal-feedback');
+            closeModal();
             loadStudentData();
         }
+
         function openRebookingModal(clientId) {
             document.getElementById('rb-client-id').value = clientId;
             document.getElementById('rb-form-container').classList.add('hidden');
@@ -798,7 +792,7 @@ async function submitFeedback(event) {
             if (show) {
                 document.getElementById('rb-form-container').classList.remove('hidden');
             } else {
-                closeModalCustom('modal-rebooking');
+                document.getElementById('modal-rebooking').classList.add('hidden');
                 showToast("Fin de mission validée. Excellent travail !");
             }
         }
@@ -831,7 +825,7 @@ async function submitFeedback(event) {
             };
             
             await window.supabaseClient.from('missions').insert([payload]);
-            closeModalCustom('modal-rebooking');
+            document.getElementById('modal-rebooking').classList.add('hidden');
             showToast("Le rebooking a bien été enregistré. Merci !");
             loadStudentData();
         }
@@ -844,7 +838,7 @@ async function submitFeedback(event) {
                 if (m.student_id !== currentStudentId) return false;
                 
                 const status = (m.matching_status || "").toLowerCase();
-                const isFinished = m.end_time || status === 'À facturer' || status === 'En attente de paiement' || status === 'Mission effectuée';
+                const isFinished = m.end_time || status === 'à facturer' || status === 'en attente de paiement' || status === 'mission effectuée';
                 
                 return !isFinished;
             });
@@ -994,20 +988,16 @@ async function submitFeedback(event) {
         window.addEventListener('DOMContentLoaded', () => {
             initStudentSpace();
         });
-        async function handleLogout() {
-    if (!window.supabaseClient) return;
-    
-    // Demande à Supabase de fermer la session active
-    const { error } = await window.supabaseClient.auth.signOut();
-    
-    if (error) {
-        console.error("Erreur lors de la déconnexion :", error.message);
-        return;
-    }
 
-    // Redirige l'utilisateur vers la page de login
-    window.location.href = 'login.html';
-}
+        async function handleLogout() {
+            if (!window.supabaseClient) return;
+            const { error } = await window.supabaseClient.auth.signOut();
+            if (error) {
+                console.error("Erreur lors de la déconnexion :", error.message);
+                return;
+            }
+            window.location.href = 'login.html';
+        }
     </script>
 </body>
 </html>
