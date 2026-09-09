@@ -680,7 +680,7 @@
             openModal('modal-feedback');
         }
 
-        async function submitFeedback(event) {
+async function submitFeedback(event) {
             event.preventDefault();
             const id = document.getElementById('fb-mission-id').value;
             
@@ -702,7 +702,7 @@
             const totalAmount = laborCost + travelCost;
 
             const payload = {
-                matching_status: 'À facturer',
+                matching_status: 'À facturer', // Statut mis à jour
                 payment_type: document.getElementById('fb-payment-type').value,
                 senior_csat: parseInt(document.getElementById('fb-scsat').value) || null,
                 senior_nps: parseInt(document.getElementById('fb-snps').value) || null,
@@ -712,10 +712,11 @@
                 feedback: document.getElementById('fb-feedback').value,
                 real_hours: realHours,
                 travel_expenses: travelCost,
-                transport_type: transportType,          // Enregistre "none", "km" ou "bus"
-                transport_details: transportDetailsStr,   // Enregistre le libellé précis pour la facture
+                transport_type: transportType,          
+                transport_details: transportDetailsStr,   
                 total_amount: totalAmount,
-                lkdm_commission: realHours * 10
+                lkdm_commission: realHours * 10,
+                end_time: new Date().toISOString() // Enregistre l'heure de fin pour masquer la mission des engagements en cours
             };
 
             const { error } = await window.supabaseClient.from('missions').update(payload).eq('id', id);
@@ -724,7 +725,7 @@
             } else {
                 alert("Mission clôturée avec succès !");
                 closeModal('modal-feedback');
-                loadSupabaseOverview();
+                loadStudentData(); // Correction ici : appel de la fonction de chargement de l'espace étudiant
             }
         }
         function openRebookingModal(clientId) {
