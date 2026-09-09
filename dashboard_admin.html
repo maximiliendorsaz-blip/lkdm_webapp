@@ -3031,11 +3031,10 @@
                 return;
             }
 
-            // Bouton de chargement visuel
             const btnSend = document.getElementById('btn-proceed-to-email');
             const originalText = btnSend ? btnSend.innerHTML : '';
             if (btnSend) {
-                btnSend.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Envoi en cours...';
+                btnSend.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Préparation...';
                 btnSend.disabled = true;
             }
 
@@ -3066,7 +3065,7 @@
                     .getPublicUrl(storageFileName);
 
                 const pdfUrl = publicUrlData ? publicUrlData.publicUrl : null;
-                if (!pdfUrl) throw new Error("Impossible d'obtenir l'URL publique du PDF pour la pièce jointe.");
+                if (!pdfUrl) throw new Error("Impossible d'obtenir l'URL publique du PDF.");
 
                 // 2. Enregistrement de l'archive dans la table 'documents'
                 await window.supabaseClient.from('documents').insert([{
@@ -3075,24 +3074,23 @@
                     file_url: pdfUrl
                 }]);
 
-                // 3. Envoi direct de l'e-mail via EmailJS (depuis hello@lekoupdemain.ch avec la pièce jointe)
-                const templateParams = {
-                    to_email: recipient,
-                    to_name: clientName,
-                    doc_type: docType,
-                    mission_code: missionCode,
-                    message: `Bonjour ${clientName},\n\nVeuillez trouver ci-joint votre ${docType.toLowerCase()} (${missionCode}) émise par Le Koup de Main.\n\nBien cordialement,\nL'équipe Le Koup de Main`,
-                    pdf_url: pdfUrl // Passé au template EmailJS pour générer la pièce jointe
-                };
+                // 3. Préparation et ouverture de l'application mail avec le lien direct inclus
+                const subject = encodeURIComponent(`Le Koup de Main - ${docType} (${missionCode})`);
+                const body = encodeURIComponent(
+                    `Bonjour ${clientName},\n\n` +
+                    `Veuillez trouver ci-dessous le lien pour consulter et télécharger votre ${docType.toLowerCase()} (${missionCode}) émise par Le Koup de Main :\n\n` +
+                    `${pdfUrl}\n\n` +
+                    `Bien cordialement,\n` +
+                    `L'équipe Le Koup de Main`
+                );
 
-                await emailjs.send('service_df3932r', 'template_lzssyec', templateParams);
-
-                alert(`Succès : La ${docType} a été envoyée en pièce jointe à ${recipient} directement depuis hello@lekoupdemain.ch !`);
+                // Ouvre l'application de messagerie avec le texte et le lien prêts à l'envoi
+                window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
                 closeModal('modal-view-document');
 
             } catch (err) {
-                console.error("Erreur lors de l'envoi de l'e-mail :", err);
-                alert("Erreur lors de l'envoi : " + err.message);
+                console.error("Erreur lors de la préparation du lien PDF :", err);
+                alert("Erreur : " + err.message);
             } finally {
                 if (btnSend) {
                     btnSend.innerHTML = originalText;
