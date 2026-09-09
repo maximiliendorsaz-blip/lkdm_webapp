@@ -1311,15 +1311,8 @@
 
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(modalId) {
-            const modal = document.getElementById(modalId || 'mission-modal');
-            if (modal) {
-                // Remet l'opacité à 0 pour l'animation de fermeture
-                modal.classList.add('opacity-0');
-                setTimeout(() => {
-                    modal.classList.add('hidden');
-                    modal.style.display = ''; // Nettoie les styles en ligne éventuels
-                }, 300); // Correspond à la durée de transition (300ms)
-            }
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.add('hidden');
         }
         function toggleMobileMenu() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); }
 
