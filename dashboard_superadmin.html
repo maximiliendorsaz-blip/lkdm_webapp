@@ -3558,7 +3558,7 @@
                     // Si l'étudiant n'a pas de mission ce mois-là, on passe au suivant
                     if (filteredMissions.length === 0) continue;
 
-                    const hourlyRate = 35.00;
+                    const hourlyRate = 22.00;
                     let totalHours = 0;
                     let totalTravelExpenses = 0;
                     let tableRowsHtml = '';
@@ -3583,12 +3583,13 @@
                     });
 
                     const grossSalary = totalHours * hourlyRate;
-                    const vacancesAmount = grossSalary * 0.0833;
-                    const totalWithVacances = grossSalary + vacancesAmount;
+                    const vacancesAmount = grossSalary * 0.1064;
+                    const holidayAmount = grossSalary * 0.03;
+                    const totalWithVacances = grossSalary + holidayAmount + vacancesAmount;
                     
-                    const avsAmount = totalWithVacances * 0.0530;
-                    const acAmount = totalWithVacances * 0.0110;
-                    const allocFamAmount = totalWithVacances * 0.00171;
+                    const avsAmount = totalWithVacances * 0;
+                    const acAmount = totalWithVacances * 0;
+                    const allocFamAmount = totalWithVacances * 0;
                     const totalDeductions = avsAmount + acAmount + allocFamAmount;
                     
                     const netSalary = totalWithVacances - totalDeductions;
@@ -3635,12 +3636,13 @@
                             <div class="w-80 space-y-2 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200">
                                 <div class="flex justify-between py-1 border-b border-slate-200"><span class="text-slate-500">Total Heures</span><span class="font-semibold">${totalHours} h</span></div>
                                 <div class="flex justify-between py-1 border-b border-slate-200"><span class="text-slate-500">Salaire brut (${hourlyRate.toFixed(2)} CHF/h)</span><span class="font-semibold">CHF ${grossSalary.toFixed(2)}</span></div>
-                                <div class="flex justify-between py-1 border-b border-slate-200"><span class="text-slate-500">Vacances (8.33%)</span><span class="font-semibold">CHF ${vacancesAmount.toFixed(2)}</span></div>
+                                <div class="flex justify-between py-1 border-b border-slate-200"><span class="text-slate-500">Vacances (10.64%)</span><span class="font-semibold">CHF ${vacancesAmount.toFixed(2)}</span></div>
+                                <div class="flex justify-between py-1 border-b border-slate-200"><span class="text-slate-500">Fériés (3.00%)</span><span class="font-semibold">CHF ${vacancesAmount.toFixed(2)}</span></div>
                                 <div class="flex justify-between py-1.5 text-xs font-bold text-slate-700 border-b border-slate-300"><span>SOUS-TOTAL</span><span>CHF ${totalWithVacances.toFixed(2)}</span></div>
                                 
-                                <div class="flex justify-between py-1 text-slate-500"><span>AVS/AI/APG (5.30%)</span><span>CHF ${avsAmount.toFixed(2)}</span></div>
-                                <div class="flex justify-between py-1 text-slate-500"><span>AC (1.10%)</span><span>CHF ${acAmount.toFixed(2)}</span></div>
-                                <div class="flex justify-between py-1 border-b border-slate-200 text-slate-500"><span>Alloc. Fam. (0.171%)</span><span>CHF ${allocFamAmount.toFixed(2)}</span></div>
+                                <div class="flex justify-between py-1 text-slate-500"><span>AVS/AI/APG (0%)</span><span>CHF ${avsAmount.toFixed(2)}</span></div>
+                                <div class="flex justify-between py-1 text-slate-500"><span>AC (0%)</span><span>CHF ${acAmount.toFixed(2)}</span></div>
+                                <div class="flex justify-between py-1 border-b border-slate-200 text-slate-500"><span>Alloc. Fam. (0%)</span><span>CHF ${allocFamAmount.toFixed(2)}</span></div>
                                 
                                 <div class="flex justify-between py-1 text-xs font-bold text-slate-700 border-b border-slate-300"><span>TOTAL DÉDUCTIONS</span><span>CHF ${totalDeductions.toFixed(2)}</span></div>
                                 <div class="flex justify-between py-1 text-xs font-bold text-slate-700 border-b border-slate-200"><span>SALAIRE NET</span><span>CHF ${netSalary.toFixed(2)}</span></div>
